@@ -8,6 +8,7 @@
   h1 { font-family: system-ui, sans-serif; }
   p { line-height: 1.6; }
   iframe { width: 100%; border: 0; }
+  .dt-embed { min-height: 200px; }
   .embed-wrap { margin: 2rem 0; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
   code { background: #f2f2f2; padding: 2px 5px; border-radius: 3px; }
 </style>
@@ -23,8 +24,8 @@
 
 <div class="embed-wrap">
   <iframe
+    class="dt-embed"
     src="embed/f1/drivers.html"
-    height="480"
     title="F1 driver standings">
   </iframe>
 </div>
@@ -36,16 +37,22 @@
 
 <div class="embed-wrap" style="background:#111;">
   <iframe
+    class="dt-embed"
     src="embed/f1/constructors.html?theme=dark&accent=1d9e75"
-    height="420"
     title="F1 constructor standings">
   </iframe>
 </div>
 
 <p style="font-size: 0.85rem; color: #777;">
-  Embed code: <code>&lt;iframe src="embed/f1/drivers.html" height="480"&gt;&lt;/iframe&gt;</code>
+  Embed code: <code>&lt;iframe class="dt-embed" src="embed/f1/drivers.html"&gt;&lt;/iframe&gt;</code>
   — add <code>?theme=dark&amp;accent=RRGGBB</code> to match your site's palette.
+  Height is automatic via iframe-resizer, no need to set one.
 </p>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.9/iframeResizer.min.js"></script>
+<script>
+  iFrameResize({ checkOrigin: false }, '.dt-embed');
+</script>
 
 </body>
 </html>
