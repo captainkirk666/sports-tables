@@ -1,0 +1,102 @@
+/* ===========================================
+   Shared embeddable table theme — v1
+   Do not make breaking changes here once embeds
+   are live. Add a v2 folder instead and migrate.
+   =========================================== */
+
+:root {
+  --dt-bg: transparent;
+  --dt-text: #111;
+  --dt-text-secondary: #666;
+  --dt-border: #e2e2e2;
+  --dt-header-bg: #f7f7f8;
+  --dt-row-hover: #f0f4ff;
+  --dt-accent: #e10600;
+  --dt-radius: 8px;
+  --dt-font: system-ui, -apple-system, sans-serif;
+}
+
+/* Dark theme, toggled by tables.js when ?theme=dark is present */
+[data-dt-theme="dark"] {
+  --dt-bg: #111;
+  --dt-text: #eee;
+  --dt-text-secondary: #999;
+  --dt-border: #333;
+  --dt-header-bg: #1c1c1c;
+  --dt-row-hover: #1a1a2e;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+.dt-widget {
+  font-family: var(--dt-font);
+  background: var(--dt-bg);
+  color: var(--dt-text);
+  padding: 0.75rem;
+}
+
+.dt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.dt-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-left: 4px solid var(--dt-accent);
+  padding-left: 8px;
+  margin: 0;
+}
+
+.dt-updated {
+  font-size: 0.75rem;
+  color: var(--dt-text-secondary);
+}
+
+.data-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.data-table th,
+.data-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--dt-border);
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.data-table th {
+  background: var(--dt-header-bg);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--dt-text-secondary);
+}
+
+.data-table tr:hover {
+  background: var(--dt-row-hover);
+}
+
+.data-table td.numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.dt-footer {
+  margin-top: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--dt-text-secondary);
+  text-align: right;
+}
+
+.dt-footer a {
+  color: inherit;
+}
