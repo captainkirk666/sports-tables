@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Live sports data tables — embeddable widgets</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+    color: #111;
+  }
+  h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+  .tagline { color: #666; margin-top: 0; margin-bottom: 2.5rem; }
+  .sport-group { margin-bottom: 2.5rem; }
+  .sport-group h2 {
+    font-size: 1.1rem;
+    border-left: 4px solid #e10600;
+    padding-left: 10px;
+    margin-bottom: 1rem;
+  }
+  .table-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+  .table-card {
+    border: 1px solid #e2e2e2;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s;
+  }
+  .table-card:hover { border-color: #e10600; }
+  .table-card h3 { margin: 0 0 0.25rem; font-size: 1rem; }
+  .table-card p { margin: 0; font-size: 0.85rem; color: #666; }
+  .footer-note {
+    margin-top: 3rem;
+    font-size: 0.8rem;
+    color: #999;
+    border-top: 1px solid #eee;
+    padding-top: 1rem;
+  }
+</style>
+</head>
+<body>
+
+<h1>Live sports data tables</h1>
+<p class="tagline">Embeddable, auto-updating tables for use in articles and stories.</p>
+
+<div id="sports-index"></div>
+
+<p class="footer-note">
+  Each table is embeddable via iframe and auto-sizes to its content.
+  See any table page for the embed code.
+</p>
+
+<script>
+/**
+ * Add new sports/tables here as they're built.
+ * This is the single source of truth the home page renders from.
+ */
+const SPORTS_INDEX = [
+  {
+    sport: "Formula 1",
+    tables: [
+      { name: "Driver standings", href: "embed/f1/drivers.html", description: "Current season points and wins" },
+      { name: "Constructor standings", href: "embed/f1/constructors.html", description: "Team championship standings" },
+    ],
+  },
+];
+
+const container = document.getElementById('sports-index');
+container.innerHTML = SPORTS_INDEX.map(group => `
+  <div class="sport-group">
+    <h2>${group.sport}</h2>
+    <div class="table-grid">
+      ${group.tables.map(t => `
+        <a class="table-card" href="${t.href}">
+          <h3>${t.name}</h3>
+          <p>${t.description}</p>
+        </a>
+      `).join('')}
+    </div>
+  </div>
+`).join('');
+</script>
+
+</body>
+</html>
