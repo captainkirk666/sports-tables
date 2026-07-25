@@ -31,14 +31,6 @@ function applyThemeFromQueryParams() {
   }
 }
 
-function reportHeightToParent() {
-  // Works with iframe-resizer's contentWindow script if the publisher
-  // includes it; harmless no-op otherwise. Also posts a raw height as
-  // a fallback for publishers who don't want to add a script at all.
-  const height = document.documentElement.scrollHeight;
-  window.parent.postMessage({ type: 'dt-resize', height }, '*');
-}
-
 function renderRows(container, columns, rows) {
   const colspan = columns.length;
   if (!rows || !rows.length) {
@@ -92,11 +84,9 @@ function initTable(config) {
         const rows = config.adapter.extract(data);
         renderRows(tbody, config.adapter.columns, rows);
         updatedEl.textContent = `Updated ${new Date().toLocaleTimeString()}`;
-        reportHeightToParent();
       })
       .catch(err => {
         tbody.innerHTML = `<tr><td colspan="${colspan}">Failed to load: ${err.message}</td></tr>`;
-        reportHeightToParent();
       });
   }
 
@@ -104,7 +94,4 @@ function initTable(config) {
   if (config.refreshSeconds) {
     setInterval(load, config.refreshSeconds * 1000);
   }
-
-  // Report height once more after images/fonts settle
-  window.addEventListener('load', reportHeightToParent);
 }
