@@ -58,18 +58,33 @@ input[type="color"] { width: 42px; height: 32px; border: 1px solid #e2e2e2; bord
 }
 .detail-col h2 { font-size: 1rem; margin: 0 0 0.75rem; }
 
+#embed-code.hidden { display: none; }
 #embed-code {
   display: block;
   background: #1c1c1c; color: #eee;
   padding: 0.75rem 1rem; border-radius: 6px;
-  font-size: 0.8rem; overflow-x: auto; white-space: nowrap;
+  font-size: 0.78rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin-top: 0.75rem;
 }
 #copy-btn {
-  margin-top: 0.6rem; font-size: 0.85rem;
-  padding: 0.4rem 0.9rem; border-radius: 6px;
-  border: 1px solid #e2e2e2; background: #fff; cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0.6rem 1.2rem; border-radius: 6px;
+  border: none; background: #e10600; color: #fff; cursor: pointer;
 }
-#copy-btn:hover { border-color: #111; }
+#copy-btn:hover { background: #b80500; }
+#toggle-code-btn {
+  display: inline-block;
+  margin-left: 0.75rem;
+  font-size: 0.8rem;
+  color: #666;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+#toggle-code-btn:hover { color: #111; }
 
 .size-controls { display: flex; gap: 0.6rem; margin-bottom: 1rem; flex-wrap: wrap; }
 .size-option {
