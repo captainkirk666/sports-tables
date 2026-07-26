@@ -4,7 +4,7 @@
    are live. Add a v2 folder instead and migrate.
    =========================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;500;600;700&display=swap');
 
 :root {
   --dt-bg: transparent;
@@ -15,7 +15,7 @@
   --dt-row-hover: #f0f4ff;
   --dt-accent: #e10600;
   --dt-radius: 8px;
-  --dt-font: 'Oswald', system-ui, -apple-system, sans-serif;
+  --dt-font: 'Roboto Condensed', system-ui, -apple-system, sans-serif;
 }
 
 /* Dark theme, toggled by tables.js when ?theme=dark is present */
