@@ -1,212 +1,129 @@
-/**
- * Table detail page — combines styling (from style-picker.js) and
- * print export (from export.js) into one page per table.
- *
- * Usage: initTableDetail({
- *   title, embedHref, sourceUrl, adapter, attribution
- * });
- */
+/* Table detail page — style controls + embed code + print export, combined */
 
-const STYLE_PRESETS = [
-  { key: "red",   label: "Red",   theme: null, accent: "C4151C", swatch: "#C4151C" },
-  { key: "green", label: "Green", theme: null, accent: "004225", swatch: "#004225" },
-  { key: "blue",  label: "Blue",  theme: null, accent: "0156B2", swatch: "#0156B2" },
-];
+h1#page-title { font-size: 1.6rem; margin-bottom: 1.5rem; }
 
-const SIZE_PRESETS = {
-  compact:  { label: "Compact (1 col)",  widthCm: 8,  maxRows: 8,    columns: ["pos", "driver", "constructor", "team", "points"] },
-  standard: { label: "Standard (2 col)", widthCm: 12, maxRows: 15,   columns: ["pos", "driver", "constructor", "team", "nationality", "laps", "time", "fastest", "points", "wins"] },
-  full:     { label: "Full width",       widthCm: 18, maxRows: null, columns: ["pos", "driver", "constructor", "team", "nationality", "laps", "time", "fastest", "points", "wins"] },
-};
-
-let td = {
-  config: null,
-  style: { theme: null, accent: null },
-  printSize: "standard",
-  rows: [],
-};
-
-/* ---------- Style tabs + live preview + embed code ---------- */
-
-function buildEmbedUrl() {
-  const params = new URLSearchParams();
-  if (td.style.theme) params.set("theme", td.style.theme);
-  if (td.style.accent) params.set("accent", td.style.accent);
-  const qs = params.toString();
-  return qs ? `${td.config.embedHref}?${qs}` : td.config.embedHref;
+/* --- Style tabs (same look as style.html) --- */
+.tier-tabs {
+  display: flex; gap: 0.5rem;
+  border-bottom: 1px solid #e2e2e2;
+  margin-bottom: 1.5rem;
 }
+.tier-tab {
+  background: none; border: none;
+  padding: 0.6rem 1rem; font-size: 0.9rem;
+  cursor: pointer; color: #666;
+  border-bottom: 2px solid transparent;
+}
+.tier-tab.active { color: #111; border-bottom-color: #e10600; font-weight: 600; }
+.tier-panel { display: none; }
+.tier-panel.active { display: block; }
+.panel-desc { color: #666; font-size: 0.9rem; margin-bottom: 1rem; }
 
-function updateStylePreview() {
-  const url = buildEmbedUrl();
-  document.getElementById("preview-frame").src = url;
-  const fullUrl = new URL(url, window.location.href).href;
-  document.getElementById("embed-code").textContent =
-    `<iframe class="dt-embed" src="${fullUrl}"></iframe>`;
-  if (window.iFrameResize) {
-    iFrameResize({ checkOrigin: false }, '#preview-frame');
+.preset-swatch {
+  display: flex; align-items: center; gap: 0.5rem;
+  border: 1px solid #e2e2e2; border-radius: 20px;
+  padding: 0.4rem 0.9rem 0.4rem 0.5rem;
+  background: #fff; cursor: pointer; font-size: 0.85rem;
+}
+.preset-swatch.selected { border-color: #111; font-weight: 600; }
+.swatch-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--swatch-color); display: inline-block; }
+#preset-swatches { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+
+.custom-controls { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+.custom-controls label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
+input[type="color"] { width: 42px; height: 32px; border: 1px solid #e2e2e2; border-radius: 6px; cursor: pointer; padding: 2px; }
+
+.preview-wrap {
+  margin-top: 1.5rem;
+  border: 1px solid #e2e2e2; border-radius: 8px;
+  padding: 1rem; background: #fafafa;
+}
+.preview-wrap h2 { font-size: 0.95rem; margin: 0 0 0.75rem; }
+#preview-frame { width: 100%; border: 0; min-height: 250px; }
+
+/* --- Two-column row: embed code | download for print --- */
+.detail-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+@media (max-width: 700px) {
+  .detail-columns { grid-template-columns: 1fr; }
+}
+.detail-col {
+  border: 1px solid #e2e2e2;
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+.detail-col h2 { font-size: 1rem; margin: 0 0 0.75rem; }
+
+#embed-code.hidden { display: none; }
+#embed-code {
+  display: block;
+  background: #1c1c1c; color: #eee;
+  padding: 0.75rem 1rem; border-radius: 6px;
+  font-size: 0.78rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin-top: 0.75rem;
+}
+#copy-btn {
+  font-size: 0.9rem;
+  padding: 0.6rem 1.2rem; border-radius: 6px;
+  border: none; background: #e10600; color: #fff; cursor: pointer;
+}
+#copy-btn:hover { background: #b80500; }
+#toggle-code-btn {
+  display: inline-block;
+  margin-left: 0.75rem;
+  font-size: 0.8rem;
+  color: #666;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+#toggle-code-btn:hover { color: #111; }
+
+.size-controls { display: flex; gap: 0.6rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.size-option {
+  border: 1px solid #e2e2e2; border-radius: 6px; background: #fff;
+  padding: 0.5rem 0.9rem; font-size: 0.85rem; cursor: pointer;
+  line-height: 1.4; text-align: left;
+}
+.size-option .size-dim { font-size: 0.75rem; color: #999; }
+.size-option.selected { border-color: #e10600; border-width: 2px; font-weight: 600; }
+
+#download-btn {
+  font-size: 0.9rem; padding: 0.6rem 1.2rem;
+  border-radius: 6px; border: none;
+  background: #e10600; color: #fff; cursor: pointer;
+}
+#download-btn:hover { background: #b80500; }
+
+/* --- Hidden print surface (only visible when actually printing) --- */
+#print-surface { display: none; }
+
+.export-header {
+  display: flex; align-items: baseline; justify-content: space-between;
+  border-bottom: 3px solid #e10600; padding-bottom: 0.75rem; margin-bottom: 1.5rem;
+}
+.export-header h1 { font-size: 1.4rem; margin: 0; }
+.export-meta { font-size: 0.8rem; color: #666; text-align: right; }
+.export-table { border-collapse: collapse; width: 100%; }
+.export-table th, .export-table td { padding: 8px 10px; border-bottom: 1px solid #ccc; text-align: left; font-size: 0.95rem; }
+.export-table th { background: #f2f2f2; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.export-table td.numeric { text-align: right; font-variant-numeric: tabular-nums; }
+.export-truncated { font-size: 0.75rem; color: #999; margin-top: 0.4rem; font-style: italic; }
+.export-footer { margin-top: 1rem; font-size: 0.75rem; color: #999; }
+
+/* This is the key rule: when printing, hide everything on the page
+   except #print-surface, which becomes visible and full-width. */
+@media print {
+  #site-nav, .site-main > h1, .tier-tabs, .tier-panel, .preview-wrap, .detail-columns {
+    display: none !important;
   }
-}
-
-function selectTab(tab) {
-  document.querySelectorAll(".tier-panel").forEach(p => p.classList.remove("active"));
-  document.querySelectorAll(".tier-tab").forEach(t => t.classList.remove("active"));
-  document.getElementById(`panel-${tab}`).classList.add("active");
-  document.getElementById(`tab-${tab}`).classList.add("active");
-}
-
-function applyDefault() {
-  td.style = { theme: null, accent: null };
-  document.querySelectorAll(".default-option").forEach(el =>
-    el.classList.toggle("selected", el.dataset.key === "classic"));
-  updateStylePreview();
-}
-
-function applyReverse() {
-  td.style = { theme: "dark", accent: null };
-  document.querySelectorAll(".default-option").forEach(el =>
-    el.classList.toggle("selected", el.dataset.key === "reverse"));
-  updateStylePreview();
-}
-
-function applyPreset(key) {
-  const preset = STYLE_PRESETS.find(p => p.key === key);
-  if (!preset) return;
-  td.style = { theme: preset.theme, accent: preset.accent };
-  document.querySelectorAll(".preset-swatch").forEach(el =>
-    el.classList.toggle("selected", el.dataset.key === key));
-  updateStylePreview();
-}
-
-function applyCustom() {
-  const isDark = document.getElementById("custom-dark").checked;
-  const color = document.getElementById("custom-color").value.replace("#", "");
-  td.style = { theme: isDark ? "dark" : null, accent: color };
-  updateStylePreview();
-}
-
-function renderPresetSwatches() {
-  const mount = document.getElementById("preset-swatches");
-  mount.innerHTML = STYLE_PRESETS.map(p => `
-    <button class="preset-swatch" data-key="${p.key}" style="--swatch-color:${p.swatch}" onclick="applyPreset('${p.key}')">
-      <span class="swatch-dot"></span><span>${p.label}</span>
-    </button>
-  `).join("");
-}
-
-function copyEmbedCode() {
-  const text = document.getElementById("embed-code").textContent;
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.getElementById("copy-btn");
-    const original = btn.textContent;
-    btn.textContent = "Copied!";
-    setTimeout(() => { btn.textContent = original; }, 1500);
-  });
-}
-
-function toggleCodeVisible() {
-  const box = document.getElementById("embed-code");
-  const btn = document.getElementById("toggle-code-btn");
-  const isHidden = box.classList.toggle("hidden");
-  btn.textContent = isHidden ? "Show code" : "Hide code";
-}
-
-/* ---------- Print size picker + hidden print-only render ---------- */
-
-function renderPrintSurface() {
-  const preset = SIZE_PRESETS[td.printSize];
-  const config = td.config;
-  const now = new Date();
-  const dateStr = now.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-  const timeStr = now.toLocaleTimeString();
-  const visibleRows = preset.maxRows ? td.rows.slice(0, preset.maxRows) : td.rows;
-  const isCompact = td.printSize === "compact";
-
-  const activeColumns = preset.columns
-    ? config.adapter.columns.filter(c => preset.columns.includes(c.key))
-    : config.adapter.columns;
-
-  const cellValue = (col, row) => (isCompact && col.compactGet) ? col.compactGet(row) : col.get(row);
-
-  const rowsHtml = visibleRows.length
-    ? visibleRows.map(row => {
-        const cells = activeColumns.map(col => {
-          const cls = col.numeric ? ' class="numeric"' : '';
-          return `<td${cls}>${cellValue(col, row)}</td>`;
-        }).join('');
-        return `<tr>${cells}</tr>`;
-      }).join('')
-    : `<tr><td colspan="${activeColumns.length}">No data available.</td></tr>`;
-
-  document.getElementById("print-surface").innerHTML = `
-    <div class="export-header">
-      <h1>${config.title}</h1>
-      <div class="export-meta">${dateStr}<br>${timeStr}</div>
-    </div>
-    <table class="export-table">
-      <thead><tr>${activeColumns.map(c =>
-        `<th${c.numeric ? ' class="numeric"' : ''}>${c.label}</th>`).join('')}</tr></thead>
-      <tbody>${rowsHtml}</tbody>
-    </table>
-    ${preset.maxRows && td.rows.length > preset.maxRows
-      ? `<div class="export-truncated">Showing top ${preset.maxRows} of ${td.rows.length}</div>` : ''}
-    ${config.attribution ? `<div class="export-footer">Data: ${config.attribution.label} · Generated ${dateStr}, ${timeStr}</div>` : ''}
-  `;
-
-  document.getElementById("print-surface").style.width = `${preset.widthCm}cm`;
-
-  let pageStyle = document.getElementById('page-size-style');
-  if (!pageStyle) {
-    pageStyle = document.createElement('style');
-    pageStyle.id = 'page-size-style';
-    document.head.appendChild(pageStyle);
-  }
-  pageStyle.textContent = `@page { size: ${preset.widthCm}cm 40cm; margin: 0; }`;
-}
-
-function selectPrintSize(key) {
-  td.printSize = key;
-  document.querySelectorAll('.size-option').forEach(el =>
-    el.classList.toggle('selected', el.dataset.key === key));
-  renderPrintSurface();
-}
-
-function renderSizeControls() {
-  const mount = document.getElementById("size-controls");
-  mount.innerHTML = Object.entries(SIZE_PRESETS).map(([key, preset]) => `
-    <button class="size-option${key === td.printSize ? ' selected' : ''}" data-key="${key}" onclick="selectPrintSize('${key}')">
-      ${preset.label}<br><span class="size-dim">${preset.widthCm}cm wide</span>
-    </button>
-  `).join('');
-}
-
-/* ---------- Init ---------- */
-
-function initTableDetail(config) {
-  td.config = config;
-  document.getElementById("page-title").textContent = config.title;
-  document.title = `${config.title} — Live sports data tables`;
-
-  renderPresetSwatches();
-  renderSizeControls();
-  applyDefault();
-  renderPrintSurface();
-
-  document.getElementById("custom-dark").addEventListener("change", applyCustom);
-  document.getElementById("custom-color").addEventListener("input", applyCustom);
-  document.getElementById("copy-btn").addEventListener("click", copyEmbedCode);
-  document.getElementById("toggle-code-btn").addEventListener("click", toggleCodeVisible);
-  document.getElementById("download-btn").addEventListener("click", () => window.print());
-
-  fetch(config.sourceUrl)
-    .then(res => {
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return res.json();
-    })
-    .then(data => {
-      td.rows = config.adapter.extract(data) || [];
-      renderPrintSurface();
-    })
-    .catch(err => {
-      document.getElementById("print-surface").innerHTML = `<p>Failed to load: ${err.message}</p>`;
-    });
+  #print-surface { display: block !important; }
+  body { margin: 0; padding: 0; }
 }
