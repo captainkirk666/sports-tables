@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Style options — Live sports data tables</title>
+<link rel="stylesheet" href="css/site.css">
+<style>
+  h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+  .tagline { color: #666; margin-top: 0; margin-bottom: 2rem; }
+
+  .tier-tabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 1px solid #e2e2e2;
+    margin-bottom: 1.5rem;
+  }
+  .tier-tab {
+    background: none;
+    border: none;
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    color: #666;
+    border-bottom: 2px solid transparent;
+  }
+  .tier-tab.active {
+    color: #111;
+    border-bottom-color: #e10600;
+    font-weight: 600;
+  }
+
+  .tier-panel { display: none; }
+  .tier-panel.active { display: block; }
+
+  .panel-desc { color: #666; font-size: 0.9rem; margin-bottom: 1rem; }
+
+  #preset-swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  .preset-swatch {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid #e2e2e2;
+    border-radius: 20px;
+    padding: 0.4rem 0.9rem 0.4rem 0.5rem;
+    background: #fff;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  .preset-swatch.selected { border-color: #111; font-weight: 600; }
+  .swatch-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--swatch-color);
+    display: inline-block;
+  }
+
+  .custom-controls {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .custom-controls label {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-size: 0.9rem;
+  }
+  input[type="color"] {
+    width: 42px; height: 32px; border: 1px solid #e2e2e2; border-radius: 6px; cursor: pointer; padding: 2px;
+  }
+
+  .preview-wrap {
+    margin-top: 2rem;
+    border: 1px solid #e2e2e2;
+    border-radius: 8px;
+    padding: 1rem;
+    background: #fafafa;
+  }
+  .preview-wrap h2 { font-size: 0.95rem; margin: 0 0 0.75rem; }
+  #preview-frame { width: 100%; border: 0; min-height: 300px; }
+
+  .embed-code-wrap { margin-top: 1.5rem; }
+  #embed-code {
+    display: block;
+    background: #1c1c1c;
+    color: #eee;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  #copy-btn {
+    margin-top: 0.6rem;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 6px;
+    border: 1px solid #e2e2e2;
+    background: #fff;
+    cursor: pointer;
+  }
+  #copy-btn:hover { border-color: #111; }
+</style>
+</head>
+<body>
+
+<div id="site-nav" data-active="style"></div>
+
+<main class="site-main">
+  <h1>Style options</h1>
+  <p class="tagline">Choose how your embedded tables look. Preview updates live.</p>
+
+  <div class="tier-tabs">
+    <button class="tier-tab active" id="tab-default" onclick="selectTab('default')">Default</button>
+    <button class="tier-tab" id="tab-preset" onclick="selectTab('preset')">Presets</button>
+    <button class="tier-tab" id="tab-custom" onclick="selectTab('custom')">Custom</button>
+  </div>
+
+  <div class="tier-panel active" id="panel-default">
+    <p class="panel-desc">Black on white, or its inverse — no accent color, just the base look.</p>
+    <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
+      <button class="preset-swatch default-option selected" data-key="classic" onclick="applyDefault()">
+        <span class="swatch-dot" style="--swatch-color:#111; border:1px solid #ccc;"></span>
+        <span>Classic</span>
+      </button>
+      <button class="preset-swatch default-option" data-key="reverse" onclick="applyReverse()">
+        <span class="swatch-dot" style="--swatch-color:#fff; border:1px solid #ccc;"></span>
+        <span>Reverse</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="tier-panel" id="panel-preset">
+    <p class="panel-desc">Sport-themed presets — pick a look, we handle the colors.</p>
+    <div id="preset-swatches"></div>
+  </div>
+
+  <div class="tier-panel" id="panel-custom">
+    <p class="panel-desc">Tweak the highlight color and background to match your site.</p>
+    <div class="custom-controls">
+      <label>
+        <input type="checkbox" id="custom-dark">
+        Dark background
+      </label>
+      <label>
+        Accent color
+        <input type="color" id="custom-color" value="#e10600">
+      </label>
+    </div>
+  </div>
+
+  <div class="preview-wrap">
+    <h2>Live preview</h2>
+    <iframe id="preview-frame" src="embed/f1/drivers.html"></iframe>
+  </div>
+
+  <div class="embed-code-wrap">
+    <h2 style="font-size:0.95rem; margin-bottom:0.5rem;">Embed code</h2>
+    <code id="embed-code"></code>
+    <button id="copy-btn">Copy code</button>
+  </div>
+</main>
+
+<script src="js/site-nav.js"></script>
+<script src="js/style-picker.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.9/iframeResizer.min.js"></script>
+<script>
+  // Re-bind resizer whenever the preview src changes
+  const observer = new MutationObserver(() => {
+    iFrameResize({ checkOrigin: false }, '#preview-frame');
+  });
+  observer.observe(document.getElementById('preview-frame'), { attributes: true, attributeFilter: ['src'] });
+  iFrameResize({ checkOrigin: false }, '#preview-frame');
+</script>
+
+</body>
+</html>
