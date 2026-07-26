@@ -1,0 +1,130 @@
+/* Print/export styling — used only by pages under export/ */
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  color: #111;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.export-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 3px solid #e10600;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.export-header h1 {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.export-meta {
+  font-size: 0.8rem;
+  color: #666;
+  text-align: right;
+}
+
+.export-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.export-table th,
+.export-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #ccc;
+  text-align: left;
+  font-size: 0.95rem;
+}
+
+.export-table th {
+  background: #f2f2f2;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.export-table td.numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.export-footer {
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  color: #999;
+}
+
+.export-actions {
+  margin: 1.5rem 0;
+}
+
+.size-label {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.size-controls {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.size-option {
+  border: 1px solid #e2e2e2;
+  border-radius: 6px;
+  background: #fff;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.size-option .size-dim {
+  font-size: 0.75rem;
+  color: #999;
+}
+
+.size-option.selected {
+  border-color: #e10600;
+  border-width: 2px;
+  font-weight: 600;
+}
+
+#print-surface {
+  /* width is set dynamically in JS to match the chosen size */
+  max-width: 100%;
+}
+
+.export-truncated {
+  font-size: 0.75rem;
+  color: #999;
+  margin-top: 0.4rem;
+  font-style: italic;
+}
+
+#download-btn {
+  font-size: 0.9rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  border: none;
+  background: #e10600;
+  color: #fff;
+  cursor: pointer;
+}
+
+#download-btn:hover { background: #b80500; }
+
+/* Only applies when actually printing / saving as PDF */
+@media print {
+  .export-actions { display: none; }
+  body { max-width: none; padding: 0; }
+  @page { margin: 1.5cm; }
+}
