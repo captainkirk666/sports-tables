@@ -12,7 +12,7 @@
  *   refreshSeconds: 30,             // 0/undefined = no auto refresh
  *   adapter: {
  *     extract(data) -> array of rows,
- *     columns: [{ label, get(row), numeric? }]
+ *     columns: [{ label, get(row), numeric?, emphasis? }]
  *   },
  *   attribution: { label: "Data: Jolpica F1", href: "https://..." }
  * }
@@ -39,7 +39,8 @@ function renderRows(container, columns, rows) {
   }
   container.innerHTML = rows.map(row => {
     const cells = columns.map(col => {
-      const cls = col.numeric ? ' class="numeric"' : '';
+      const classes = [col.numeric ? 'numeric' : '', col.emphasis ? 'dt-emphasis' : ''].filter(Boolean).join(' ');
+      const cls = classes ? ` class="${classes}"` : '';
       return `<td${cls}>${col.get(row)}</td>`;
     }).join('');
     return `<tr>${cells}</tr>`;
