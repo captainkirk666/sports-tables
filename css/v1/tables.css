@@ -4,6 +4,8 @@
    are live. Add a v2 folder instead and migrate.
    =========================================== */
 
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap');
+
 :root {
   --dt-bg: transparent;
   --dt-text: #111;
@@ -13,7 +15,7 @@
   --dt-row-hover: #f0f4ff;
   --dt-accent: #e10600;
   --dt-radius: 8px;
-  --dt-font: system-ui, -apple-system, sans-serif;
+  --dt-font: 'Oswald', system-ui, -apple-system, sans-serif;
 }
 
 /* Dark theme, toggled by tables.js when ?theme=dark is present */
@@ -48,8 +50,11 @@ html, body {
 }
 
 .dt-title {
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 1.19rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--dt-accent);
   border-left: 4px solid var(--dt-accent);
   padding-left: 8px;
   margin: 0;
@@ -74,20 +79,27 @@ html, body {
 }
 
 .data-table th {
-  background: var(--dt-header-bg);
+  background: var(--dt-accent);
+  color: #fff;
   font-size: 0.75rem;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  color: var(--dt-text-secondary);
 }
 
 .data-table tr:hover {
   background: var(--dt-row-hover);
 }
 
+.data-table th.numeric,
 .data-table td.numeric {
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+.data-table td.dt-emphasis {
+  font-weight: 700;
+  color: var(--dt-accent);
 }
 
 .dt-footer {
