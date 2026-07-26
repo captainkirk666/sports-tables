@@ -1,0 +1,58 @@
+/* Site chrome — navbar, page layout.
+   NOT used by embed pages (embed/**) — those stay bare for iframing. */
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  margin: 0;
+  color: #111;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e2e2e2;
+}
+
+.site-nav .brand {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #111;
+  text-decoration: none;
+}
+
+.site-nav .brand span {
+  color: #e10600;
+}
+
+.site-nav ul {
+  list-style: none;
+  display: flex;
+  gap: 1.5rem;
+  margin: 0;
+  padding: 0;
+}
+
+.site-nav a.nav-link {
+  text-decoration: none;
+  color: #444;
+  font-size: 0.9rem;
+}
+
+.site-nav a.nav-link:hover {
+  color: #111;
+}
+
+.site-nav a.nav-link.active {
+  color: #e10600;
+  font-weight: 600;
+}
+
+.site-main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
+}

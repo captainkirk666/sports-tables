@@ -3,15 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <title>Live sports data tables — embeddable widgets</title>
+<link rel="stylesheet" href="css/site.css">
 <style>
-  * { box-sizing: border-box; }
-  body {
-    font-family: system-ui, -apple-system, sans-serif;
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 3rem 1.5rem;
-    color: #111;
-  }
   h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
   .tagline { color: #666; margin-top: 0; margin-bottom: 2.5rem; }
   .sport-group { margin-bottom: 2.5rem; }
@@ -48,21 +41,22 @@
 </head>
 <body>
 
-<h1>Live sports data tables</h1>
-<p class="tagline">Embeddable, auto-updating tables for use in articles and stories.</p>
+<div id="site-nav" data-active="home"></div>
 
-<div id="sports-index"></div>
+<main class="site-main">
+  <h1>Live sports data tables</h1>
+  <p class="tagline">Embeddable, auto-updating tables for use in articles and stories.</p>
 
-<p class="footer-note">
-  Each table is embeddable via iframe and auto-sizes to its content.
-  See any table page for the embed code.
-</p>
+  <div id="sports-index"></div>
 
+  <p class="footer-note">
+    Each table is embeddable via iframe and auto-sizes to its content.
+    See any table page for the embed code.
+  </p>
+</main>
+
+<script src="js/site-nav.js"></script>
 <script>
-/**
- * Add new sports/tables here as they're built.
- * This is the single source of truth the home page renders from.
- */
 const SPORTS_INDEX = [
   {
     sport: "Formula 1",
