@@ -103,6 +103,13 @@ function copyEmbedCode() {
   });
 }
 
+function toggleCodeVisible() {
+  const box = document.getElementById("embed-code");
+  const btn = document.getElementById("toggle-code-btn");
+  const isHidden = box.classList.toggle("hidden");
+  btn.textContent = isHidden ? "Show code" : "Hide code";
+}
+
 /* ---------- Print size picker + hidden print-only render ---------- */
 
 function renderPrintSurface() {
@@ -187,6 +194,7 @@ function initTableDetail(config) {
   document.getElementById("custom-dark").addEventListener("change", applyCustom);
   document.getElementById("custom-color").addEventListener("input", applyCustom);
   document.getElementById("copy-btn").addEventListener("click", copyEmbedCode);
+  document.getElementById("toggle-code-btn").addEventListener("click", toggleCodeVisible);
   document.getElementById("download-btn").addEventListener("click", () => window.print());
 
   fetch(config.sourceUrl)
