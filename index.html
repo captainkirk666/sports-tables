@@ -61,8 +61,8 @@ const SPORTS_INDEX = [
   {
     sport: "Formula 1",
     tables: [
-      { name: "Driver standings", href: "embed/f1/drivers.html", exportHref: "export/f1/drivers.html", description: "Current season points and wins" },
-      { name: "Constructor standings", href: "embed/f1/constructors.html", exportHref: "export/f1/constructors.html", description: "Team championship standings" },
+      { name: "Driver standings", href: "table/f1/drivers.html", description: "Current season points and wins" },
+      { name: "Constructor standings", href: "table/f1/constructors.html", description: "Team championship standings" },
     ],
   },
 ];
@@ -73,13 +73,10 @@ container.innerHTML = SPORTS_INDEX.map(group => `
     <h2>${group.sport}</h2>
     <div class="table-grid">
       ${group.tables.map(t => `
-        <div class="table-card">
-          <a href="${t.href}" style="text-decoration:none; color:inherit;">
-            <h3>${t.name}</h3>
-            <p>${t.description}</p>
-          </a>
-          <a href="${t.exportHref}" style="font-size:0.8rem; color:#e10600; text-decoration:none;">Download PDF ↓</a>
-        </div>
+        <a class="table-card" href="${t.href}" style="text-decoration:none; color:inherit;">
+          <h3>${t.name}</h3>
+          <p>${t.description}</p>
+        </a>
       `).join('')}
     </div>
   </div>
