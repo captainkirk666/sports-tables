@@ -1,1 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>F1 Race Results</title>
+<link rel="stylesheet" href="../../css/site.css">
+<link rel="stylesheet" href="../../css/table-detail.css">
+</head>
+<body>
 
+<div id="site-nav"></div>
+
+<main class="site-main">
+  <h1 id="page-title"></h1>
+  <p style="color:#666; font-size:0.85rem; margin-top:-1rem;">
+    Shows the most recently completed race. Updates automatically once official results are published — not a live in-race feed.
+  </p>
+
+  <div class="tier-tabs">
+    <button class="tier-tab active" id="tab-default" onclick="selectTab('default')">Default</button>
+    <button class="tier-tab" id="tab-preset" onclick="selectTab('preset')">Presets</button>
+    <button class="tier-tab" id="tab-custom" onclick="selectTab('custom')">Custom</button>
+  </div>
+
+  <div class="tier-panel active" id="panel-default">
+    <p class="panel-desc">Black on white, or its inverse.</p>
+    <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
+      <button class="preset-swatch default-option selected" data-key="classic" onclick="applyDefault()">
+        <span class="swatch-dot" style="--swatch-color:#111; border:1px solid #ccc;"></span><span>Classic</span>
+      </button>
+      <button class="preset-swatch default-option" data-key="reverse" onclick="applyReverse()">
+        <span class="swatch-dot" style="--swatch-color:#fff; border:1px solid #ccc;"></span><span>Reverse</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="tier-panel" id="panel-preset">
+    <p class="panel-desc">Sport-themed presets.</p>
+    <div id="preset-swatches"></div>
+  </div>
+
+  <div class="tier-panel" id="panel-custom">
+    <p class="panel-desc">Tweak the highlight color and background.</p>
+    <div class="custom-controls">
+      <label><input type="checkbox" id="custom-dark"> Dark background</label>
+      <label>Accent color <input type="color" id="custom-color" value="#e10600"></label>
+    </div>
+  </div>
+
+  <div class="preview-wrap">
+    <h2>Live preview</h2>
+    <iframe id="preview-frame" src="../../embed/f1/results.html"></iframe>
+  </div>
+
+  <div class="detail-columns">
+    <div class="detail-col">
+      <h2>Embed code</h2>
+      <button id="copy-btn">Copy embed code</button>
+      <button id="toggle-code-btn">Show code</button>
+      <code id="embed-code" class="hidden"></code>
+    </div>
+    <div class="detail-col">
+      <h2>Download for print</h2>
+      <div id="size-controls" class="size-controls"></div>
+      <button id="download-btn">Download PDF</button>
+    </div>
+  </div>
+</main>
+
+<div id="print-surface"></div>
+
+<script src="../../js/site-nav.js"></script>
+<script src="../../js/v1/adapters/f1.js"></script>
+<script src="../../js/table-detail.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.9/iframeResizer.min.js"></script>
+<script>
+initTableDetail({
+  title: "F1 Race Results",
+  embedHref: "../../embed/f1/results.html",
+  sourceUrl: F1_ADAPTERS.raceResults.sourceUrl,
+  adapter: F1_ADAPTERS.raceResults,
+  attribution: { label: "Jolpica F1" }
+});
+</script>
+
+</body>
+</html>
