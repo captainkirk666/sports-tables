@@ -29,4 +29,20 @@ const F1_ADAPTERS = {
       { key: "wins",        label: "Wins",         get: c => c.wins, numeric: true },
     ],
   },
+  raceResults: {
+    sourceUrl: "https://api.jolpi.ca/ergast/f1/current/last/results.json",
+    extract: data => {
+      const races = data.MRData.RaceTable.Races;
+      return races && races.length ? races[0].Results : [];
+    },
+    columns: [
+      { key: "pos",      label: "Pos",      get: r => r.position, emphasis: true },
+      { key: "driver",   label: "Driver",   get: r => `${r.Driver.givenName} ${r.Driver.familyName}`, compactGet: r => r.Driver.familyName },
+      { key: "team",     label: "Team",     get: r => r.Constructor.name },
+      { key: "laps",     label: "Laps",     get: r => r.laps, numeric: true },
+      { key: "time",     label: "Time / Status", get: r => r.Time ? r.Time.time : r.status },
+      { key: "fastest",  label: "Fastest Lap", get: r => r.FastestLap ? r.FastestLap.Time.time : "—" },
+      { key: "points",   label: "Points",   get: r => r.points, numeric: true },
+    ],
+  },
 };
