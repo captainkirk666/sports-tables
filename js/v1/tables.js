@@ -12,7 +12,9 @@
  *   refreshSeconds: 30,             // 0/undefined = no auto refresh
  *   adapter: {
  *     extract(data) -> array of rows,
- *     columns: [{ label, get(row), numeric?, emphasis? }]
+ *     columns: [{ label, get(row), numeric?, emphasis?, logo?(row) }]
+ *              // logo(row) is optional — return an image URL and it
+ *              // renders as a small icon before the cell's text.
  *   },
  *   attribution: { label: "Data: Jolpica F1", href: "https://..." }
  * }
@@ -41,7 +43,9 @@ function renderRows(container, columns, rows) {
     const cells = columns.map(col => {
       const classes = [col.numeric ? 'numeric' : '', col.emphasis ? 'dt-emphasis' : ''].filter(Boolean).join(' ');
       const cls = classes ? ` class="${classes}"` : '';
-      return `<td${cls}>${col.get(row)}</td>`;
+      const logoUrl = col.logo ? col.logo(row) : null;
+      const logoHtml = logoUrl ? `<img class="dt-logo" src="${logoUrl}" alt="" loading="lazy">` : '';
+      return `<td${cls}>${logoHtml}${col.get(row)}</td>`;
     }).join('');
     return `<tr>${cells}</tr>`;
   }).join('');
