@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NBA Standings</title>
+<link rel="stylesheet" href="../../css/v1/tables.css">
+</head>
+<body>
+
+<div id="dt-app"></div>
+
+<script src="../../js/v1/adapters/nba.js"></script>
+<script src="../../js/v1/tables.js"></script>
+<script>
+initTable({
+  containerSelector: "#dt-app",
+  title: "NBA standings",
+  sourceUrl: NBA_ADAPTERS.standings.sourceUrl,
+  adapter: NBA_ADAPTERS.standings,
+  refreshSeconds: 30,
+  attribution: { label: "Data: ESPN", href: "https://espn.com" }
+});
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.9/iframeResizer.contentWindow.min.js"></script>
+
+</body>
+</html>
