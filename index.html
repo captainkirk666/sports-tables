@@ -26,7 +26,9 @@
     text-decoration: none;
     color: #111;
     padding: 1rem;
-    transition: border-color 0.15s, background 0.15s;
+    background-size: cover;
+    background-position: center;
+    transition: border-color 0.15s, background-color 0.15s;
   }
   .sport-card:hover {
     border-color: #e10600;
@@ -103,9 +105,9 @@
  * greyed-out "coming soon" placeholder card.
  */
 const SPORTS = [
-  { name: "Formula 1", href: "table/f1.html", logo: "assets/logos/f1/formula-1-logo.png" },
-  { name: "NBA",       href: "table/nba.html", logo: "assets/logos/nba/nba-logo.png" },
-  { name: "EPL",       href: "table/epl.html", logo: "assets/logos/epl/epl-logo.png" },
+  { name: "Formula 1", href: "table/f1.html", logo: "assets/logos/f1/formula-1-logo.png", card: "assets/logos/f1/f1-card.png" },
+  { name: "NBA",       href: "table/nba.html", logo: "assets/logos/nba/nba-logo.png", card: "assets/logos/nba/nba-card.png" },
+  { name: "EPL",       href: "table/epl.html", logo: "assets/logos/epl/epl-logo.png", card: "assets/logos/epl/epl-card.png" },
   { name: "Coming soon", href: null },
   { name: "Coming soon", href: null },
   { name: "Coming soon", href: null },
@@ -119,9 +121,12 @@ grid.innerHTML = SPORTS.map(s => {
   const iconHtml = s.logo
     ? `<img class="sport-icon" src="${s.logo}" alt="${s.name}" onerror="this.outerHTML='<span class=&quot;sport-icon fallback&quot;></span>'">`
     : `<span class="sport-icon fallback"></span>`;
+  const bgStyle = s.card
+    ? ` style="background-image: linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)), url('${s.card}');"`
+    : '';
   if (s.href) {
     return `
-      <a class="sport-card" href="${s.href}">
+      <a class="sport-card"${bgStyle} href="${s.href}">
         ${iconHtml}
         <h2>${s.name}</h2>
         <p>View tables</p>
