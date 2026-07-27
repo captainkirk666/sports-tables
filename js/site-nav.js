@@ -6,10 +6,12 @@
  *   <div id="site-nav" data-active="home"></div>
  */
 
+const SITE_BASE = "https://captainkirk666.github.io/sports-tables";
+
 const NAV_LINKS = [
-  { key: "home", label: "Home", href: "index.html" },
-  { key: "style", label: "Style options", href: "style.html" },
-  { key: "docs", label: "Embed guide", href: "docs.html" },
+  { key: "home", label: "Home", href: `${SITE_BASE}/index.html` },
+  { key: "style", label: "Style options", href: `${SITE_BASE}/style.html` },
+  { key: "docs", label: "Embed guide", href: `${SITE_BASE}/docs.html` },
 ];
 
 function renderSiteNav() {
@@ -19,7 +21,7 @@ function renderSiteNav() {
 
   mount.outerHTML = `
     <nav class="site-nav">
-      <a class="brand" href="index.html">Live<span>Tables</span></a>
+      <a class="brand" href="${SITE_BASE}/index.html">Live<span>Tables</span></a>
       <ul>
         ${NAV_LINKS.map(link => `
           <li>
