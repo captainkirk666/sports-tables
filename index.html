@@ -42,6 +42,11 @@
     margin: 0;
   }
   .sport-card .sport-icon {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+  }
+  .sport-card .sport-icon.fallback {
     width: 34px;
     height: 34px;
     border-radius: 50%;
@@ -96,9 +101,9 @@
  * greyed-out "coming soon" placeholder card.
  */
 const SPORTS = [
-  { name: "Formula 1", href: "table/f1.html" },
-  { name: "NBA",       href: "table/nba.html" },
-  { name: "EPL",       href: "table/epl.html" },
+  { name: "Formula 1", href: "table/f1.html", logo: "assets/logos/f1.png" },
+  { name: "NBA",       href: "table/nba.html", logo: "assets/logos/nba.png" },
+  { name: "EPL",       href: "table/epl.html", logo: "assets/logos/epl.png" },
   { name: "Coming soon", href: null },
   { name: "Coming soon", href: null },
   { name: "Coming soon", href: null },
@@ -109,17 +114,20 @@ const SPORTS = [
 
 const grid = document.getElementById('sport-grid');
 grid.innerHTML = SPORTS.map(s => {
+  const iconHtml = s.logo
+    ? `<img class="sport-icon" src="${s.logo}" alt="${s.name}" onerror="this.outerHTML='<span class=&quot;sport-icon fallback&quot;></span>'">`
+    : `<span class="sport-icon fallback"></span>`;
   if (s.href) {
     return `
       <a class="sport-card" href="${s.href}">
-        <span class="sport-icon"></span>
+        ${iconHtml}
         <h2>${s.name}</h2>
         <p>View tables</p>
       </a>`;
   }
   return `
     <div class="sport-card placeholder">
-      <span class="sport-icon"></span>
+      ${iconHtml}
       <h2>${s.name}</h2>
       <p>—</p>
     </div>`;
