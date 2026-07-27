@@ -1,6 +1,27 @@
 /* Table detail page — style controls + embed code + print export, combined */
 
-h1#page-title { font-size: 1.6rem; margin-bottom: 1.5rem; }
+h1#page-title { font-size: 1.6rem; margin-bottom: 1rem; }
+
+.table-tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+.table-tab {
+  border: 1px solid #e2e2e2;
+  border-radius: 20px;
+  background: #fff;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.table-tab.active {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+  font-weight: 600;
+}
 
 /* --- Style tabs (same look as style.html) --- */
 .tier-tabs {
