@@ -1,1 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EPL Standings</title>
+<link rel="stylesheet" href="../../css/v1/tables.css">
+</head>
+<body>
 
+<div id="dt-app"></div>
+
+<script src="../../js/v1/adapters/epl.js"></script>
+<script src="../../js/v1/tables.js"></script>
+<script>
+initTable({
+  containerSelector: "#dt-app",
+  title: "EPL standings",
+  sourceUrl: EPL_ADAPTERS.standings.sourceUrl,
+  adapter: EPL_ADAPTERS.standings,
+  refreshSeconds: 30,
+  attribution: { label: "Data: ESPN", href: "https://espn.com" }
+});
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.9/iframeResizer.contentWindow.min.js"></script>
+
+</body>
+</html>
