@@ -1,29 +1,42 @@
 /**
- * NBA adapter — calls YOUR Worker proxy, not the API-Sports endpoint
- * directly. The Worker holds the secret key server-side; this file
- * only ever talks to your own domain.
+ * NBA adapter — uses ESPN's free, undocumented endpoint, same pattern
+ * as EPL. No API key or backend Worker needed.
  *
- * IMPORTANT: update WORKER_BASE below once your Worker is deployed.
- *
- * NOTE ON FIELD NAMES: api-sports' NBA standings response shape can
- * vary by season/endpoint version. The field paths below (win.total,
- * conference.rank, etc.) reflect their typical v2 standings schema —
- * once your Worker is live, fetch it once and confirm these paths
- * match the real response before relying on this in production.
+ * NBA's standings come nested as Conference -> Division -> teams,
+ * so extract() flattens all of that into one list, sorted by win
+ * percentage, and assigns each team a simple 1-30 rank for display.
  */
 
-const WORKER_BASE = "https://sports-proxy.captainkirk666.workers.dev";
+function getStatValue(entry, name) {
+  const stat = entry.stats.find(s => s.name === name);
+  return stat ? stat.value : 0;
+}
+
+function getStatDisplay(entry, name) {
+  const stat = entry.stats.find(s => s.name === name);
+  return stat ? stat.displayValue : "—";
+}
 
 const NBA_ADAPTERS = {
   standings: {
-    sourceUrl: `${WORKER_BASE}/nba/standings`,
-    extract: data => data.response || [],
+    sourceUrl: "https://site.api.espn.com/apis/v2/sports/basketball/nba/standings?level=3",
+    extract: data => {
+      const teams = [];
+      (data.children || []).forEach(conference => {
+        (conference.children || []).forEach(division => {
+          (division.standings?.entries || []).forEach(entry => teams.push(entry));
+        });
+      });
+      teams.sort((a, b) => getStatValue(b, "winPercent") - getStatValue(a, "winPercent"));
+      teams.forEach((t, i) => { t._rank = i + 1; });
+      return teams;
+    },
     columns: [
-      { key: "rank",   label: "Rank",   get: r => r.conference?.rank ?? "—", emphasis: true },
-      { key: "team",   label: "Team",   get: r => r.team?.name ?? "—", compactGet: r => r.team?.code ?? r.team?.name, logo: r => r.team?.logo },
-      { key: "wins",   label: "W",      get: r => r.win?.total ?? 0, numeric: true },
-      { key: "losses", label: "L",      get: r => r.loss?.total ?? 0, numeric: true },
-      { key: "pct",    label: "Pct",    get: r => r.win?.percentage ?? "—", numeric: true },
+      { key: "rank",   label: "Rank",   get: r => r._rank, emphasis: true },
+      { key: "team",   label: "Team",   get: r => r.team.displayName, compactGet: r => r.team.shortDisplayName, logo: r => r.team.logos?.[0]?.href },
+      { key: "wins",   label: "W",      get: r => getStatDisplay(r, "wins"), numeric: true },
+      { key: "losses", label: "L",      get: r => getStatDisplay(r, "losses"), numeric: true },
+      { key: "pct",    label: "Pct",    get: r => getStatDisplay(r, "winPercent"), numeric: true },
     ],
   },
 };
