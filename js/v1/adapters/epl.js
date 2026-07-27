@@ -16,7 +16,7 @@ const EPL_ADAPTERS = {
     extract: data => data.children?.[0]?.standings?.entries || [],
     columns: [
       { key: "pos",     label: "Pos",    get: e => getStat(e, "rank"), emphasis: true },
-      { key: "team",    label: "Team",   get: e => e.team.displayName, compactGet: e => e.team.shortDisplayName },
+      { key: "team",    label: "Team",   get: e => e.team.displayName, compactGet: e => e.team.shortDisplayName, logo: e => e.team.logos?.[0]?.href },
       { key: "played",  label: "P",      get: e => getStat(e, "gamesPlayed"), numeric: true },
       { key: "wins",    label: "W",      get: e => getStat(e, "wins"), numeric: true },
       { key: "draws",   label: "D",      get: e => getStat(e, "ties"), numeric: true },
@@ -26,4 +26,3 @@ const EPL_ADAPTERS = {
     ],
   },
 };
-
