@@ -10,9 +10,9 @@
 
   .sport-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 1rem;
-    max-width: 720px;
+    max-width: 960px;
   }
   .sport-card {
     aspect-ratio: 1;
@@ -108,12 +108,6 @@ const SPORTS = [
   { name: "Formula 1", href: "table/f1.html", logo: "assets/logos/f1/formula-1-logo.png", card: "assets/logos/f1/f1-card.png" },
   { name: "NBA",       href: "table/nba.html", logo: "assets/logos/nba/nba-logo.png", card: "assets/logos/nba/nba-card.png" },
   { name: "EPL",       href: "table/epl.html", logo: "assets/logos/epl/epl-logo.png", card: "assets/logos/epl/epl-card.png" },
-  { name: "Coming soon", href: null },
-  { name: "Coming soon", href: null },
-  { name: "Coming soon", href: null },
-  { name: "Coming soon", href: null },
-  { name: "Coming soon", href: null },
-  { name: "Coming soon", href: null },
 ];
 
 const grid = document.getElementById('sport-grid');
