@@ -3,39 +3,72 @@
 <head>
 <meta charset="UTF-8">
 <title>Live sports data tables — embeddable widgets</title>
-<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/site.css?v=2">
 <style>
   h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
   .tagline { color: #666; margin-top: 0; margin-bottom: 2.5rem; }
-  .sport-group { margin-bottom: 2.5rem; }
-  .sport-group h2 {
-    font-size: 1.1rem;
-    border-left: 4px solid #e10600;
-    padding-left: 10px;
-    margin-bottom: 1rem;
-  }
-  .table-grid {
+
+  .sport-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
+    max-width: 720px;
   }
-  .table-card {
+  .sport-card {
+    aspect-ratio: 1;
     border: 1px solid #e2e2e2;
-    border-radius: 8px;
-    padding: 1rem 1.25rem;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     text-decoration: none;
-    color: inherit;
-    transition: border-color 0.15s;
+    color: #111;
+    padding: 1rem;
+    transition: border-color 0.15s, background 0.15s;
   }
-  .table-card:hover { border-color: #e10600; }
-  .table-card h3 { margin: 0 0 0.25rem; font-size: 1rem; }
-  .table-card p { margin: 0; font-size: 0.85rem; color: #666; }
+  .sport-card:hover {
+    border-color: #e10600;
+    background: #fafafa;
+  }
+  .sport-card h2 {
+    font-size: 1.1rem;
+    margin: 0.4rem 0 0.2rem;
+  }
+  .sport-card p {
+    font-size: 0.78rem;
+    color: #666;
+    margin: 0;
+  }
+  .sport-card .sport-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #e10600;
+  }
+
+  .sport-card.placeholder {
+    cursor: default;
+    color: #bbb;
+    border-style: dashed;
+  }
+  .sport-card.placeholder:hover {
+    border-color: #e2e2e2;
+    background: none;
+  }
+  .sport-card.placeholder .sport-icon {
+    background: #eee;
+  }
+  .sport-card.placeholder h2 { color: #bbb; }
+
   .footer-note {
     margin-top: 3rem;
     font-size: 0.8rem;
     color: #999;
     border-top: 1px solid #eee;
     padding-top: 1rem;
+    max-width: 720px;
   }
 </style>
 </head>
@@ -45,43 +78,52 @@
 
 <main class="site-main">
   <h1>Live sports data tables</h1>
-  <p class="tagline">Embeddable, auto-updating tables for use in articles and stories.</p>
+  <p class="tagline">Pick a sport to see its live, embeddable tables.</p>
 
-  <div id="sports-index"></div>
+  <div class="sport-grid" id="sport-grid"></div>
 
   <p class="footer-note">
-    Each table is embeddable via iframe and auto-sizes to its content.
-    See any table page for the embed code.
+    Each sport page includes multiple tables (standings, results, and more),
+    theming options, and print-ready PDF export.
   </p>
 </main>
 
 <script src="js/site-nav.js"></script>
 <script>
-const SPORTS_INDEX = [
-  {
-    sport: "Formula 1",
-    tables: [
-      { name: "Driver standings", href: "table/f1/drivers.html", description: "Current season points and wins" },
-      { name: "Constructor standings", href: "table/f1/constructors.html", description: "Team championship standings" },
-      { name: "Race results", href: "table/f1/results.html", description: "Latest race classification, incl. fastest lap" },
-    ],
-  },
+/**
+ * Home page grid — one card per sport.
+ * Add a real sport by giving it an href; leave href empty for a
+ * greyed-out "coming soon" placeholder card.
+ */
+const SPORTS = [
+  { name: "Formula 1", href: "table/f1/index.html" },
+  { name: "NBA",       href: "table/nba/index.html" },
+  { name: "EPL",       href: "table/epl/index.html" },
+  { name: "Coming soon", href: null },
+  { name: "Coming soon", href: null },
+  { name: "Coming soon", href: null },
+  { name: "Coming soon", href: null },
+  { name: "Coming soon", href: null },
+  { name: "Coming soon", href: null },
 ];
 
-const container = document.getElementById('sports-index');
-container.innerHTML = SPORTS_INDEX.map(group => `
-  <div class="sport-group">
-    <h2>${group.sport}</h2>
-    <div class="table-grid">
-      ${group.tables.map(t => `
-        <a class="table-card" href="${t.href}" style="text-decoration:none; color:inherit;">
-          <h3>${t.name}</h3>
-          <p>${t.description}</p>
-        </a>
-      `).join('')}
-    </div>
-  </div>
-`).join('');
+const grid = document.getElementById('sport-grid');
+grid.innerHTML = SPORTS.map(s => {
+  if (s.href) {
+    return `
+      <a class="sport-card" href="${s.href}">
+        <span class="sport-icon"></span>
+        <h2>${s.name}</h2>
+        <p>View tables</p>
+      </a>`;
+  }
+  return `
+    <div class="sport-card placeholder">
+      <span class="sport-icon"></span>
+      <h2>${s.name}</h2>
+      <p>—</p>
+    </div>`;
+}).join('');
 </script>
 
 </body>
