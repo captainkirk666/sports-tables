@@ -11,19 +11,19 @@
  * See assets/logos/README.md for what to name each file.
  * Add an entry here for any constructor not yet listed.
  */
-const SITE_BASE = "https://captainkirk666.github.io/sports-tables";
+const F1_SITE_BASE = "https://captainkirk666.github.io/sports-tables";
 
 const F1_TEAM_LOGOS = {
-  mercedes: `${SITE_BASE}/assets/logos/f1/teams/mercedes.png`,
-  ferrari: `${SITE_BASE}/assets/logos/f1/teams/ferrari.png`,
-  red_bull: `${SITE_BASE}/assets/logos/f1/teams/red-bull.png`,
-  mclaren: `${SITE_BASE}/assets/logos/f1/teams/mclaren.png`,
-  aston_martin: `${SITE_BASE}/assets/logos/f1/teams/aston-martin.png`,
-  alpine: `${SITE_BASE}/assets/logos/f1/teams/alpine.png`,
-  williams: `${SITE_BASE}/assets/logos/f1/teams/williams.png`,
-  rb: `${SITE_BASE}/assets/logos/f1/teams/rb.png`,
-  sauber: `${SITE_BASE}/assets/logos/f1/teams/sauber.png`,
-  haas: `${SITE_BASE}/assets/logos/f1/teams/haas.png`,
+  mercedes: `${F1_SITE_BASE}/assets/logos/f1/teams/mercedes.png`,
+  ferrari: `${F1_SITE_BASE}/assets/logos/f1/teams/ferrari.png`,
+  red_bull: `${F1_SITE_BASE}/assets/logos/f1/teams/red-bull.png`,
+  mclaren: `${F1_SITE_BASE}/assets/logos/f1/teams/mclaren.png`,
+  aston_martin: `${F1_SITE_BASE}/assets/logos/f1/teams/aston-martin.png`,
+  alpine: `${F1_SITE_BASE}/assets/logos/f1/teams/alpine.png`,
+  williams: `${F1_SITE_BASE}/assets/logos/f1/teams/williams.png`,
+  rb: `${F1_SITE_BASE}/assets/logos/f1/teams/rb.png`,
+  sauber: `${F1_SITE_BASE}/assets/logos/f1/teams/sauber.png`,
+  haas: `${F1_SITE_BASE}/assets/logos/f1/teams/haas.png`,
 };
 
 function f1TeamLogo(constructor) {
