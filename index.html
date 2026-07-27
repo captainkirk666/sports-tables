@@ -122,13 +122,12 @@ grid.innerHTML = SPORTS.map(s => {
     ? `<img class="sport-icon" src="${s.logo}" alt="${s.name}" onerror="this.outerHTML='<span class=&quot;sport-icon fallback&quot;></span>'">`
     : `<span class="sport-icon fallback"></span>`;
   const bgStyle = s.card
-    ? ` style="background-image: linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)), url('${s.card}');"`
+    ? ` style="background-image: url('${s.card}');"`
     : '';
   if (s.href) {
     return `
       <a class="sport-card"${bgStyle} href="${s.href}">
         ${iconHtml}
-        <h2>${s.name}</h2>
         <p>View tables</p>
       </a>`;
   }
