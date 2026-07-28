@@ -47,7 +47,8 @@
   .sport-grid {
     margin: 0 1.5rem;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(550px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(350px, 100%), 1fr));
+    justify-content: center;
     gap: 1rem;
   }
   @media (max-width: 480px) {
@@ -58,6 +59,7 @@
 
   .sport-card {
     aspect-ratio: 14 / 11;
+    max-width: 480px;
     border: 1px solid #e2e2e2;
     border-radius: 10px;
     text-decoration: none;
