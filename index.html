@@ -5,6 +5,14 @@
 <title>Live sports data tables — embeddable widgets</title>
 <link rel="stylesheet" href="css/site.css?v=2">
 <style>
+  body {
+    background-image: url('assets/logos/homepage/home-page-background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+  }
+
   h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
   .tagline { color: #666; margin-top: 0; margin-bottom: 2.5rem; }
 
@@ -18,48 +26,21 @@
     aspect-ratio: 14 / 11;
     border: 1px solid #e2e2e2;
     border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
     text-decoration: none;
-    color: #111;
-    padding: 1rem;
     background-size: cover;
     background-position: center;
-    transition: border-color 0.15s, background-color 0.15s;
+    transition: border-color 0.15s;
   }
   .sport-card:hover {
     border-color: #e10600;
-    background-color: #fafafa;
-  }
-  .sport-card h2 {
-    font-size: 1.1rem;
-    margin: 0.4rem 0 0.2rem;
-  }
-  .sport-card p {
-    font-size: 0.78rem;
-    color: #666;
-    margin: 0;
   }
 
   .sport-card.placeholder {
     cursor: default;
-    color: #fff;
     border-style: dashed;
-    filter: grayscale(65%) brightness(0.75);
   }
   .sport-card.placeholder:hover {
     border-color: #e2e2e2;
-  }
-  .sport-card.placeholder h2 {
-    color: #fff;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
-  }
-  .sport-card.placeholder p {
-    color: #eee;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
   }
 
   .footer-note {
