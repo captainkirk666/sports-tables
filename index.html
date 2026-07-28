@@ -5,53 +5,56 @@
 <title>Live sports data tables — embeddable widgets</title>
 <link rel="stylesheet" href="css/site.css?v=2">
 <style>
-  .hero {
-    position: relative;
-    border-radius: 12px;
-    overflow: hidden;
-    padding: 3rem 2rem;
-    margin-bottom: 2.5rem;
-    min-height: 280px;
-    display: flex;
-    align-items: center;
-    background-image:
-      linear-gradient(90deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.1) 100%),
-      url('assets/logos/homepage/home-page-background.png');
+  .hero-grid-wrap {
+    background-image: url('assets/logos/homepage/home-page-background.png');
     background-size: cover;
-    background-position: center;
+    background-position: right center;
+    background-repeat: no-repeat;
+    padding: 3rem 1.5rem 2.5rem;
   }
+
   .hero-content {
     max-width: 420px;
+    margin: 0 auto 2.5rem;
     color: #fff;
   }
   .hero-content h1 {
     font-size: 2rem;
     margin: 0 0 0.75rem;
     line-height: 1.15;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.55);
   }
   .hero-content p {
     font-size: 0.95rem;
-    color: #e8e8e8;
     margin: 0;
     line-height: 1.5;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.55);
   }
 
   .section-heading {
+    max-width: 1400px;
+    margin: 0 auto 1rem;
     font-size: 1.1rem;
-    margin: 0 0 1rem;
+    color: #fff;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.55);
   }
-
-  .tagline { display: none; }
 
   .sport-grid {
+    max-width: 1400px;
+    margin: 0 auto;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(252px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 1rem;
-    max-width: 960px;
   }
+  @media (max-width: 480px) {
+    .sport-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
   .sport-card {
     aspect-ratio: 14 / 11;
-    border: 1px solid #e2e2e2;
+    border: 1px solid rgba(255,255,255,0.4);
     border-radius: 10px;
     text-decoration: none;
     background-size: cover;
@@ -61,22 +64,21 @@
   .sport-card:hover {
     border-color: #e10600;
   }
-
   .sport-card.placeholder {
     cursor: default;
     border-style: dashed;
   }
   .sport-card.placeholder:hover {
-    border-color: #e2e2e2;
+    border-color: rgba(255,255,255,0.4);
   }
 
   .footer-note {
-    margin-top: 3rem;
+    max-width: 900px;
+    margin: 2.5rem auto 0;
     font-size: 0.8rem;
     color: #999;
     border-top: 1px solid #eee;
-    padding-top: 1rem;
-    max-width: 720px;
+    padding: 1rem 1.5rem 0;
   }
 </style>
 </head>
@@ -84,22 +86,20 @@
 
 <div id="site-nav" data-active="home"></div>
 
-<main class="site-main">
-  <section class="hero">
-    <div class="hero-content">
-      <h1>Live sports data, ready to embed</h1>
-      <p>Auto-updating tables for F1, NBA, EPL and more — themeable, embeddable, and export-ready for print.</p>
-    </div>
-  </section>
+<section class="hero-grid-wrap">
+  <div class="hero-content">
+    <h1>Live sports data, ready to embed</h1>
+    <p>Auto-updating tables for F1, NBA, EPL and more — themeable, embeddable, and export-ready for print.</p>
+  </div>
 
   <h2 class="section-heading">Pick a sport</h2>
   <div class="sport-grid" id="sport-grid"></div>
+</section>
 
-  <p class="footer-note">
-    Each sport page includes multiple tables (standings, results, and more),
-    theming options, and print-ready PDF export.
-  </p>
-</main>
+<p class="footer-note">
+  Each sport page includes multiple tables (standings, results, and more),
+  theming options, and print-ready PDF export.
+</p>
 
 <script src="js/site-nav.js"></script>
 <script>
