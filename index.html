@@ -10,12 +10,12 @@
 
   .sport-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(252px, 1fr));
     gap: 1rem;
     max-width: 960px;
   }
   .sport-card {
-    aspect-ratio: 1;
+    aspect-ratio: 14 / 11;
     border: 1px solid #e2e2e2;
     border-radius: 10px;
     display: flex;
@@ -32,7 +32,7 @@
   }
   .sport-card:hover {
     border-color: #e10600;
-    background: #fafafa;
+    background-color: #fafafa;
   }
   .sport-card h2 {
     font-size: 1.1rem;
@@ -43,19 +43,6 @@
     color: #666;
     margin: 0;
   }
-  .sport-card .sport-icon {
-    width: 95%;
-    height: auto;
-    max-height: 55%;
-    object-fit: contain;
-    margin-bottom: 0.5rem;
-  }
-  .sport-card .sport-icon.fallback {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    background: #e10600;
-  }
 
   .sport-card.placeholder {
     cursor: default;
@@ -65,9 +52,6 @@
   .sport-card.placeholder:hover {
     border-color: #e2e2e2;
     background: none;
-  }
-  .sport-card.placeholder .sport-icon {
-    background: #eee;
   }
   .sport-card.placeholder h2 { color: #bbb; }
 
@@ -105,29 +89,24 @@
  * greyed-out "coming soon" placeholder card.
  */
 const SPORTS = [
-  { name: "Formula 1", href: "table/f1.html", logo: "assets/logos/f1/formula-1-logo.png", card: "assets/logos/f1/f1-card.png" },
-  { name: "NBA",       href: "table/nba.html", logo: "assets/logos/nba/nba-logo.png", card: "assets/logos/nba/nba-card.png" },
-  { name: "EPL",       href: "table/epl.html", logo: "assets/logos/epl/epl-logo.png", card: "assets/logos/epl/epl-card.png" },
+  { name: "Formula 1", href: "table/f1.html", card: "assets/logos/f1/f1-card.png" },
+  { name: "NBA",       href: "table/nba.html", card: "assets/logos/nba/nba-card.png" },
+  { name: "EPL",       href: "table/epl.html", card: "assets/logos/epl/epl-card.png" },
 ];
 
 const grid = document.getElementById('sport-grid');
 grid.innerHTML = SPORTS.map(s => {
-  const iconHtml = s.logo
-    ? `<img class="sport-icon" src="${s.logo}" alt="${s.name}" onerror="this.outerHTML='<span class=&quot;sport-icon fallback&quot;></span>'">`
-    : `<span class="sport-icon fallback"></span>`;
   const bgStyle = s.card
     ? ` style="background-image: url('${s.card}');"`
     : '';
   if (s.href) {
     return `
       <a class="sport-card"${bgStyle} href="${s.href}">
-        ${iconHtml}
         <p>View tables</p>
       </a>`;
   }
   return `
     <div class="sport-card placeholder">
-      ${iconHtml}
       <h2>${s.name}</h2>
       <p>—</p>
     </div>`;
