@@ -46,14 +46,21 @@
 
   .sport-card.placeholder {
     cursor: default;
-    color: #bbb;
+    color: #fff;
     border-style: dashed;
+    filter: grayscale(65%) brightness(0.75);
   }
   .sport-card.placeholder:hover {
     border-color: #e2e2e2;
-    background: none;
   }
-  .sport-card.placeholder h2 { color: #bbb; }
+  .sport-card.placeholder h2 {
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  }
+  .sport-card.placeholder p {
+    color: #eee;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  }
 
   .footer-note {
     margin-top: 3rem;
@@ -92,6 +99,12 @@ const SPORTS = [
   { name: "Formula 1", href: "table/f1.html", card: "assets/logos/f1/f1-card.png" },
   { name: "NBA",       href: "table/nba.html", card: "assets/logos/nba/nba-card.png" },
   { name: "EPL",       href: "table/epl.html", card: "assets/logos/epl/epl-card.png" },
+  { name: "AFL",     href: null, card: "assets/logos/afl/afl-card.png" },
+  { name: "Cricket", href: null, card: "assets/logos/cricket/cricket-card.png" },
+  { name: "Golf",    href: null, card: "assets/logos/golf/golf-card.png" },
+  { name: "MLB",     href: null, card: "assets/logos/mlb/mlb-card.png" },
+  { name: "NFL",     href: null, card: "assets/logos/nfl/nfl-card.png" },
+  { name: "NRL",     href: null, card: "assets/logos/nrl/nrl-card.png" },
 ];
 
 const grid = document.getElementById('sport-grid');
@@ -106,9 +119,9 @@ grid.innerHTML = SPORTS.map(s => {
       </a>`;
   }
   return `
-    <div class="sport-card placeholder">
+    <div class="sport-card placeholder"${bgStyle}>
       <h2>${s.name}</h2>
-      <p>—</p>
+      <p>Coming soon</p>
     </div>`;
 }).join('');
 </script>
