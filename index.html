@@ -5,12 +5,14 @@
 <title>Live sports data tables — embeddable widgets</title>
 <link rel="stylesheet" href="css/site.css?v=2">
 <style>
-  body {
+  #page-background {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
     background-image: url('assets/logos/homepage/home-page-background.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    background-attachment: fixed;
   }
 
   h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
@@ -55,6 +57,8 @@
 </head>
 <body>
 
+<div id="page-background"></div>
+
 <div id="site-nav" data-active="home"></div>
 
 <main class="site-main">
@@ -94,16 +98,9 @@ grid.innerHTML = SPORTS.map(s => {
     ? ` style="background-image: url('${s.card}');"`
     : '';
   if (s.href) {
-    return `
-      <a class="sport-card"${bgStyle} href="${s.href}">
-        <p>View tables</p>
-      </a>`;
+    return `<a class="sport-card"${bgStyle} href="${s.href}" aria-label="${s.name}"></a>`;
   }
-  return `
-    <div class="sport-card placeholder"${bgStyle}>
-      <h2>${s.name}</h2>
-      <p>Coming soon</p>
-    </div>`;
+  return `<div class="sport-card placeholder"${bgStyle} aria-label="${s.name} — coming soon"></div>`;
 }).join('');
 </script>
 
