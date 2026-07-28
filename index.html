@@ -5,6 +5,8 @@
 <title>Live sports data tables — embeddable widgets</title>
 <link rel="stylesheet" href="css/site.css?v=2">
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&display=swap');
+
   .hero-grid-wrap {
     position: relative;
     padding: 3rem 1.5rem 2.5rem;
@@ -28,6 +30,8 @@
     color: #111;
   }
   .hero-content h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 700;
     font-size: 4rem;
     margin: 0 0 0.75rem;
     line-height: 1.1;
@@ -58,25 +62,55 @@
     }
   }
 
-  .sport-card {
-    aspect-ratio: 14 / 11;
+  .sport-card-wrap {
     max-width: 480px;
+    display: block;
+    text-decoration: none;
+  }
+  .sport-card {
+    display: block;
+    width: 100%;
+    aspect-ratio: 14 / 11;
     border: 1px solid #e2e2e2;
     border-radius: 10px;
-    text-decoration: none;
     background-size: cover;
     background-position: center;
     transition: border-color 0.15s;
   }
-  .sport-card:hover {
+  .sport-card-wrap:hover .sport-card {
     border-color: #e10600;
   }
-  .sport-card.placeholder {
+
+  .card-caption {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.6rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #111;
+  }
+  .card-caption .arrow-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    transition: transform 0.15s;
+  }
+  .sport-card-wrap:hover .card-caption .arrow-icon {
+    transform: translateX(3px);
+  }
+
+  .sport-card-wrap.placeholder {
     cursor: default;
+  }
+  .sport-card-wrap.placeholder .sport-card {
     border-style: dashed;
   }
-  .sport-card.placeholder:hover {
+  .sport-card-wrap.placeholder:hover .sport-card {
     border-color: #e2e2e2;
+  }
+  .sport-card-wrap.placeholder .card-caption {
+    color: #999;
   }
 
   .footer-note {
@@ -127,15 +161,27 @@ const SPORTS = [
   { name: "NRL",     href: null, card: "assets/logos/nrl/nrl-card.png" },
 ];
 
+const ARROW_ICON = `<svg class="arrow-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M3 8h9M8 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
+
 const grid = document.getElementById('sport-grid');
 grid.innerHTML = SPORTS.map(s => {
   const bgStyle = s.card
     ? ` style="background-image: url('${s.card}');"`
     : '';
   if (s.href) {
-    return `<a class="sport-card"${bgStyle} href="${s.href}" aria-label="${s.name}"></a>`;
+    return `
+      <a class="sport-card-wrap" href="${s.href}" aria-label="${s.name}">
+        <span class="sport-card"${bgStyle}></span>
+        <span class="card-caption">View tables ${ARROW_ICON}</span>
+      </a>`;
   }
-  return `<div class="sport-card placeholder"${bgStyle} aria-label="${s.name} — coming soon"></div>`;
+  return `
+    <div class="sport-card-wrap placeholder" aria-label="${s.name} — coming soon">
+      <span class="sport-card"${bgStyle}></span>
+      <span class="card-caption">Coming soon</span>
+    </div>`;
 }).join('');
 </script>
 
