@@ -6,44 +6,48 @@
 <link rel="stylesheet" href="css/site.css?v=2">
 <style>
   .hero-grid-wrap {
-    background-image: url('assets/logos/homepage/home-page-background.png');
-    background-size: cover;
-    background-position: right center;
-    background-repeat: no-repeat;
+    position: relative;
     padding: 3rem 1.5rem 2.5rem;
+  }
+  .hero-grid-wrap::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image: url('assets/logos/homepage/home-page-background.png');
+    background-size: 100% auto;
+    background-position: right top;
+    background-repeat: no-repeat;
+    -webkit-mask-image: linear-gradient(to bottom, black 0%, black 75%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 0%, black 75%, transparent 100%);
   }
 
   .hero-content {
-    max-width: 420px;
+    max-width: 640px;
     margin: 0 auto 2.5rem;
-    color: #fff;
+    color: #111;
   }
   .hero-content h1 {
-    font-size: 2rem;
+    font-size: 4rem;
     margin: 0 0 0.75rem;
-    line-height: 1.15;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.55);
+    line-height: 1.1;
   }
   .hero-content p {
-    font-size: 0.95rem;
+    font-size: 1.9rem;
     margin: 0;
-    line-height: 1.5;
-    text-shadow: 0 1px 6px rgba(0,0,0,0.55);
+    line-height: 1.4;
   }
 
   .section-heading {
-    max-width: 1400px;
-    margin: 0 auto 1rem;
+    margin: 200px 1.5rem 1rem;
     font-size: 1.1rem;
-    color: #fff;
-    text-shadow: 0 1px 6px rgba(0,0,0,0.55);
+    color: #111;
   }
 
   .sport-grid {
-    max-width: 1400px;
-    margin: 0 auto;
+    margin: 0 1.5rem;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(550px, 1fr));
     gap: 1rem;
   }
   @media (max-width: 480px) {
@@ -54,7 +58,7 @@
 
   .sport-card {
     aspect-ratio: 14 / 11;
-    border: 1px solid rgba(255,255,255,0.4);
+    border: 1px solid #e2e2e2;
     border-radius: 10px;
     text-decoration: none;
     background-size: cover;
@@ -69,7 +73,7 @@
     border-style: dashed;
   }
   .sport-card.placeholder:hover {
-    border-color: rgba(255,255,255,0.4);
+    border-color: #e2e2e2;
   }
 
   .footer-note {
