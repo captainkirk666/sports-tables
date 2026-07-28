@@ -5,18 +5,43 @@
 <title>Live sports data tables — embeddable widgets</title>
 <link rel="stylesheet" href="css/site.css?v=2">
 <style>
-  #page-background {
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    background-image: url('assets/logos/homepage/home-page-background.png');
+  .hero {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    padding: 3rem 2rem;
+    margin-bottom: 2.5rem;
+    min-height: 280px;
+    display: flex;
+    align-items: center;
+    background-image:
+      linear-gradient(90deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.1) 100%),
+      url('assets/logos/homepage/home-page-background.png');
     background-size: cover;
     background-position: center;
-    background-repeat: no-repeat;
+  }
+  .hero-content {
+    max-width: 420px;
+    color: #fff;
+  }
+  .hero-content h1 {
+    font-size: 2rem;
+    margin: 0 0 0.75rem;
+    line-height: 1.15;
+  }
+  .hero-content p {
+    font-size: 0.95rem;
+    color: #e8e8e8;
+    margin: 0;
+    line-height: 1.5;
   }
 
-  h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
-  .tagline { color: #666; margin-top: 0; margin-bottom: 2.5rem; }
+  .section-heading {
+    font-size: 1.1rem;
+    margin: 0 0 1rem;
+  }
+
+  .tagline { display: none; }
 
   .sport-grid {
     display: grid;
@@ -57,14 +82,17 @@
 </head>
 <body>
 
-<div id="page-background"></div>
-
 <div id="site-nav" data-active="home"></div>
 
 <main class="site-main">
-  <h1>Live sports data tables</h1>
-  <p class="tagline">Pick a sport to see its live, embeddable tables.</p>
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Live sports data, ready to embed</h1>
+      <p>Auto-updating tables for F1, NBA, EPL and more — themeable, embeddable, and export-ready for print.</p>
+    </div>
+  </section>
 
+  <h2 class="section-heading">Pick a sport</h2>
   <div class="sport-grid" id="sport-grid"></div>
 
   <p class="footer-note">
