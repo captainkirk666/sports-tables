@@ -5,43 +5,57 @@
 <title>F1 — Driver Standings (Dark Concept)</title>
 <link rel="stylesheet" href="../css/v1/tables.css">
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&display=swap');
+
   * { box-sizing: border-box; }
   body {
     margin: 0;
     font-family: system-ui, -apple-system, sans-serif;
-    background: #0b0e14;
-    color: #eee;
+    background: #f5f5f5;
+    color: #111;
   }
 
-  /* --- Top nav (self-contained for this test page) --- */
+  /* --- Top nav --- */
   .dark-nav {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 1rem 1.75rem;
-    background: #0b0e14;
-    border-bottom: 1px solid #1e2430;
+    background: #fff;
+    border-bottom: 1px solid #e2e2e2;
   }
-  .dark-nav .brand { font-weight: 700; color: #fff; text-decoration: none; }
+  .dark-nav .brand { font-weight: 700; color: #111; text-decoration: none; }
   .dark-nav .brand span { color: #e10600; }
   .dark-nav ul { list-style: none; display: flex; gap: 1.5rem; margin: 0; padding: 0; }
-  .dark-nav a.nav-link { color: #aaa; text-decoration: none; font-size: 0.9rem; }
-  .dark-nav a.nav-link:hover { color: #fff; }
+  .dark-nav a.nav-link { color: #666; text-decoration: none; font-size: 0.9rem; }
+  .dark-nav a.nav-link:hover { color: #111; }
 
-  /* --- Hero banner --- */
+  /* --- Hero banner: real art, bleeding down slightly below the cards' top edge --- */
   .hero {
     position: relative;
-    padding: 3rem 1.75rem;
-    background: radial-gradient(circle at 80% 30%, rgba(225,6,0,0.25), transparent 60%),
-                linear-gradient(120deg, #0b0e14 0%, #12172a 60%, #1a1030 100%);
-    /* Replace the gradient above with your uploaded art:
-       background-image: url('../assets/logos/homepage/your-hero-art.png');
-       background-size: cover; background-position: center; */
+    padding: 3rem 1.75rem 7rem;
+    background-image: url('../assets/logos/f1/f1-hero-art.png');
+    background-size: cover;
+    background-position: right center;
+    background-repeat: no-repeat;
   }
-  .hero-inner { display: flex; align-items: center; gap: 1.5rem; }
-  .hero-logo { width: 70px; }
-  .hero-text h1 { font-size: 2.2rem; margin: 0 0 0.25rem; color: #fff; }
-  .hero-text p { margin: 0; color: #999; font-size: 0.95rem; }
+  .hero-content {
+    max-width: 640px;
+    color: #111;
+  }
+  .hero-content h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 700;
+    font-size: 5rem;
+    margin: 0 0 0.75rem;
+    line-height: 1.1;
+  }
+  .hero-content p {
+    font-size: 1.3rem;
+    max-width: 440px;
+    margin: 0;
+    line-height: 1.4;
+  }
 
   /* --- Table-switcher tabs --- */
   .table-tabs {
@@ -51,23 +65,26 @@
     padding: 1.25rem 1.75rem 0;
   }
   .table-tab {
-    border: 1px solid #2a2f3d;
+    border: 1px solid #ddd;
     border-radius: 20px;
-    background: #161b26;
-    color: #ccc;
+    background: #fff;
+    color: #444;
     padding: 0.5rem 1.1rem;
     font-size: 0.85rem;
     cursor: pointer;
   }
   .table-tab.active {
-    background: #fff;
-    color: #111;
-    border-color: #fff;
+    background: #111;
+    color: #fff;
+    border-color: #111;
     font-weight: 600;
   }
 
-  /* --- Two column layout --- */
+  /* --- Two column layout, pulled up to overlap the tail of the hero art --- */
   .layout {
+    position: relative;
+    z-index: 1;
+    margin-top: -60px;
     display: grid;
     grid-template-columns: 280px 1fr;
     gap: 1.5rem;
@@ -79,23 +96,21 @@
   }
 
   .panel {
-    background: #12161f;
-    border: 1px solid #1e2430;
+    background: #fff;
+    border: 1px solid #e2e2e2;
     border-radius: 12px;
     padding: 1.25rem;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
   }
   .panel h2 {
     font-size: 0.95rem;
     margin: 0 0 1rem;
-    color: #fff;
+    color: #111;
   }
 
-  /* Reused style-tab machinery, restyled for dark sidebar */
-  .tier-tabs {
-    display: flex; gap: 0.4rem; margin-bottom: 1rem;
-  }
+  .tier-tabs { display: flex; gap: 0.4rem; margin-bottom: 1rem; }
   .tier-tab {
-    background: #1a1f2b; border: 1px solid #2a2f3d; color: #aaa;
+    background: #f2f2f2; border: 1px solid #e2e2e2; color: #666;
     padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 6px; cursor: pointer;
   }
   .tier-tab.active { background: #e10600; color: #fff; border-color: #e10600; }
@@ -105,37 +120,36 @@
 
   .preset-swatch {
     display: flex; align-items: center; gap: 0.5rem;
-    border: 1px solid #2a2f3d; border-radius: 20px;
+    border: 1px solid #e2e2e2; border-radius: 20px;
     padding: 0.4rem 0.8rem 0.4rem 0.5rem;
-    background: #1a1f2b; color: #ccc; cursor: pointer; font-size: 0.8rem;
+    background: #fff; color: #444; cursor: pointer; font-size: 0.8rem;
     margin: 0.2rem 0.3rem 0.2rem 0;
   }
-  .preset-swatch.selected { border-color: #fff; color: #fff; font-weight: 600; }
+  .preset-swatch.selected { border-color: #111; color: #111; font-weight: 600; }
   .swatch-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--swatch-color); display: inline-block; }
 
   .custom-controls { display: flex; flex-direction: column; gap: 0.75rem; }
-  .custom-controls label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #ccc; }
-  input[type="color"] { width: 36px; height: 28px; border: 1px solid #2a2f3d; border-radius: 4px; background: #1a1f2b; }
+  .custom-controls label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #444; }
+  input[type="color"] { width: 36px; height: 28px; border: 1px solid #e2e2e2; border-radius: 4px; background: #fff; }
 
-  /* --- Right column: live preview + actions --- */
   .preview-header {
     display: flex; align-items: center; justify-content: space-between;
     margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;
   }
-  .preview-header h2 { margin: 0; font-size: 0.95rem; color: #fff; }
+  .preview-header h2 { margin: 0; font-size: 0.95rem; color: #111; }
   .action-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
   .action-btn {
-    border: 1px solid #2a2f3d; background: #1a1f2b; color: #ccc;
+    border: 1px solid #e2e2e2; background: #fff; color: #444;
     padding: 0.5rem 0.9rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer;
   }
   .action-btn.primary { background: #e10600; color: #fff; border-color: #e10600; }
-  .action-btn:hover { border-color: #fff; }
+  .action-btn:hover { border-color: #111; }
 
   #preview-frame { width: 100%; border: 0; min-height: 500px; border-radius: 10px; overflow: hidden; }
 
   #embed-code {
     display: block;
-    background: #0b0e14; color: #ccc;
+    background: #f5f5f5; color: #444;
     padding: 0.6rem 0.9rem; border-radius: 6px;
     font-size: 0.75rem; margin-top: 0.75rem;
     white-space: pre-wrap; word-break: break-all;
@@ -157,12 +171,9 @@
 </nav>
 
 <section class="hero">
-  <div class="hero-inner">
-    <img class="hero-logo" src="../assets/logos/f1/formula-1-logo.png" alt="F1">
-    <div class="hero-text">
-      <h1 id="page-title">F1 Driver Standings</h1>
-      <p>Live data. Any style. Your brand.</p>
-    </div>
+  <div class="hero-content">
+    <h1 id="page-title">F1 Driver Standings</h1>
+    <p>Live data. Any style. Your brand.</p>
   </div>
 </section>
 
@@ -181,7 +192,7 @@
     <div class="tier-panel active" id="panel-default">
       <p class="panel-desc">Black on white, or its inverse.</p>
       <button class="preset-swatch default-option selected" data-key="classic" onclick="applyDefault()">
-        <span class="swatch-dot" style="--swatch-color:#fff; border:1px solid #444;"></span>Classic
+        <span class="swatch-dot" style="--swatch-color:#fff; border:1px solid #ccc;"></span>Classic
       </button>
       <button class="preset-swatch default-option" data-key="reverse" onclick="applyReverse()">
         <span class="swatch-dot" style="--swatch-color:#111;"></span>Reverse
