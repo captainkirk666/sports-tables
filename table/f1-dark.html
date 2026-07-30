@@ -33,7 +33,7 @@
   /* --- Hero banner: real art, bleeding down slightly below the cards' top edge --- */
   .hero {
     position: relative;
-    padding: 3rem 1.75rem 7rem;
+    padding: 3rem 1.75rem 12rem;
     background-image: url('../assets/logos/f1/f1-hero-art.png');
     background-size: cover;
     background-position: right center;
@@ -59,6 +59,8 @@
 
   /* --- Table-switcher tabs --- */
   .table-tabs {
+    position: relative;
+    z-index: 2;
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
@@ -84,7 +86,7 @@
   .layout {
     position: relative;
     z-index: 1;
-    margin-top: -60px;
+    margin-top: -140px;
     display: grid;
     grid-template-columns: 280px 1fr;
     gap: 1.5rem;
