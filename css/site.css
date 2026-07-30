@@ -14,8 +14,8 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  background: #c9a227;
-  border-bottom: 1px solid #b08e1f;
+  background: #111;
+  border-bottom: 1px solid #c9a227;
 }
 
 .site-nav .brand {
@@ -26,7 +26,7 @@ body {
 }
 
 .site-nav .brand span {
-  color: #111;
+  color: #c9a227;
 }
 
 .site-nav ul {
@@ -40,16 +40,17 @@ body {
 .site-nav a.nav-link {
   text-decoration: none;
   color: #fff;
-  opacity: 0.85;
+  opacity: 0.75;
   font-size: 0.9rem;
 }
 
 .site-nav a.nav-link:hover {
   opacity: 1;
+  color: #c9a227;
 }
 
 .site-nav a.nav-link.active {
-  color: #fff;
+  color: #c9a227;
   opacity: 1;
   font-weight: 600;
 }
