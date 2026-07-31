@@ -109,6 +109,19 @@ html, body {
   border-radius: 2px;
 }
 
+.dt-flag {
+  width: 20px;
+  height: 14px;
+  object-fit: cover;
+  vertical-align: middle;
+  margin-right: 6px;
+  border-radius: 2px;
+}
+
+[data-dt-flags="off"] .dt-flag {
+  display: none;
+}
+
 .dt-footer {
   margin-top: 0.5rem;
   font-size: 0.7rem;
