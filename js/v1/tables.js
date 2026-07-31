@@ -26,6 +26,7 @@ function applyThemeFromQueryParams() {
   const accent = params.get('accent');     // hex without '#', e.g. '1d9e75'
   const bg = params.get('bg');             // hex without '#' — custom background override
   const flags = params.get('flags');       // 'off' hides flag icons; default shown
+  const logos = params.get('logos');       // 'off' hides team logo icons; default shown
 
   if (theme === 'dark') {
     document.documentElement.setAttribute('data-dt-theme', 'dark');
@@ -39,6 +40,9 @@ function applyThemeFromQueryParams() {
   }
   if (flags === 'off') {
     document.documentElement.setAttribute('data-dt-flags', 'off');
+  }
+  if (logos === 'off') {
+    document.documentElement.setAttribute('data-dt-logos', 'off');
   }
 }
 
