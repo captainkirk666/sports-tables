@@ -25,6 +25,7 @@ function applyThemeFromQueryParams() {
   const theme = params.get('theme');       // 'light' | 'dark'
   const accent = params.get('accent');     // hex without '#', e.g. '1d9e75'
   const bg = params.get('bg');             // hex without '#' — custom background override
+  const flags = params.get('flags');       // 'off' hides flag icons; default shown
 
   if (theme === 'dark') {
     document.documentElement.setAttribute('data-dt-theme', 'dark');
@@ -35,6 +36,9 @@ function applyThemeFromQueryParams() {
   if (bg && /^[0-9a-fA-F]{6}$/.test(bg)) {
     document.documentElement.style.setProperty('--dt-bg', `#${bg}`);
     document.documentElement.style.setProperty('--dt-header-bg', `#${bg}`);
+  }
+  if (flags === 'off') {
+    document.documentElement.setAttribute('data-dt-flags', 'off');
   }
 }
 
@@ -50,7 +54,9 @@ function renderRows(container, columns, rows) {
       const cls = classes ? ` class="${classes}"` : '';
       const logoUrl = col.logo ? col.logo(row) : null;
       const logoHtml = logoUrl ? `<img class="dt-logo" src="${logoUrl}" alt="">` : '';
-      return `<td${cls}>${logoHtml}${col.get(row)}</td>`;
+      const flagUrl = col.flag ? col.flag(row) : null;
+      const flagHtml = flagUrl ? `<img class="dt-flag" src="${flagUrl}" alt="">` : '';
+      return `<td${cls}>${flagHtml}${logoHtml}${col.get(row)}</td>`;
     }).join('');
     return `<tr>${cells}</tr>`;
   }).join('');
