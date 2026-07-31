@@ -2,23 +2,28 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>F1 Constructor Standings — Print</title>
-<link rel="stylesheet" href="../../css/print.css">
+<title>F1 Race Results</title>
+<link rel="stylesheet" href="../../css/v1/tables.css">
 </head>
 <body>
 
-<div id="export-app"></div>
+<div id="dt-app"></div>
 
+<script src="../../js/v1/flags.js"></script>
 <script src="../../js/v1/adapters/f1.js"></script>
-<script src="../../js/export.js"></script>
+<script src="../../js/v1/tables.js"></script>
 <script>
-initExportTable({
-  title: "F1 Constructor Standings",
-  sourceUrl: F1_ADAPTERS.constructors.sourceUrl,
-  adapter: F1_ADAPTERS.constructors,
-  attribution: { label: "Jolpica F1" }
+initTable({
+  containerSelector: "#dt-app",
+  title: "F1 race results",
+  sourceUrl: F1_ADAPTERS.raceResults.sourceUrl,
+  adapter: F1_ADAPTERS.raceResults,
+  refreshSeconds: 20,
+  attribution: { label: "Data: Jolpica F1", href: "https://github.com/jolpica/jolpica-f1" }
 });
 </script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.9/iframeResizer.contentWindow.min.js"></script>
 
 </body>
 </html>
