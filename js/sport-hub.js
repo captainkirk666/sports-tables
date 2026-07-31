@@ -67,6 +67,7 @@ function buildEmbedUrl() {
   const params = new URLSearchParams();
   if (hub.style.theme) params.set("theme", hub.style.theme);
   if (hub.style.accent) params.set("accent", hub.style.accent);
+  if (hub.style.bg) params.set("bg", hub.style.bg);
   const qs = params.toString();
   return qs ? `${table.embedHref}?${qs}` : table.embedHref;
 }
@@ -115,7 +116,12 @@ function applyPreset(key) {
 function applyCustom() {
   const isDark = document.getElementById("custom-dark").checked;
   const color = document.getElementById("custom-color").value.replace("#", "");
-  hub.style = { theme: isDark ? "dark" : null, accent: color };
+  const bgPicker = document.getElementById("custom-bg");
+  if (bgPicker) {
+    bgPicker.closest(".custom-bg-row").style.display = isDark ? "flex" : "none";
+  }
+  const bg = (isDark && bgPicker) ? bgPicker.value.replace("#", "") : null;
+  hub.style = { theme: isDark ? "dark" : null, accent: color, bg: bg };
   updateStylePreview();
 }
 
@@ -251,6 +257,8 @@ function initSportHub(config) {
 
   document.getElementById("custom-dark").addEventListener("change", applyCustom);
   document.getElementById("custom-color").addEventListener("input", applyCustom);
+  const customBg = document.getElementById("custom-bg");
+  if (customBg) customBg.addEventListener("input", applyCustom);
   document.getElementById("copy-btn").addEventListener("click", copyEmbedCode);
   document.getElementById("toggle-code-btn").addEventListener("click", toggleCodeVisible);
   document.getElementById("download-btn").addEventListener("click", () => window.print());
