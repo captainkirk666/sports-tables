@@ -24,12 +24,17 @@ function applyThemeFromQueryParams() {
   const params = new URLSearchParams(window.location.search);
   const theme = params.get('theme');       // 'light' | 'dark'
   const accent = params.get('accent');     // hex without '#', e.g. '1d9e75'
+  const bg = params.get('bg');             // hex without '#' — custom background override
 
   if (theme === 'dark') {
     document.documentElement.setAttribute('data-dt-theme', 'dark');
   }
   if (accent && /^[0-9a-fA-F]{6}$/.test(accent)) {
     document.documentElement.style.setProperty('--dt-accent', `#${accent}`);
+  }
+  if (bg && /^[0-9a-fA-F]{6}$/.test(bg)) {
+    document.documentElement.style.setProperty('--dt-bg', `#${bg}`);
+    document.documentElement.style.setProperty('--dt-header-bg', `#${bg}`);
   }
 }
 
