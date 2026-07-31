@@ -144,6 +144,61 @@
   #embed-code.hidden { display: none; }
 
   #print-surface { display: none; }
+  .controls-section {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #e2e2e2;
+  }
+  .controls-section h3 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #888;
+    margin: 0 0 0.75rem;
+  }
+  .control-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #333;
+  }
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 38px;
+    height: 22px;
+  }
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .switch-track {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: #ccc;
+    border-radius: 22px;
+    transition: 0.15s;
+  }
+  .switch-track::before {
+    content: "";
+    position: absolute;
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: 0.15s;
+  }
+  .switch input:checked + .switch-track {
+    background: #e10600;
+  }
+  .switch input:checked + .switch-track::before {
+    transform: translateX(16px);
+  }
 </style>
 </head>
 <body>
@@ -190,6 +245,17 @@
         <label><input type="checkbox" id="custom-dark"> Dark background</label>
         <label class="custom-bg-row" style="display:none;">Background colour <input type="color" id="custom-bg" value="#111111"></label>
         <label>Accent color <input type="color" id="custom-color" value="#e10600"></label>
+      </div>
+    </div>
+
+    <div class="controls-section">
+      <h3>Controls</h3>
+      <div class="control-row">
+        <span>Flags</span>
+        <label class="switch">
+          <input type="checkbox" id="control-flags" checked>
+          <span class="switch-track"></span>
+        </label>
       </div>
     </div>
   </div>
