@@ -122,6 +122,10 @@ html, body {
   display: none;
 }
 
+[data-dt-logos="off"] .dt-logo {
+  display: none;
+}
+
 .dt-footer {
   margin-top: 0.5rem;
   font-size: 0.7rem;
