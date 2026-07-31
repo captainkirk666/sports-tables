@@ -34,7 +34,7 @@ let hub = {
   tables: [],
   activeKey: null,
   style: { theme: null, accent: null },
-  controls: { flags: true },
+  controls: { flags: true, logos: true },
   printSize: "standard",
   rows: [],
 };
@@ -70,6 +70,7 @@ function buildEmbedUrl() {
   if (hub.style.accent) params.set("accent", hub.style.accent);
   if (hub.style.bg) params.set("bg", hub.style.bg);
   if (!hub.controls.flags) params.set("flags", "off");
+  if (!hub.controls.logos) params.set("logos", "off");
   const qs = params.toString();
   return qs ? `${table.embedHref}?${qs}` : table.embedHref;
 }
@@ -129,6 +130,11 @@ function applyCustom() {
 
 function toggleFlags() {
   hub.controls.flags = document.getElementById("control-flags").checked;
+  updateStylePreview();
+}
+
+function toggleLogos() {
+  hub.controls.logos = document.getElementById("control-logos").checked;
   updateStylePreview();
 }
 
@@ -268,6 +274,8 @@ function initSportHub(config) {
   if (customBg) customBg.addEventListener("input", applyCustom);
   const controlFlags = document.getElementById("control-flags");
   if (controlFlags) controlFlags.addEventListener("change", toggleFlags);
+  const controlLogos = document.getElementById("control-logos");
+  if (controlLogos) controlLogos.addEventListener("change", toggleLogos);
   document.getElementById("copy-btn").addEventListener("click", copyEmbedCode);
   document.getElementById("toggle-code-btn").addEventListener("click", toggleCodeVisible);
   document.getElementById("download-btn").addEventListener("click", () => window.print());
