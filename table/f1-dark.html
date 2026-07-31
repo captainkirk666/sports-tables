@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>F1 — Driver Standings (Dark Concept)</title>
-<link rel="stylesheet" href="../css/v1/tables.css">
+<link rel="stylesheet" href="../css/site.css?v=2">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&display=swap');
 
@@ -15,25 +15,10 @@
     color: #111;
   }
 
-  /* --- Top nav --- */
-  .dark-nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem 1.75rem;
-    background: #fff;
-    border-bottom: 1px solid #e2e2e2;
-  }
-  .dark-nav .brand { font-weight: 700; color: #111; text-decoration: none; }
-  .dark-nav .brand span { color: #e10600; }
-  .dark-nav ul { list-style: none; display: flex; gap: 1.5rem; margin: 0; padding: 0; }
-  .dark-nav a.nav-link { color: #666; text-decoration: none; font-size: 0.9rem; }
-  .dark-nav a.nav-link:hover { color: #111; }
-
   /* --- Hero banner: real art, bleeding down slightly below the cards' top edge --- */
   .hero {
     position: relative;
-    padding: 3rem 1.75rem 12rem;
+    padding: 3rem 4rem 12rem;
     background-image: url('../assets/logos/f1/f1-hero-art.png');
     background-size: cover;
     background-position: right center;
@@ -64,7 +49,7 @@
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
-    padding: 1.25rem 1.75rem 0;
+    padding: 1.25rem 4rem 0;
   }
   .table-tab {
     border: 1px solid #ddd;
@@ -90,7 +75,7 @@
     display: grid;
     grid-template-columns: 280px 1fr;
     gap: 1.5rem;
-    padding: 1.5rem 1.75rem 3rem;
+    padding: 1.5rem 4rem 3rem;
     align-items: start;
   }
   @media (max-width: 800px) {
@@ -163,14 +148,7 @@
 </head>
 <body>
 
-<nav class="dark-nav">
-  <a class="brand" href="../index.html">Live<span>Tables</span></a>
-  <ul>
-    <li><a class="nav-link" href="../index.html">Home</a></li>
-    <li><a class="nav-link" href="../style.html">Style options</a></li>
-    <li><a class="nav-link" href="../docs.html">Embed guide</a></li>
-  </ul>
-</nav>
+<div id="site-nav" data-active=""></div>
 
 <section class="hero">
   <div class="hero-content">
@@ -231,6 +209,7 @@
 
 <div id="print-surface"></div>
 
+<script src="../js/site-nav.js"></script>
 <script src="../js/v1/adapters/f1.js"></script>
 <script src="../js/sport-hub.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.9/iframeResizer.min.js"></script>
