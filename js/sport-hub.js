@@ -34,6 +34,7 @@ let hub = {
   tables: [],
   activeKey: null,
   style: { theme: null, accent: null },
+  controls: { flags: true },
   printSize: "standard",
   rows: [],
 };
@@ -68,6 +69,7 @@ function buildEmbedUrl() {
   if (hub.style.theme) params.set("theme", hub.style.theme);
   if (hub.style.accent) params.set("accent", hub.style.accent);
   if (hub.style.bg) params.set("bg", hub.style.bg);
+  if (!hub.controls.flags) params.set("flags", "off");
   const qs = params.toString();
   return qs ? `${table.embedHref}?${qs}` : table.embedHref;
 }
@@ -122,6 +124,11 @@ function applyCustom() {
   }
   const bg = (isDark && bgPicker) ? bgPicker.value.replace("#", "") : null;
   hub.style = { theme: isDark ? "dark" : null, accent: color, bg: bg };
+  updateStylePreview();
+}
+
+function toggleFlags() {
+  hub.controls.flags = document.getElementById("control-flags").checked;
   updateStylePreview();
 }
 
@@ -259,6 +266,8 @@ function initSportHub(config) {
   document.getElementById("custom-color").addEventListener("input", applyCustom);
   const customBg = document.getElementById("custom-bg");
   if (customBg) customBg.addEventListener("input", applyCustom);
+  const controlFlags = document.getElementById("control-flags");
+  if (controlFlags) controlFlags.addEventListener("change", toggleFlags);
   document.getElementById("copy-btn").addEventListener("click", copyEmbedCode);
   document.getElementById("toggle-code-btn").addEventListener("click", toggleCodeVisible);
   document.getElementById("download-btn").addEventListener("click", () => window.print());
