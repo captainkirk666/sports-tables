@@ -30,13 +30,65 @@ function f1TeamLogo(constructor) {
   return F1_TEAM_LOGOS[constructor.constructorId] || null;
 }
 
+/**
+ * F1/Ergast returns nationality as a demonym ("British", "Dutch"),
+ * a format specific to this API — so that translation lives here,
+ * not in the shared flags.js. It resolves to an ISO code, then hands
+ * off to the shared flagUrlByIso() builder in js/v1/flags.js.
+ */
+const F1_NATIONALITY_TO_ISO = {
+  "British": "gb",
+  "German": "de",
+  "Dutch": "nl",
+  "Spanish": "es",
+  "Monegasque": "mc",
+  "Mexican": "mx",
+  "Finnish": "fi",
+  "Australian": "au",
+  "French": "fr",
+  "Canadian": "ca",
+  "Japanese": "jp",
+  "Thai": "th",
+  "Danish": "dk",
+  "Argentine": "ar",
+  "Argentinian": "ar",
+  "Brazilian": "br",
+  "Italian": "it",
+  "New Zealander": "nz",
+  "Austrian": "at",
+  "Belgian": "be",
+  "Swiss": "ch",
+  "Polish": "pl",
+  "Russian": "ru",
+  "Chinese": "cn",
+  "Indian": "in",
+  "American": "us",
+  "Portuguese": "pt",
+  "Swedish": "se",
+  "Indonesian": "id",
+  "Malaysian": "my",
+  "South African": "za",
+  "Irish": "ie",
+  "Hungarian": "hu",
+  "Colombian": "co",
+  "Venezuelan": "ve",
+  "Uruguayan": "uy",
+  "Chilean": "cl",
+  "Czech": "cz",
+  "Norwegian": "no",
+};
+
+function flagUrl(nationality) {
+  return flagUrlByIso(F1_NATIONALITY_TO_ISO[nationality]);
+}
+
 const F1_ADAPTERS = {
   drivers: {
     sourceUrl: "https://api.jolpi.ca/ergast/f1/current/driverStandings.json",
     extract: data => data.MRData.StandingsTable.StandingsLists[0].DriverStandings,
     columns: [
       { key: "pos",    label: "Pos",    get: d => d.position, emphasis: true },
-      { key: "driver", label: "Driver", get: d => `${d.Driver.givenName} ${d.Driver.familyName}`, compactGet: d => d.Driver.familyName },
+      { key: "driver", label: "Driver", get: d => `${d.Driver.givenName} ${d.Driver.familyName}`, compactGet: d => d.Driver.familyName, logo: d => flagUrl(d.Driver.nationality) },
       { key: "team",   label: "Team",   get: d => d.Constructors[0].name, logo: d => f1TeamLogo(d.Constructors[0]) },
       { key: "points", label: "Points", get: d => d.points, numeric: true },
       { key: "wins",   label: "Wins",   get: d => d.wins, numeric: true },
@@ -49,7 +101,7 @@ const F1_ADAPTERS = {
     columns: [
       { key: "pos",         label: "Pos",          get: c => c.position, emphasis: true },
       { key: "constructor", label: "Constructor",  get: c => c.Constructor.name, logo: c => f1TeamLogo(c.Constructor) },
-      { key: "nationality", label: "Nationality",  get: c => c.Constructor.nationality },
+      { key: "nationality", label: "Nationality",  get: c => c.Constructor.nationality, logo: c => flagUrl(c.Constructor.nationality) },
       { key: "points",      label: "Points",       get: c => c.points, numeric: true },
       { key: "wins",        label: "Wins",         get: c => c.wins, numeric: true },
     ],
@@ -62,7 +114,7 @@ const F1_ADAPTERS = {
     },
     columns: [
       { key: "pos",      label: "Pos",      get: r => r.position, emphasis: true },
-      { key: "driver",   label: "Driver",   get: r => `${r.Driver.givenName} ${r.Driver.familyName}`, compactGet: r => r.Driver.familyName },
+      { key: "driver",   label: "Driver",   get: r => `${r.Driver.givenName} ${r.Driver.familyName}`, compactGet: r => r.Driver.familyName, logo: r => flagUrl(r.Driver.nationality) },
       { key: "team",     label: "Team",     get: r => r.Constructor.name, logo: r => f1TeamLogo(r.Constructor) },
       { key: "laps",     label: "Laps",     get: r => r.laps, numeric: true },
       { key: "time",     label: "Time / Status", get: r => r.Time ? r.Time.time : r.status },
