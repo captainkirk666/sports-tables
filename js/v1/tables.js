@@ -49,7 +49,7 @@ function renderRows(container, columns, rows) {
       const classes = [col.numeric ? 'numeric' : '', col.emphasis ? 'dt-emphasis' : ''].filter(Boolean).join(' ');
       const cls = classes ? ` class="${classes}"` : '';
       const logoUrl = col.logo ? col.logo(row) : null;
-      const logoHtml = logoUrl ? `<img class="dt-logo" src="${logoUrl}" alt="" loading="lazy">` : '';
+      const logoHtml = logoUrl ? `<img class="dt-logo" src="${logoUrl}" alt="">` : '';
       return `<td${cls}>${logoHtml}${col.get(row)}</td>`;
     }).join('');
     return `<tr>${cells}</tr>`;
