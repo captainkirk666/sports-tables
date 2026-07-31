@@ -132,7 +132,13 @@
   .action-btn.primary { background: #e10600; color: #fff; border-color: #e10600; }
   .action-btn:hover { border-color: #111; }
 
-  #preview-frame { width: 100%; border: 0; min-height: 500px; border-radius: 10px; overflow: hidden; }
+  .preview-surface {
+    background: #fafafa;
+    border: 1px solid #e2e2e2;
+    border-radius: 10px;
+    padding: 1rem;
+  }
+  #preview-frame { width: 100%; border: 0; min-height: 500px; border-radius: 8px; overflow: hidden; background: #fff; }
 
   #embed-code {
     display: block;
@@ -257,6 +263,13 @@
           <span class="switch-track"></span>
         </label>
       </div>
+      <div class="control-row" style="margin-top:0.75rem;">
+        <span>Team logos</span>
+        <label class="switch">
+          <input type="checkbox" id="control-logos" checked>
+          <span class="switch-track"></span>
+        </label>
+      </div>
     </div>
   </div>
 
@@ -269,7 +282,9 @@
         <button id="copy-btn" class="action-btn primary">Copy to clipboard</button>
       </div>
     </div>
-    <iframe id="preview-frame"></iframe>
+    <div class="preview-surface">
+      <iframe id="preview-frame"></iframe>
+    </div>
     <code id="embed-code" class="hidden"></code>
   </div>
 </div>
@@ -277,9 +292,9 @@
 <div id="print-surface"></div>
 
 <script src="../js/site-nav.js"></script>
-<script src="../js/v1/flags.js"></script>
-<script src="../js/v1/adapters/f1.js"></script>
-<script src="../js/sport-hub.js"></script>
+<script src="../js/v1/flags.js?v=2"></script>
+<script src="../js/v1/adapters/f1.js?v=2"></script>
+<script src="../js/sport-hub.js?v=2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.9/iframeResizer.min.js"></script>
 <script>
 initSportHub({
