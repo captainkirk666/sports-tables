@@ -73,10 +73,10 @@
     z-index: 1;
     margin-top: -140px;
     display: grid;
-    grid-template-columns: 280px 1fr;
+    grid-template-columns: 364px 1fr;
     gap: 1.5rem;
     padding: 1.5rem 4rem 3rem;
-    align-items: start;
+    align-items: stretch;
   }
   @media (max-width: 800px) {
     .layout { grid-template-columns: 1fr; }
@@ -188,6 +188,7 @@
       <p class="panel-desc">Tweak the highlight color and background.</p>
       <div class="custom-controls">
         <label><input type="checkbox" id="custom-dark"> Dark background</label>
+        <label class="custom-bg-row" style="display:none;">Background colour <input type="color" id="custom-bg" value="#111111"></label>
         <label>Accent color <input type="color" id="custom-color" value="#e10600"></label>
       </div>
     </div>
