@@ -47,6 +47,7 @@ function activeTable() {
 
 function renderTableTabs() {
   const mount = document.getElementById("table-tabs");
+  if (!mount) return;
   mount.innerHTML = hub.tables.map(t => `
     <button class="table-tab${t.key === hub.activeKey ? ' active' : ''}" data-key="${t.key}" onclick="selectTableTab('${t.key}')">
       ${t.label}
@@ -140,6 +141,7 @@ function toggleLogos() {
 
 function renderPresetSwatches() {
   const mount = document.getElementById("preset-swatches");
+  if (!mount) return;
   mount.innerHTML = STYLE_PRESETS.map(p => `
     <button class="preset-swatch" data-key="${p.key}" style="--swatch-color:${p.swatch}" onclick="applyPreset('${p.key}')">
       <span class="swatch-dot"></span><span>${p.label}</span>
@@ -226,6 +228,7 @@ function selectSize(key) {
 
 function renderSizeControls() {
   const mount = document.getElementById("size-controls");
+  if (!mount) return;
   mount.innerHTML = Object.entries(SIZE_PRESETS).map(([key, preset]) => `
     <button class="size-option${key === hub.printSize ? ' selected' : ''}" data-key="${key}" onclick="selectSize('${key}')">
       ${preset.label}<br><span class="size-dim">${preset.widthCm}cm wide</span>
