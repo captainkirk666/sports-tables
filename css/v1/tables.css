@@ -40,6 +40,11 @@ html, body {
   padding: 0.75rem;
 }
 
+.dt-table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .dt-header {
   display: flex;
   align-items: center;
@@ -58,14 +63,10 @@ html, body {
   margin: 0;
 }
 
-.dt-updated {
-  font-size: 0.75rem;
-  color: var(--dt-text-secondary);
-}
-
 .data-table {
   border-collapse: collapse;
   width: 100%;
+  min-width: max-content;
 }
 
 .data-table th,
@@ -74,6 +75,20 @@ html, body {
   border-bottom: 1px solid var(--dt-border);
   text-align: left;
   font-size: 0.9rem;
+}
+
+[data-dt-size="compact"] .data-table th,
+[data-dt-size="compact"] .data-table td {
+  padding: 6px 4px;
+  font-size: 0.82rem;
+}
+[data-dt-size="compact"] .dt-flag {
+  width: 16px;
+  height: 11px;
+  margin-right: 4px;
+}
+[data-dt-size="compact"] .dt-title {
+  font-size: 0.95rem;
 }
 
 .data-table th {
