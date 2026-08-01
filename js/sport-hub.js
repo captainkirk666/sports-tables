@@ -1,381 +1,317 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>F1 — Driver Standings (Dark Concept)</title>
-<link rel="stylesheet" href="../css/site.css?v=2">
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&display=swap');
+/**
+ * Sport hub page — one page per sport, with a tab bar across the top
+ * to switch between that sport's tables (Standings, Results, etc).
+ * Everything below (style tabs, live preview, embed code, print
+ * export) is shared and just re-renders for whichever table is active.
+ *
+ * Usage:
+ *   initSportHub({
+ *     sport: "F1",
+ *     tables: [
+ *       { key: "drivers", label: "Driver Standings", title: "F1 Driver Standings",
+ *         embedHref: "../../embed/f1/drivers.html", sourceUrl: ..., adapter: ..., attribution: {...} },
+ *       ...
+ *     ]
+ *   });
+ */
 
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: system-ui, -apple-system, sans-serif;
-    background: #f5f5f5;
-    color: #111;
-  }
+const STYLE_PRESETS = [
+  { key: "red",   label: "Red",   theme: null, accent: "C4151C", swatch: "#C4151C" },
+  { key: "green", label: "Green", theme: null, accent: "004225", swatch: "#004225" },
+  { key: "blue",  label: "Blue",  theme: null, accent: "0156B2", swatch: "#0156B2" },
+];
 
-  /* --- Hero banner: real art, bleeding down slightly below the cards' top edge --- */
-  .hero {
-    position: relative;
-    padding: 3rem 4rem 12rem;
-    background-image: url('../assets/logos/f1/f1-hero-art.png');
-    background-size: cover;
-    background-position: right center;
-    background-repeat: no-repeat;
-  }
-  .hero-content {
-    max-width: 640px;
-    color: #111;
-  }
-  .hero-content h1 {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 700;
-    font-size: 5rem;
-    margin: 0 0 0.75rem;
-    line-height: 1.1;
-  }
-  .hero-content p {
-    font-size: 1.3rem;
-    max-width: 440px;
-    margin: 0;
-    line-height: 1.4;
-  }
+const SIZE_PRESETS = {
+  compact:  { label: "Compact (1 col)",  widthCm: 8,  maxRows: 8,
+    columns: ["pos", "rank", "driver", "constructor", "team", "wins", "points", "pts"] },
+  standard: { label: "Standard (2 col)", widthCm: 12, maxRows: 15,
+    columns: ["pos", "rank", "driver", "constructor", "team", "nationality", "played", "laps", "time", "fastest", "points", "wins", "losses", "draws", "gd", "pct"] },
+  full:     { label: "Full width",       widthCm: 18, maxRows: null,
+    columns: ["pos", "rank", "driver", "constructor", "team", "nationality", "played", "laps", "time", "fastest", "points", "wins", "losses", "draws", "gd", "pct"] },
+};
 
-  /* --- Table-switcher tabs --- */
-  .table-tabs {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-top: 4rem;
-  }
-  .table-tab {
-    border: 1px solid #ddd;
-    border-radius: 20px;
-    background: #fff;
-    color: #444;
-    padding: 0.5rem 1.1rem;
-    font-size: 0.85rem;
-    cursor: pointer;
-  }
-  .table-tab.active {
-    background: #111;
-    color: #fff;
-    border-color: #111;
-    font-weight: 600;
-  }
+const PREVIEW_SIZES = {
+  full:     { label: "Full width", width: "100%" },
+  standard: { label: "Standard",   width: "480px" },
+  compact:  { label: "Compact",    width: "320px" },
+};
 
-  /* --- Two column layout, pulled up to overlap the tail of the hero art --- */
-  .layout {
-    position: relative;
-    z-index: 1;
-    margin-top: -140px;
-    display: grid;
-    grid-template-columns: 364px 1fr;
-    gap: 1.5rem;
-    padding: 1.5rem 4rem 3rem;
-    align-items: stretch;
-  }
-  @media (max-width: 800px) {
-    .layout { grid-template-columns: 1fr; }
-  }
+let hub = {
+  tables: [],
+  activeKey: null,
+  style: { theme: null, accent: null },
+  controls: { flags: true, logos: true },
+  previewSize: "full",
+  printSize: "standard",
+  rows: [],
+};
 
-  .panel {
-    background: #fff;
-    border: 1px solid #e2e2e2;
-    border-radius: 12px;
-    padding: 1.25rem;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-  }
-  .panel h2 {
-    font-size: 0.95rem;
-    margin: 0 0 1rem;
-    color: #111;
-  }
+function activeTable() {
+  return hub.tables.find(t => t.key === hub.activeKey);
+}
 
-  .tier-tabs { display: flex; gap: 0.4rem; margin-bottom: 1rem; }
-  .tier-tab {
-    background: #f2f2f2; border: 1px solid #e2e2e2; color: #666;
-    padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 6px; cursor: pointer;
-  }
-  .tier-tab.active { background: #e10600; color: #fff; border-color: #e10600; }
-  .tier-panel { display: none; }
-  .tier-panel.active { display: block; }
-  .panel-desc { font-size: 0.8rem; color: #888; margin-bottom: 0.75rem; }
+/* ---------- Table (top) tabs ---------- */
 
-  .preset-swatch {
-    display: flex; align-items: center; gap: 0.5rem;
-    border: 1px solid #e2e2e2; border-radius: 20px;
-    padding: 0.4rem 0.8rem 0.4rem 0.5rem;
-    background: #fff; color: #444; cursor: pointer; font-size: 0.8rem;
-    margin: 0.2rem 0.3rem 0.2rem 0;
-  }
-  .preset-swatch.selected { border-color: #111; color: #111; font-weight: 600; }
-  .swatch-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--swatch-color); display: inline-block; }
+function renderTableTabs() {
+  const mount = document.getElementById("table-tabs");
+  if (!mount) return;
+  mount.innerHTML = hub.tables.map(t => `
+    <button class="table-tab${t.key === hub.activeKey ? ' active' : ''}" data-key="${t.key}" onclick="selectTableTab('${t.key}')">
+      ${t.label}
+    </button>
+  `).join("");
+}
 
-  .custom-controls { display: flex; flex-direction: column; gap: 0.75rem; }
-  .custom-controls label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #444; }
-  input[type="color"] { width: 36px; height: 28px; border: 1px solid #e2e2e2; border-radius: 4px; background: #fff; }
+function selectTableTab(key) {
+  hub.activeKey = key;
+  document.querySelectorAll(".table-tab").forEach(el =>
+    el.classList.toggle("active", el.dataset.key === key));
+  refreshActiveTable();
+}
 
-  .preview-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;
-  }
-  .preview-header h2 { margin: 0; font-size: 0.95rem; color: #111; }
-  .action-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-  .action-btn {
-    border: 1px solid #e2e2e2; background: #fff; color: #444;
-    padding: 0.5rem 0.9rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer;
-  }
-  .action-btn.primary { background: #e10600; color: #fff; border-color: #e10600; }
-  .action-btn:hover { border-color: #111; }
+/* ---------- Style tabs + live preview + embed code ---------- */
 
-  .preview-surface {
-    background: #fafafa;
-    border: 1px solid #e2e2e2;
-    border-radius: 10px;
-    padding: 1rem;
-    overflow-x: auto;
-  }
-  #preview-surface-inner {
-    width: 100%;
-    transition: width 0.2s ease;
-  }
-  #preview-frame { width: 100%; border: 0; min-height: 500px; border-radius: 8px; overflow: hidden; background: #fff; }
+function buildEmbedUrl() {
+  const table = activeTable();
+  const params = new URLSearchParams();
+  if (hub.style.theme) params.set("theme", hub.style.theme);
+  if (hub.style.accent) params.set("accent", hub.style.accent);
+  if (hub.style.bg) params.set("bg", hub.style.bg);
+  if (!hub.controls.flags) params.set("flags", "off");
+  if (!hub.controls.logos) params.set("logos", "off");
+  const qs = params.toString();
+  return qs ? `${table.embedHref}?${qs}` : table.embedHref;
+}
 
-  .size-section {
-    margin-top: 1.25rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid #e2e2e2;
+function updateStylePreview() {
+  const url = buildEmbedUrl();
+  document.getElementById("preview-frame").src = url;
+  const fullUrl = new URL(url, window.location.href).href;
+  document.getElementById("embed-code").textContent =
+    `<iframe class="dt-embed" src="${fullUrl}"></iframe>`;
+  if (window.iFrameResize) {
+    iFrameResize({ checkOrigin: false }, '#preview-frame');
   }
-  .size-section h3 {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: #888;
-    margin: 0 0 0.75rem;
-  }
-  .preview-size-controls {
-    display: flex;
-    gap: 0.4rem;
-  }
-  .preview-size-option {
-    flex: 1;
-    border: 1px solid #e2e2e2;
-    border-radius: 6px;
-    background: #fff;
-    color: #444;
-    padding: 0.5rem 0.4rem;
-    font-size: 0.78rem;
-    cursor: pointer;
-    text-align: center;
-  }
-  .preview-size-option.selected {
-    background: #e10600;
-    color: #fff;
-    border-color: #e10600;
-    font-weight: 600;
-  }
+}
 
-  #embed-code {
-    display: block;
-    background: #f5f5f5; color: #444;
-    padding: 0.6rem 0.9rem; border-radius: 6px;
-    font-size: 0.75rem; margin-top: 0.75rem;
-    white-space: pre-wrap; word-break: break-all;
-  }
-  #embed-code.hidden { display: none; }
+function selectTab(tab) {
+  document.querySelectorAll(".tier-panel").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".tier-tab").forEach(t => t.classList.remove("active"));
+  document.getElementById(`panel-${tab}`).classList.add("active");
+  document.getElementById(`tab-${tab}`).classList.add("active");
+}
 
-  #print-surface { display: none; }
-  .controls-section {
-    margin-top: 1.25rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid #e2e2e2;
-  }
-  .controls-section h3 {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: #888;
-    margin: 0 0 0.75rem;
-  }
-  .control-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 0.9rem;
-    color: #333;
-  }
-  .switch {
-    position: relative;
-    display: inline-block;
-    width: 38px;
-    height: 22px;
-  }
-  .switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-  .switch-track {
-    position: absolute;
-    cursor: pointer;
-    inset: 0;
-    background: #ccc;
-    border-radius: 22px;
-    transition: 0.15s;
-  }
-  .switch-track::before {
-    content: "";
-    position: absolute;
-    height: 16px;
-    width: 16px;
-    left: 3px;
-    bottom: 3px;
-    background: #fff;
-    border-radius: 50%;
-    transition: 0.15s;
-  }
-  .switch input:checked + .switch-track {
-    background: #e10600;
-  }
-  .switch input:checked + .switch-track::before {
-    transform: translateX(16px);
-  }
-</style>
-</head>
-<body>
+function applyDefault() {
+  hub.style = { theme: null, accent: null };
+  document.querySelectorAll(".default-option").forEach(el =>
+    el.classList.toggle("selected", el.dataset.key === "classic"));
+  updateStylePreview();
+}
 
-<div id="site-nav" data-active=""></div>
+function applyReverse() {
+  hub.style = { theme: "dark", accent: null };
+  document.querySelectorAll(".default-option").forEach(el =>
+    el.classList.toggle("selected", el.dataset.key === "reverse"));
+  updateStylePreview();
+}
 
-<section class="hero">
-  <div class="hero-content">
-    <h1 id="page-title">F1 Driver Standings</h1>
-    <p>Live data. Any style. Your brand.</p>
-  </div>
+function applyPreset(key) {
+  const preset = STYLE_PRESETS.find(p => p.key === key);
+  if (!preset) return;
+  hub.style = { theme: preset.theme, accent: preset.accent };
+  document.querySelectorAll(".preset-swatch").forEach(el =>
+    el.classList.toggle("selected", el.dataset.key === key));
+  updateStylePreview();
+}
 
-  <div id="table-tabs" class="table-tabs"></div>
-</section>
+function applyCustom() {
+  const isDark = document.getElementById("custom-dark").checked;
+  const color = document.getElementById("custom-color").value.replace("#", "");
+  const bgPicker = document.getElementById("custom-bg");
+  if (bgPicker) {
+    bgPicker.closest(".custom-bg-row").style.display = isDark ? "flex" : "none";
+  }
+  const bg = (isDark && bgPicker) ? bgPicker.value.replace("#", "") : null;
+  hub.style = { theme: isDark ? "dark" : null, accent: color, bg: bg };
+  updateStylePreview();
+}
 
-<div class="layout">
-  <div class="panel">
-    <h2>Style &amp; Theme</h2>
+function toggleFlags() {
+  hub.controls.flags = document.getElementById("control-flags").checked;
+  updateStylePreview();
+}
 
-    <div class="tier-tabs">
-      <button class="tier-tab active" id="tab-default" onclick="selectTab('default')">Default</button>
-      <button class="tier-tab" id="tab-preset" onclick="selectTab('preset')">Presets</button>
-      <button class="tier-tab" id="tab-custom" onclick="selectTab('custom')">Custom</button>
+function toggleLogos() {
+  hub.controls.logos = document.getElementById("control-logos").checked;
+  updateStylePreview();
+}
+
+function selectPreviewSize(key) {
+  hub.previewSize = key;
+  const preset = PREVIEW_SIZES[key];
+  const surface = document.getElementById("preview-surface-inner");
+  if (surface) surface.style.width = preset.width;
+  document.querySelectorAll(".preview-size-option").forEach(el =>
+    el.classList.toggle("selected", el.dataset.key === key));
+  if (window.iFrameResize) {
+    setTimeout(() => iFrameResize({ checkOrigin: false }, '#preview-frame'), 50);
+  }
+}
+
+function renderPreviewSizeControls() {
+  const mount = document.getElementById("preview-size-controls");
+  if (!mount) return;
+  mount.innerHTML = ["full", "standard", "compact"].map(key => {
+    const preset = PREVIEW_SIZES[key];
+    return `
+      <button class="preview-size-option${key === hub.previewSize ? ' selected' : ''}" data-key="${key}" onclick="selectPreviewSize('${key}')">
+        ${preset.label}
+      </button>`;
+  }).join('');
+}
+
+function renderPresetSwatches() {
+  const mount = document.getElementById("preset-swatches");
+  if (!mount) return;
+  mount.innerHTML = STYLE_PRESETS.map(p => `
+    <button class="preset-swatch" data-key="${p.key}" style="--swatch-color:${p.swatch}" onclick="applyPreset('${p.key}')">
+      <span class="swatch-dot"></span><span>${p.label}</span>
+    </button>
+  `).join("");
+}
+
+function copyEmbedCode() {
+  const text = document.getElementById("embed-code").textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById("copy-btn");
+    const original = btn.textContent;
+    btn.textContent = "Copied!";
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  });
+}
+
+function toggleCodeVisible() {
+  const code = document.getElementById("embed-code");
+  const btn = document.getElementById("toggle-code-btn");
+  const hidden = code.classList.toggle("hidden");
+  btn.textContent = hidden ? "Show code" : "Hide code";
+}
+
+/* ---------- Print size picker + hidden print-only render ---------- */
+
+function renderPrintSurface() {
+  const preset = SIZE_PRESETS[hub.printSize];
+  const table = activeTable();
+  const now = new Date();
+  const dateStr = now.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  const timeStr = now.toLocaleTimeString();
+  const visibleRows = preset.maxRows ? hub.rows.slice(0, preset.maxRows) : hub.rows;
+  const isCompact = hub.printSize === "compact";
+
+  const activeColumns = preset.columns
+    ? table.adapter.columns.filter(c => preset.columns.includes(c.key))
+    : table.adapter.columns;
+
+  const cellValue = (col, row) => (isCompact && col.compactGet) ? col.compactGet(row) : col.get(row);
+
+  const rowsHtml = visibleRows.length
+    ? visibleRows.map(row => {
+        const cells = activeColumns.map(col => {
+          const cls = col.numeric ? ' class="numeric"' : '';
+          return `<td${cls}>${cellValue(col, row)}</td>`;
+        }).join('');
+        return `<tr>${cells}</tr>`;
+      }).join('')
+    : `<tr><td colspan="${activeColumns.length}">No data available.</td></tr>`;
+
+  document.getElementById("print-surface").innerHTML = `
+    <div class="export-header">
+      <h1>${table.title}</h1>
+      <div class="export-meta">${dateStr}<br>${timeStr}</div>
     </div>
+    <table class="export-table">
+      <thead><tr>${activeColumns.map(c =>
+        `<th${c.numeric ? ' class="numeric"' : ''}>${c.label}</th>`).join('')}</tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+    ${preset.maxRows && hub.rows.length > preset.maxRows
+      ? `<div class="export-truncated">Showing top ${preset.maxRows} of ${hub.rows.length}</div>` : ''}
+    ${table.attribution ? `<div class="export-footer">Data: ${table.attribution.label} · Generated ${dateStr}, ${timeStr}</div>` : ''}
+  `;
 
-    <div class="tier-panel active" id="panel-default">
-      <p class="panel-desc">Black on white, or its inverse.</p>
-      <button class="preset-swatch default-option selected" data-key="classic" onclick="applyDefault()">
-        <span class="swatch-dot" style="--swatch-color:#fff; border:1px solid #ccc;"></span>Classic
-      </button>
-      <button class="preset-swatch default-option" data-key="reverse" onclick="applyReverse()">
-        <span class="swatch-dot" style="--swatch-color:#111;"></span>Reverse
-      </button>
-    </div>
+  document.getElementById("print-surface").style.width = `${preset.widthCm}cm`;
 
-    <div class="tier-panel" id="panel-preset">
-      <p class="panel-desc">Sport-themed presets.</p>
-      <div id="preset-swatches"></div>
-    </div>
+  let pageStyle = document.getElementById('page-size-style');
+  if (!pageStyle) {
+    pageStyle = document.createElement('style');
+    pageStyle.id = 'page-size-style';
+    document.head.appendChild(pageStyle);
+  }
+  pageStyle.textContent = `@page { size: ${preset.widthCm}cm 40cm; margin: 0; }`;
+}
 
-    <div class="tier-panel" id="panel-custom">
-      <p class="panel-desc">Tweak the highlight color and background.</p>
-      <div class="custom-controls">
-        <label><input type="checkbox" id="custom-dark"> Dark background</label>
-        <label class="custom-bg-row" style="display:none;">Background colour <input type="color" id="custom-bg" value="#111111"></label>
-        <label>Accent color <input type="color" id="custom-color" value="#e10600"></label>
-      </div>
-    </div>
+function selectSize(key) {
+  hub.printSize = key;
+  document.querySelectorAll('.size-option').forEach(el =>
+    el.classList.toggle('selected', el.dataset.key === key));
+  renderPrintSurface();
+}
 
-    <div class="size-section">
-      <h3>Size</h3>
-      <div id="preview-size-controls" class="preview-size-controls"></div>
-    </div>
+function renderSizeControls() {
+  const mount = document.getElementById("size-controls");
+  if (!mount) return;
+  mount.innerHTML = Object.entries(SIZE_PRESETS).map(([key, preset]) => `
+    <button class="size-option${key === hub.printSize ? ' selected' : ''}" data-key="${key}" onclick="selectSize('${key}')">
+      ${preset.label}<br><span class="size-dim">${preset.widthCm}cm wide</span>
+    </button>
+  `).join('');
+}
 
-    <div class="controls-section">
-      <h3>Controls</h3>
-      <div class="control-row">
-        <span>Flags</span>
-        <label class="switch">
-          <input type="checkbox" id="control-flags" checked>
-          <span class="switch-track"></span>
-        </label>
-      </div>
-      <div class="control-row" style="margin-top:0.75rem;">
-        <span>Team logos</span>
-        <label class="switch">
-          <input type="checkbox" id="control-logos" checked>
-          <span class="switch-track"></span>
-        </label>
-      </div>
-    </div>
-  </div>
+/* ---------- Switching / loading the active table ---------- */
 
-  <div class="panel">
-    <div class="preview-header">
-      <h2>Live preview</h2>
-      <div class="action-buttons">
-        <button id="toggle-code-btn" class="action-btn">Get embed code</button>
-        <button id="download-btn" class="action-btn">Download PDF</button>
-        <button id="copy-btn" class="action-btn primary">Copy to clipboard</button>
-      </div>
-    </div>
-    <div class="preview-surface">
-      <div id="preview-surface-inner">
-        <iframe id="preview-frame"></iframe>
-      </div>
-    </div>
-    <code id="embed-code" class="hidden"></code>
-  </div>
-</div>
+function refreshActiveTable() {
+  const table = activeTable();
+  document.getElementById("page-title").textContent = table.title;
+  document.title = `${table.title} — Live sports data tables`;
+  updateStylePreview();
 
-<div id="print-surface"></div>
+  hub.rows = [];
+  document.getElementById("print-surface").innerHTML = `<p style="padding:1rem;">Loading…</p>`;
 
-<script src="../js/site-nav.js"></script>
-<script src="../js/v1/flags.js?v=2"></script>
-<script src="../js/v1/adapters/f1.js?v=2"></script>
-<script src="../js/sport-hub.js?v=2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.9/iframeResizer.min.js"></script>
-<script>
-initSportHub({
-  sport: "F1",
-  tables: [
-    {
-      key: "drivers",
-      label: "Driver Standings",
-      title: "F1 Driver Standings",
-      embedHref: "../embed/f1/drivers.html",
-      sourceUrl: F1_ADAPTERS.drivers.sourceUrl,
-      adapter: F1_ADAPTERS.drivers,
-      attribution: { label: "Jolpica F1" }
-    },
-    {
-      key: "constructors",
-      label: "Constructor Standings",
-      title: "F1 Constructor Standings",
-      embedHref: "../embed/f1/constructors.html",
-      sourceUrl: F1_ADAPTERS.constructors.sourceUrl,
-      adapter: F1_ADAPTERS.constructors,
-      attribution: { label: "Jolpica F1" }
-    },
-    {
-      key: "results",
-      label: "Race Results",
-      title: "F1 Race Results",
-      embedHref: "../embed/f1/results.html",
-      sourceUrl: F1_ADAPTERS.raceResults.sourceUrl,
-      adapter: F1_ADAPTERS.raceResults,
-      attribution: { label: "Jolpica F1" }
-    }
-  ]
-});
-</script>
+  fetch(table.sourceUrl)
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    })
+    .then(data => {
+      hub.rows = table.adapter.extract(data) || [];
+      renderPrintSurface();
+    })
+    .catch(err => {
+      document.getElementById("print-surface").innerHTML = `<p style="padding:1rem;">Failed to load: ${err.message}</p>`;
+    });
+}
 
-</body>
-</html>
+function initSportHub(config) {
+  hub.tables = config.tables;
+  hub.activeKey = config.tables[0].key;
+
+  renderTableTabs();
+  renderPresetSwatches();
+  renderPreviewSizeControls();
+  renderSizeControls();
+  applyDefault();
+  refreshActiveTable();
+
+  document.getElementById("custom-dark").addEventListener("change", applyCustom);
+  document.getElementById("custom-color").addEventListener("input", applyCustom);
+  const customBg = document.getElementById("custom-bg");
+  if (customBg) customBg.addEventListener("input", applyCustom);
+  const controlFlags = document.getElementById("control-flags");
+  if (controlFlags) controlFlags.addEventListener("change", toggleFlags);
+  const controlLogos = document.getElementById("control-logos");
+  if (controlLogos) controlLogos.addEventListener("change", toggleLogos);
+  document.getElementById("copy-btn").addEventListener("click", copyEmbedCode);
+  document.getElementById("toggle-code-btn").addEventListener("click", toggleCodeVisible);
+  document.getElementById("download-btn").addEventListener("click", () => window.print());
+}
