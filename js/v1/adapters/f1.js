@@ -101,7 +101,7 @@ const F1_ADAPTERS = {
     extract: data => data.MRData.StandingsTable.StandingsLists[0].ConstructorStandings,
     columns: [
       { key: "pos",         label: "Pos",          get: c => c.position, emphasis: true },
-      { key: "constructor", label: "Constructor",  get: c => c.Constructor.name, compactGet: () => "", logo: c => f1TeamLogo(c.Constructor) },
+      { key: "constructor", label: "Constructor",  get: c => c.Constructor.name, logo: c => f1TeamLogo(c.Constructor) },
       { key: "nationality", label: "Nationality",  get: c => c.Constructor.nationality, flag: c => flagUrl(c.Constructor.nationality) },
       { key: "points",      label: "PTS",       get: c => c.points, numeric: true },
       { key: "wins",        label: "Wins",         get: c => c.wins, numeric: true },
