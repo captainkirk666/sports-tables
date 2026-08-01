@@ -246,6 +246,17 @@
   .export-table td.numeric { text-align: right; font-variant-numeric: tabular-nums; }
   .export-truncated { font-size: 0.7rem; color: #999; margin-top: 0.3rem; font-style: italic; }
   .export-footer { margin-top: 0.6rem; font-size: 0.68rem; color: #999; }
+
+  /* Hide everything except the print surface when actually printing */
+  @media print {
+    #site-nav, .hero, #table-tabs, .layout {
+      display: none !important;
+    }
+    #print-surface {
+      display: block !important;
+    }
+    body { margin: 0; padding: 0; background: none; }
+  }
   .controls-section {
     margin-top: 1.25rem;
     padding-top: 1.25rem;
