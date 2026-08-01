@@ -97,6 +97,8 @@
 
   .tier-tabs { display: flex; gap: 0.4rem; margin-bottom: 1rem; }
   .tier-tab {
+    flex: 1;
+    text-align: center;
     background: #f2f2f2; border: 1px solid #e2e2e2; color: #666;
     padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 6px; cursor: pointer;
   }
@@ -144,6 +146,37 @@
     transition: width 0.2s ease;
   }
   #preview-frame { width: 100%; border: 0; min-height: 500px; border-radius: 8px; overflow: hidden; background: #fff; }
+
+  .colour-section {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #e2e2e2;
+  }
+  .colour-section h3 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #888;
+    margin: 0 0 0.75rem;
+  }
+  .colour-buttons {
+    display: flex;
+    gap: 0.4rem;
+  }
+  .colour-option {
+    flex: 1;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    color: #fff;
+    padding: 0.5rem 0.4rem;
+    font-size: 0.78rem;
+    cursor: pointer;
+    text-align: center;
+    font-weight: 600;
+  }
+  .colour-option.selected {
+    border-color: #111;
+  }
 
   .size-section {
     margin-top: 1.25rem;
@@ -291,6 +324,11 @@
         <label class="custom-bg-row" style="display:none;">Background colour <input type="color" id="custom-bg" value="#111111"></label>
         <label>Accent color <input type="color" id="custom-color" value="#e10600"></label>
       </div>
+    </div>
+
+    <div class="colour-section">
+      <h3>Colours</h3>
+      <div id="colour-buttons" class="colour-buttons"></div>
     </div>
 
     <div class="size-section">
