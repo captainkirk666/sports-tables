@@ -44,6 +44,10 @@ function applyThemeFromQueryParams() {
   if (logos === 'off') {
     document.documentElement.setAttribute('data-dt-logos', 'off');
   }
+  const size = params.get('size');        // 'compact' switches to compactGet where available
+  if (size) {
+    document.documentElement.setAttribute('data-dt-size', size);
+  }
 }
 
 function renderRows(container, columns, rows) {
@@ -52,6 +56,7 @@ function renderRows(container, columns, rows) {
     container.innerHTML = `<tr><td colspan="${colspan}">No data available.</td></tr>`;
     return;
   }
+  const isCompact = document.documentElement.getAttribute('data-dt-size') === 'compact';
   container.innerHTML = rows.map(row => {
     const cells = columns.map(col => {
       const classes = [col.numeric ? 'numeric' : '', col.emphasis ? 'dt-emphasis' : ''].filter(Boolean).join(' ');
@@ -60,7 +65,8 @@ function renderRows(container, columns, rows) {
       const logoHtml = logoUrl ? `<img class="dt-logo" src="${logoUrl}" alt="">` : '';
       const flagUrl = col.flag ? col.flag(row) : null;
       const flagHtml = flagUrl ? `<img class="dt-flag" src="${flagUrl}" alt="">` : '';
-      return `<td${cls}>${flagHtml}${logoHtml}${col.get(row)}</td>`;
+      const text = (isCompact && col.compactGet) ? col.compactGet(row) : col.get(row);
+      return `<td${cls}>${flagHtml}${logoHtml}${text}</td>`;
     }).join('');
     return `<tr>${cells}</tr>`;
   }).join('');
