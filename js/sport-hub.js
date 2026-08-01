@@ -121,6 +121,10 @@ function applyPreset(key) {
   hub.style = { theme: preset.theme, accent: preset.accent };
   document.querySelectorAll(".preset-swatch").forEach(el =>
     el.classList.toggle("selected", el.dataset.key === key));
+  document.querySelectorAll(".colour-option").forEach(el =>
+    el.classList.toggle("selected", el.dataset.key === key));
+  document.querySelectorAll(".default-option").forEach(el =>
+    el.classList.remove("selected"));
   updateStylePreview();
 }
 
@@ -168,6 +172,16 @@ function renderPreviewSizeControls() {
         ${preset.label}
       </button>`;
   }).join('');
+}
+
+function renderColourButtons() {
+  const mount = document.getElementById("colour-buttons");
+  if (!mount) return;
+  mount.innerHTML = STYLE_PRESETS.map(p => `
+    <button class="colour-option${p.key === hub.style.presetKey ? ' selected' : ''}" data-key="${p.key}" style="background:${p.swatch};" onclick="applyPreset('${p.key}')">
+      ${p.label}
+    </button>
+  `).join('');
 }
 
 function renderPresetSwatches() {
@@ -298,6 +312,7 @@ function initSportHub(config) {
 
   renderTableTabs();
   renderPresetSwatches();
+  renderColourButtons();
   renderPreviewSizeControls();
   renderSizeControls();
   applyDefault();
