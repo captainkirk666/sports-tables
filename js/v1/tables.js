@@ -48,6 +48,7 @@ function applyThemeFromQueryParams() {
   if (size) {
     document.documentElement.setAttribute('data-dt-size', size);
   }
+  return params.get('cols');               // comma-separated column keys to show, or null for all
 }
 
 function renderRows(container, columns, rows) {
@@ -73,7 +74,10 @@ function renderRows(container, columns, rows) {
 }
 
 function initTable(config) {
-  applyThemeFromQueryParams();
+  const colsParam = applyThemeFromQueryParams();
+  const activeColumns = colsParam
+    ? config.adapter.columns.filter(c => colsParam.split(',').includes(c.key))
+    : config.adapter.columns;
 
   const root = document.querySelector(config.containerSelector);
   root.innerHTML = `
@@ -82,13 +86,15 @@ function initTable(config) {
         <p class="dt-title">${config.title}</p>
         <span class="dt-updated" id="dt-updated"></span>
       </div>
-      <table class="data-table">
-        <thead><tr>${config.adapter.columns.map(c =>
-          `<th${c.numeric ? ' class="numeric"' : ''}>${c.label}</th>`).join('')}</tr></thead>
-        <tbody id="dt-body">
-          <tr><td colspan="${config.adapter.columns.length}">Loading…</td></tr>
-        </tbody>
-      </table>
+      <div class="dt-table-scroll">
+        <table class="data-table">
+          <thead><tr>${activeColumns.map(c =>
+            `<th${c.numeric ? ' class="numeric"' : ''}>${c.label}</th>`).join('')}</tr></thead>
+          <tbody id="dt-body">
+            <tr><td colspan="${activeColumns.length}">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
       ${config.attribution ? `
       <div class="dt-footer">
         <a href="${config.attribution.href}" target="_blank" rel="noopener">${config.attribution.label}</a>
@@ -98,7 +104,7 @@ function initTable(config) {
 
   const tbody = document.getElementById('dt-body');
   const updatedEl = document.getElementById('dt-updated');
-  const colspan = config.adapter.columns.length;
+  const colspan = activeColumns.length;
 
   function load() {
     fetch(config.sourceUrl)
@@ -108,7 +114,7 @@ function initTable(config) {
       })
       .then(data => {
         const rows = config.adapter.extract(data);
-        renderRows(tbody, config.adapter.columns, rows);
+        renderRows(tbody, activeColumns, rows);
         updatedEl.textContent = `Updated ${new Date().toLocaleTimeString()}`;
       })
       .catch(err => {
