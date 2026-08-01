@@ -88,6 +88,7 @@ function buildEmbedUrl() {
   if (hub.style.bg) params.set("bg", hub.style.bg);
   if (!hub.controls.flags) params.set("flags", "off");
   if (!hub.controls.logos) params.set("logos", "off");
+  if (hub.previewSize === "compact") params.set("size", "compact");
   const qs = params.toString();
   return qs ? `${table.embedHref}?${qs}` : table.embedHref;
 }
@@ -166,9 +167,7 @@ function selectPreviewSize(key) {
   if (surface) surface.style.width = preset.width;
   document.querySelectorAll(".preview-size-option").forEach(el =>
     el.classList.toggle("selected", el.dataset.key === key));
-  if (window.iFrameResize) {
-    setTimeout(() => iFrameResize({ checkOrigin: false }, '#preview-frame'), 50);
-  }
+  updateStylePreview();
 }
 
 function renderPreviewSizeControls() {
