@@ -32,7 +32,7 @@ const STYLE_PRESETS = [
 
 const SIZE_PRESETS = {
   compact:  { label: "Compact (1 col)",  widthCm: 8,  maxRows: 8,
-    columns: ["pos", "rank", "driver", "constructor", "team", "wins", "points", "pts"] },
+    columns: ["pos", "rank", "driver", "constructor", "team", "points", "pts"] },
   standard: { label: "Standard (2 col)", widthCm: 12, maxRows: 15,
     columns: ["pos", "rank", "driver", "constructor", "team", "nationality", "played", "laps", "time", "fastest", "points", "wins", "losses", "draws", "gd", "pct"] },
   full:     { label: "Full width",       widthCm: 18, maxRows: null,
@@ -88,7 +88,10 @@ function buildEmbedUrl() {
   if (hub.style.bg) params.set("bg", hub.style.bg);
   if (!hub.controls.flags) params.set("flags", "off");
   if (!hub.controls.logos) params.set("logos", "off");
-  if (hub.previewSize === "compact") params.set("size", "compact");
+  if (hub.previewSize === "compact") {
+    params.set("size", "compact");
+    params.set("cols", SIZE_PRESETS.compact.columns.join(","));
+  }
   const qs = params.toString();
   return qs ? `${table.embedHref}?${qs}` : table.embedHref;
 }
