@@ -30,9 +30,26 @@ const STYLE_PRESETS = [
   { key: "c12", label: "Black",     theme: null, accent: "0D0D0D", swatch: "#0D0D0D" },
 ];
 
+/**
+ * STANDARD SIZE ARCHITECTURE — applies to every sport, not just F1.
+ * Every new sport's adapter should be built to work with these same
+ * three tiers, so the whole site stays consistent:
+ *
+ *   compact  — exactly 3 fields: Pos/Rank, primary name, Points.
+ *              No secondary/affiliation columns (e.g. team on a
+ *              driver table), no logos-as-separate-column, no extra
+ *              stats. If a table's own identity IS the "team" (e.g.
+ *              Constructor Standings), that name stays — it's not
+ *              secondary there, it's the row's whole identity.
+ *   standard — a fuller view, most columns, still readable narrow.
+ *   full     — everything the table has.
+ *
+ * When adding a new sport, give each table's columns stable `key`s
+ * and list which ones belong in each tier below.
+ */
 const SIZE_PRESETS = {
-  compact:  { label: "Compact (1 col)",  widthCm: 8,  maxRows: 8,
-    columns: ["pos", "rank", "driver", "constructor", "team", "points", "pts"] },
+  compact:  { label: "Compact (1 col)",  widthCm: 5,  maxRows: 8,
+    columns: ["pos", "rank", "driver", "constructor", "points", "pts"] },
   standard: { label: "Standard (2 col)", widthCm: 12, maxRows: 15,
     columns: ["pos", "rank", "driver", "constructor", "team", "nationality", "played", "laps", "time", "fastest", "points", "wins", "losses", "draws", "gd", "pct"] },
   full:     { label: "Full width",       widthCm: 18, maxRows: null,
@@ -42,7 +59,7 @@ const SIZE_PRESETS = {
 const PREVIEW_SIZES = {
   full:     { label: "Full width", width: "100%" },
   standard: { label: "Standard",   width: "480px" },
-  compact:  { label: "Compact",    width: "320px" },
+  compact:  { label: "Compact",    width: "189px" },
 };
 
 let hub = {
