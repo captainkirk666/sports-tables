@@ -21,8 +21,9 @@ const F1_TEAM_LOGOS = {
   aston_martin: `${F1_SITE_BASE}/assets/logos/f1/teams/aston-martin.png`,
   alpine: `${F1_SITE_BASE}/assets/logos/f1/teams/alpine.png`,
   williams: `${F1_SITE_BASE}/assets/logos/f1/teams/williams.png`,
-  rb: `${F1_SITE_BASE}/assets/logos/f1/teams/rb.png`,
-  sauber: `${F1_SITE_BASE}/assets/logos/f1/teams/sauber.png`,
+  rb: `${F1_SITE_BASE}/assets/logos/f1/teams/racing-bulls.png`,
+  audi: `${F1_SITE_BASE}/assets/logos/f1/teams/audi.png`,
+  cadillac: `${F1_SITE_BASE}/assets/logos/f1/teams/cadillac.png`,
   haas: `${F1_SITE_BASE}/assets/logos/f1/teams/haas.png`,
 };
 
