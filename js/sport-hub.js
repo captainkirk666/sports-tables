@@ -187,6 +187,24 @@ function selectPreviewSize(key) {
   if (surface) surface.style.width = preset.width;
   document.querySelectorAll(".preview-size-option").forEach(el =>
     el.classList.toggle("selected", el.dataset.key === key));
+
+  const flagsInput = document.getElementById("control-flags");
+  const logosInput = document.getElementById("control-logos");
+  const isCompact = key === "compact";
+
+  if (flagsInput) {
+    flagsInput.disabled = isCompact;
+    if (isCompact) flagsInput.checked = false;
+    else flagsInput.checked = true;
+  }
+  if (logosInput) {
+    logosInput.disabled = isCompact;
+    if (isCompact) logosInput.checked = false;
+    else logosInput.checked = true;
+  }
+  hub.controls.flags = !isCompact;
+  hub.controls.logos = !isCompact;
+
   updateStylePreview();
 }
 
