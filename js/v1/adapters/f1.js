@@ -90,7 +90,7 @@ const F1_ADAPTERS = {
     columns: [
       { key: "pos",    label: "Pos",    get: d => d.position, emphasis: true },
       { key: "driver", label: "Driver", get: d => `${d.Driver.givenName} ${d.Driver.familyName}`, compactGet: d => d.Driver.familyName, flag: d => flagUrl(d.Driver.nationality) },
-      { key: "team",   label: "Team",   get: d => d.Constructors[0].name, logo: d => f1TeamLogo(d.Constructors[0]) },
+      { key: "team",   label: "Team",   get: d => d.Constructors[0].name, compactGet: () => "", logo: d => f1TeamLogo(d.Constructors[0]) },
       { key: "points", label: "Points", get: d => d.points, numeric: true },
       { key: "wins",   label: "Wins",   get: d => d.wins, numeric: true },
     ],
@@ -101,7 +101,7 @@ const F1_ADAPTERS = {
     extract: data => data.MRData.StandingsTable.StandingsLists[0].ConstructorStandings,
     columns: [
       { key: "pos",         label: "Pos",          get: c => c.position, emphasis: true },
-      { key: "constructor", label: "Constructor",  get: c => c.Constructor.name, logo: c => f1TeamLogo(c.Constructor) },
+      { key: "constructor", label: "Constructor",  get: c => c.Constructor.name, compactGet: () => "", logo: c => f1TeamLogo(c.Constructor) },
       { key: "nationality", label: "Nationality",  get: c => c.Constructor.nationality, flag: c => flagUrl(c.Constructor.nationality) },
       { key: "points",      label: "Points",       get: c => c.points, numeric: true },
       { key: "wins",        label: "Wins",         get: c => c.wins, numeric: true },
@@ -116,7 +116,7 @@ const F1_ADAPTERS = {
     columns: [
       { key: "pos",      label: "Pos",      get: r => r.position, emphasis: true },
       { key: "driver",   label: "Driver",   get: r => `${r.Driver.givenName} ${r.Driver.familyName}`, compactGet: r => r.Driver.familyName, flag: r => flagUrl(r.Driver.nationality) },
-      { key: "team",     label: "Team",     get: r => r.Constructor.name, logo: r => f1TeamLogo(r.Constructor) },
+      { key: "team",     label: "Team",     get: r => r.Constructor.name, compactGet: () => "", logo: r => f1TeamLogo(r.Constructor) },
       { key: "laps",     label: "Laps",     get: r => r.laps, numeric: true },
       { key: "time",     label: "Time / Status", get: r => r.Time ? r.Time.time : r.status },
       { key: "fastest",  label: "Fastest Lap", get: r => r.FastestLap ? r.FastestLap.Time.time : "—" },
