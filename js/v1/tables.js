@@ -84,7 +84,6 @@ function initTable(config) {
     <div class="dt-widget">
       <div class="dt-header">
         <p class="dt-title">${config.title}</p>
-        <span class="dt-updated" id="dt-updated"></span>
       </div>
       <div class="dt-table-scroll">
         <table class="data-table">
@@ -95,15 +94,11 @@ function initTable(config) {
           </tbody>
         </table>
       </div>
-      ${config.attribution ? `
-      <div class="dt-footer">
-        <a href="${config.attribution.href}" target="_blank" rel="noopener">${config.attribution.label}</a>
-      </div>` : ''}
+      <div class="dt-footer">Source: KIKA MEDIA</div>
     </div>
   `;
 
   const tbody = document.getElementById('dt-body');
-  const updatedEl = document.getElementById('dt-updated');
   const colspan = activeColumns.length;
 
   function load() {
@@ -115,7 +110,6 @@ function initTable(config) {
       .then(data => {
         const rows = config.adapter.extract(data);
         renderRows(tbody, activeColumns, rows);
-        updatedEl.textContent = `Updated ${new Date().toLocaleTimeString()}`;
       })
       .catch(err => {
         tbody.innerHTML = `<tr><td colspan="${colspan}">Failed to load: ${err.message}</td></tr>`;
