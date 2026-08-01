@@ -16,9 +16,18 @@
  */
 
 const STYLE_PRESETS = [
-  { key: "red",   label: "Red",   theme: null, accent: "C4151C", swatch: "#C4151C" },
-  { key: "green", label: "Green", theme: null, accent: "004225", swatch: "#004225" },
-  { key: "blue",  label: "Blue",  theme: null, accent: "0156B2", swatch: "#0156B2" },
+  { key: "c1",  label: "Red",       theme: null, accent: "E10600", swatch: "#E10600" },
+  { key: "c2",  label: "Orange",    theme: null, accent: "FF6A00", swatch: "#FF6A00" },
+  { key: "c3",  label: "Yellow",    theme: null, accent: "FFC700", swatch: "#FFC700" },
+  { key: "c4",  label: "Lime",      theme: null, accent: "A8E000", swatch: "#A8E000" },
+  { key: "c5",  label: "Teal",      theme: null, accent: "00B894", swatch: "#00B894" },
+  { key: "c6",  label: "Sky Blue",  theme: null, accent: "00BFFF", swatch: "#00BFFF" },
+  { key: "c7",  label: "Blue",      theme: null, accent: "0057FF", swatch: "#0057FF" },
+  { key: "c8",  label: "Navy",      theme: null, accent: "0A1D37", swatch: "#0A1D37" },
+  { key: "c9",  label: "Green",     theme: null, accent: "00C853", swatch: "#00C853" },
+  { key: "c10", label: "Aqua",      theme: null, accent: "00E5D2", swatch: "#00E5D2" },
+  { key: "c11", label: "Indigo",    theme: null, accent: "1A4DFF", swatch: "#1A4DFF" },
+  { key: "c12", label: "Black",     theme: null, accent: "0D0D0D", swatch: "#0D0D0D" },
 ];
 
 const SIZE_PRESETS = {
@@ -178,9 +187,7 @@ function renderColourButtons() {
   const mount = document.getElementById("colour-buttons");
   if (!mount) return;
   mount.innerHTML = STYLE_PRESETS.map(p => `
-    <button class="colour-option${p.key === hub.style.presetKey ? ' selected' : ''}" data-key="${p.key}" style="background:${p.swatch};" onclick="applyPreset('${p.key}')">
-      ${p.label}
-    </button>
+    <button class="colour-option" data-key="${p.key}" title="${p.label}" style="background:${p.swatch};" onclick="applyPreset('${p.key}')"></button>
   `).join('');
 }
 
