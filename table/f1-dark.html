@@ -221,6 +221,31 @@
   #embed-code.hidden { display: none; }
 
   #print-surface { display: none; }
+
+  /* Print/export table — tightened vertical spacing for newspaper use */
+  .export-header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    border-bottom: 2px solid #e10600; padding-bottom: 0.4rem; margin-bottom: 0.75rem;
+  }
+  .export-header h1 { font-size: 1.2rem; margin: 0; }
+  .export-meta { font-size: 0.7rem; color: #666; text-align: right; }
+  .export-table { border-collapse: collapse; width: 100%; }
+  .export-table th, .export-table td {
+    padding: 3px 8px;
+    line-height: 1.15;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+    font-size: 0.85rem;
+  }
+  .export-table th {
+    background: #f2f2f2;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+  .export-table td.numeric { text-align: right; font-variant-numeric: tabular-nums; }
+  .export-truncated { font-size: 0.7rem; color: #999; margin-top: 0.3rem; font-style: italic; }
+  .export-footer { margin-top: 0.6rem; font-size: 0.68rem; color: #999; }
   .controls-section {
     margin-top: 1.25rem;
     padding-top: 1.25rem;
