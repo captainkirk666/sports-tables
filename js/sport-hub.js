@@ -68,7 +68,7 @@ let hub = {
   style: { theme: null, accent: null },
   controls: { flags: true, logos: true },
   previewSize: "full",
-  printSize: "standard",
+  printSize: "full",
   rows: [],
 };
 
@@ -182,6 +182,7 @@ function toggleLogos() {
 
 function selectPreviewSize(key) {
   hub.previewSize = key;
+  hub.printSize = key;
   const preset = PREVIEW_SIZES[key];
   const surface = document.getElementById("preview-surface-inner");
   if (surface) surface.style.width = preset.width;
@@ -206,6 +207,7 @@ function selectPreviewSize(key) {
   hub.controls.logos = !isCompact;
 
   updateStylePreview();
+  renderPrintSurface();
 }
 
 function renderPreviewSizeControls() {
