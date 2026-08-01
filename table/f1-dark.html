@@ -161,21 +161,20 @@
   }
   .colour-buttons {
     display: flex;
-    gap: 0.4rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
   .colour-option {
-    flex: 1;
+    width: 32px;
+    height: 32px;
     border: 2px solid transparent;
     border-radius: 6px;
-    color: #fff;
-    padding: 0.5rem 0.4rem;
-    font-size: 0.78rem;
     cursor: pointer;
-    text-align: center;
-    font-weight: 600;
+    padding: 0;
   }
   .colour-option.selected {
     border-color: #111;
+    box-shadow: 0 0 0 2px #fff inset;
   }
 
   .size-section {
