@@ -65,11 +65,15 @@ const PREVIEW_SIZES = {
 let hub = {
   tables: [],
   activeKey: null,
-  style: { theme: null, accent: null, font: null },
+  style: { theme: null, accent: null, font: null, titleColor: null, posColor: null },
   controls: { flags: true, logos: true },
   previewSize: "full",
   printSize: "full",
   rows: [],
+  // Remembers the last Dynamic swatch picked (or the default first
+  // one) so that switching to the Dynamic tab re-applies it
+  // immediately, without needing to click a swatch again.
+  lastPresetKey: "c1",
 };
 
 function activeTable() {
@@ -104,6 +108,8 @@ function buildEmbedUrl() {
   if (hub.style.accent) params.set("accent", hub.style.accent);
   if (hub.style.bg) params.set("bg", hub.style.bg);
   if (hub.style.font) params.set("font", hub.style.font);
+  if (hub.style.titleColor) params.set("titleColor", hub.style.titleColor);
+  if (hub.style.posColor) params.set("posColor", hub.style.posColor);
   if (!hub.controls.flags) params.set("flags", "off");
   if (!hub.controls.logos) params.set("logos", "off");
   if (hub.previewSize === "compact") {
@@ -130,10 +136,18 @@ function selectTab(tab) {
   document.querySelectorAll(".tier-tab").forEach(t => t.classList.remove("active"));
   document.getElementById(`panel-${tab}`).classList.add("active");
   document.getElementById(`tab-${tab}`).classList.add("active");
+  // Dynamic should apply as soon as its tab is opened, not wait for
+  // a swatch click afterward — re-applies whichever preset was last
+  // used (or the first one, by default).
+  if (tab === 'preset') {
+    applyPreset(hub.lastPresetKey);
+  }
 }
 
 function applyDefault() {
-  hub.style = { theme: null, accent: null, font: null };
+  hub.style.theme = null;
+  hub.style.accent = null;
+  hub.style.font = null;
   document.querySelectorAll(".default-option").forEach(el =>
     el.classList.toggle("selected", el.dataset.key === "classic"));
   updateStylePreview();
@@ -141,7 +155,9 @@ function applyDefault() {
 }
 
 function applyReverse() {
-  hub.style = { theme: "dark", accent: null, font: null };
+  hub.style.theme = "dark";
+  hub.style.accent = null;
+  hub.style.font = null;
   document.querySelectorAll(".default-option").forEach(el =>
     el.classList.toggle("selected", el.dataset.key === "reverse"));
   updateStylePreview();
@@ -151,10 +167,13 @@ function applyReverse() {
 function applyPreset(key) {
   const preset = STYLE_PRESETS.find(p => p.key === key);
   if (!preset) return;
+  hub.lastPresetKey = key;
   // Dynamic tier — every preset here currently shares the same
   // Oswald treatment; give a preset its own `font` field if/when
   // Dynamic grows more than one font option.
-  hub.style = { theme: preset.theme, accent: preset.accent, font: "oswald" };
+  hub.style.theme = preset.theme;
+  hub.style.accent = preset.accent;
+  hub.style.font = "oswald";
   document.querySelectorAll(".preset-swatch").forEach(el =>
     el.classList.toggle("selected", el.dataset.key === key));
   document.querySelectorAll(".colour-option").forEach(el =>
@@ -173,9 +192,56 @@ function applyCustom() {
     bgPicker.closest(".custom-bg-row").style.display = isDark ? "flex" : "none";
   }
   const bg = (isDark && bgPicker) ? bgPicker.value.replace("#", "") : null;
-  hub.style = { theme: isDark ? "dark" : null, accent: color, bg: bg, font: null };
+  hub.style.theme = isDark ? "dark" : null;
+  hub.style.accent = color;
+  hub.style.bg = bg;
+  hub.style.font = null;
   updateStylePreview();
   renderPrintSurface();
+}
+
+/* ---------- Independent Title colour / POS colour pickers ----------
+ * These are separate from the Default/Dynamic/Custom tier tabs above
+ * — they persist regardless of which tier is active, and simply
+ * override the .dt-title colour and the Pos-column number colour
+ * independently of whatever the tier's own accent colour is doing.
+ * Falls back to the shared accent (via CSS var() fallback chain in
+ * tables.css) whenever left unset. */
+
+function applyTitleColour(key) {
+  const preset = STYLE_PRESETS.find(p => p.key === key);
+  if (!preset) return;
+  hub.style.titleColor = preset.accent;
+  document.querySelectorAll(".title-colour-option").forEach(el =>
+    el.classList.toggle("selected", el.dataset.key === key));
+  updateStylePreview();
+  renderPrintSurface();
+}
+
+function applyPosColour(key) {
+  const preset = STYLE_PRESETS.find(p => p.key === key);
+  if (!preset) return;
+  hub.style.posColor = preset.accent;
+  document.querySelectorAll(".pos-colour-option").forEach(el =>
+    el.classList.toggle("selected", el.dataset.key === key));
+  updateStylePreview();
+  renderPrintSurface();
+}
+
+function renderTitleColourButtons() {
+  const mount = document.getElementById("title-colour-buttons");
+  if (!mount) return;
+  mount.innerHTML = STYLE_PRESETS.map(p => `
+    <button class="colour-option title-colour-option${hub.style.titleColor === p.accent ? ' selected' : ''}" data-key="${p.key}" title="${p.label}" style="background:${p.swatch};" onclick="applyTitleColour('${p.key}')"></button>
+  `).join('');
+}
+
+function renderPosColourButtons() {
+  const mount = document.getElementById("pos-colour-buttons");
+  if (!mount) return;
+  mount.innerHTML = STYLE_PRESETS.map(p => `
+    <button class="colour-option pos-colour-option${hub.style.posColor === p.accent ? ' selected' : ''}" data-key="${p.key}" title="${p.label}" style="background:${p.swatch};" onclick="applyPosColour('${p.key}')"></button>
+  `).join('');
 }
 
 function toggleFlags() {
@@ -289,7 +355,7 @@ function renderPrintSurface() {
           const logoHtml = logoUrl ? `<img class="export-logo" src="${logoUrl}" alt="" width="16" height="16">` : '';
           const flagUrl = (hub.controls.flags && col.flag) ? col.flag(row) : null;
           const flagHtml = flagUrl ? `<img class="export-flag" src="${flagUrl}" alt="" width="18" height="13">` : '';
-          return `<td${cls}>${flagHtml}${logoHtml}${cellValue(col, row)}</td>`;
+          return `<td${cls} data-col="${col.key}">${flagHtml}${logoHtml}${cellValue(col, row)}</td>`;
         }).join('');
         return `<tr>${cells}</tr>`;
       }).join('')
@@ -302,7 +368,7 @@ function renderPrintSurface() {
     </div>
     <table class="export-table">
       <thead><tr>${activeColumns.map(c =>
-        `<th${c.numeric ? ' class="numeric"' : ''}>${(isCompact && c.compactLabel) ? c.compactLabel : c.label}</th>`).join('')}</tr></thead>
+        `<th${c.numeric ? ' class="numeric"' : ''} data-col="${c.key}">${(isCompact && c.compactLabel) ? c.compactLabel : c.label}</th>`).join('')}</tr></thead>
       <tbody>${rowsHtml}</tbody>
     </table>
     <div class="export-footer">Source: KIKA MEDIA</div>
@@ -312,6 +378,14 @@ function renderPrintSurface() {
   // Dynamic-tier font applies to the PDF/print surface too, since that's
   // rendered directly on the host page, not inside the themed iframe.
   surface.style.fontFamily = (hub.style.font === "oswald") ? "'Oswald', sans-serif" : "";
+
+  // Title colour carries through to the PDF heading too. (POS colour
+  // does not yet — the print surface doesn't currently mark up Pos
+  // numbers with any emphasis styling at all, live-embed only for now.)
+  const heading = surface.querySelector('.export-header h1');
+  if (heading) {
+    heading.style.color = hub.style.titleColor ? `#${hub.style.titleColor}` : '';
+  }
 
   let pageStyle = document.getElementById('page-size-style');
   if (!pageStyle) {
@@ -371,9 +445,14 @@ function initSportHub(config) {
   renderTableTabs();
   renderPresetSwatches();
   renderColourButtons();
+  renderTitleColourButtons();
+  renderPosColourButtons();
   renderPreviewSizeControls();
   renderSizeControls();
-  applyDefault();
+  // Dynamic is now the first style shown/applied on load, instead of
+  // Basic (formerly "Default") — selectTab('preset') both switches
+  // to that tab visually and applies hub.lastPresetKey immediately.
+  selectTab('preset');
   refreshActiveTable();
 
   document.getElementById("custom-dark").addEventListener("change", applyCustom);
