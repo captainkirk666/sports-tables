@@ -66,10 +66,10 @@ function renderRows(container, columns, rows) {
     const cells = columns.map(col => {
       const classes = [col.numeric ? 'numeric' : '', col.emphasis ? 'dt-emphasis' : ''].filter(Boolean).join(' ');
       const cls = classes ? ` class="${classes}"` : '';
-      const logoUrl = col.logo ? col.logo(row) : null;
-      const logoHtml = logoUrl ? `<img class="dt-logo" src="${logoUrl}" alt="">` : '';
+    const logoUrl = col.logo ? col.logo(row) : null;
+      const logoHtml = logoUrl ? `<img class="dt-logo" src="${logoUrl}" alt="" width="18" height="18">` : '';
       const flagUrl = col.flag ? col.flag(row) : null;
-      const flagHtml = flagUrl ? `<img class="dt-flag" src="${flagUrl}" alt="">` : '';
+      const flagHtml = flagUrl ? `<img class="dt-flag" src="${flagUrl}" alt="" width="20" height="14">` : '';
       const text = (isCompact && col.compactGet) ? col.compactGet(row) : col.get(row);
       return `<td${cls}>${flagHtml}${logoHtml}${text}</td>`;
     }).join('');
