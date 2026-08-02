@@ -66,8 +66,8 @@ html, body {
 .data-table {
   border-collapse: collapse;
   width: 100%;
-  min-width: max-content;
 }
+
 .data-table th,
 .data-table td {
   padding: 8px 10px;
