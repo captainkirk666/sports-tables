@@ -15,6 +15,12 @@
  *   });
  */
 
+/**
+ * Used internally by the Dynamic tab to know what to apply the
+ * moment it's opened (see selectTab() below). Not exposed as its
+ * own picker in the UI anymore — Title/Position/Points colour are
+ * the visible controls now.
+ */
 const STYLE_PRESETS = [
   { key: "c1",  label: "Red",       theme: null, accent: "E10600", swatch: "#E10600" },
   { key: "c2",  label: "Orange",    theme: null, accent: "FF6A00", swatch: "#FF6A00" },
@@ -65,14 +71,14 @@ const PREVIEW_SIZES = {
 let hub = {
   tables: [],
   activeKey: null,
-  style: { theme: null, accent: null, font: null, titleColor: null, posColor: null },
+  style: { theme: null, accent: null, font: null, titleColor: null, posColor: null, pointsColor: null },
   controls: { flags: true, logos: true },
   previewSize: "full",
   printSize: "full",
   rows: [],
-  // Remembers the last Dynamic swatch picked (or the default first
-  // one) so that switching to the Dynamic tab re-applies it
-  // immediately, without needing to click a swatch again.
+  // Which internal Dynamic preset to apply the moment the Dynamic
+  // tab is opened. Always "c1" since there's no UI to change it
+  // anymore, but kept as a variable in case that returns later.
   lastPresetKey: "c1",
 };
 
@@ -110,6 +116,7 @@ function buildEmbedUrl() {
   if (hub.style.font) params.set("font", hub.style.font);
   if (hub.style.titleColor) params.set("titleColor", hub.style.titleColor);
   if (hub.style.posColor) params.set("posColor", hub.style.posColor);
+  if (hub.style.pointsColor) params.set("pointsColor", hub.style.pointsColor);
   if (!hub.controls.flags) params.set("flags", "off");
   if (!hub.controls.logos) params.set("logos", "off");
   if (hub.previewSize === "compact") {
@@ -136,9 +143,7 @@ function selectTab(tab) {
   document.querySelectorAll(".tier-tab").forEach(t => t.classList.remove("active"));
   document.getElementById(`panel-${tab}`).classList.add("active");
   document.getElementById(`tab-${tab}`).classList.add("active");
-  // Dynamic should apply as soon as its tab is opened, not wait for
-  // a swatch click afterward — re-applies whichever preset was last
-  // used (or the first one, by default).
+  // Dynamic should apply as soon as its tab is opened.
   if (tab === 'preset') {
     applyPreset(hub.lastPresetKey);
   }
@@ -168,18 +173,9 @@ function applyPreset(key) {
   const preset = STYLE_PRESETS.find(p => p.key === key);
   if (!preset) return;
   hub.lastPresetKey = key;
-  // Dynamic tier — every preset here currently shares the same
-  // Oswald treatment; give a preset its own `font` field if/when
-  // Dynamic grows more than one font option.
   hub.style.theme = preset.theme;
   hub.style.accent = preset.accent;
-  hub.style.font = "oswald";
-  document.querySelectorAll(".preset-swatch").forEach(el =>
-    el.classList.toggle("selected", el.dataset.key === key));
-  document.querySelectorAll(".colour-option").forEach(el =>
-    el.classList.toggle("selected", el.dataset.key === key));
-  document.querySelectorAll(".default-option").forEach(el =>
-    el.classList.remove("selected"));
+  hub.style.font = "roboto";
   updateStylePreview();
   renderPrintSurface();
 }
@@ -200,13 +196,12 @@ function applyCustom() {
   renderPrintSurface();
 }
 
-/* ---------- Independent Title colour / POS colour pickers ----------
- * These are separate from the Default/Dynamic/Custom tier tabs above
- * — they persist regardless of which tier is active, and simply
- * override the .dt-title colour and the Pos-column number colour
- * independently of whatever the tier's own accent colour is doing.
- * Falls back to the shared accent (via CSS var() fallback chain in
- * tables.css) whenever left unset. */
+/* ---------- Independent Title / Position / Points colour pickers ----------
+ * Separate from the Basic/Dynamic/Custom tier tabs above — they
+ * persist regardless of which tier is active, and simply override
+ * specific elements' colour independently of whatever the tier's
+ * own accent is doing. Each falls back sensibly (via CSS var()
+ * chains in tables.css) whenever left unset. */
 
 function applyTitleColour(key) {
   const preset = STYLE_PRESETS.find(p => p.key === key);
@@ -228,6 +223,16 @@ function applyPosColour(key) {
   renderPrintSurface();
 }
 
+function applyPointsColour(key) {
+  const preset = STYLE_PRESETS.find(p => p.key === key);
+  if (!preset) return;
+  hub.style.pointsColor = preset.accent;
+  document.querySelectorAll(".points-colour-option").forEach(el =>
+    el.classList.toggle("selected", el.dataset.key === key));
+  updateStylePreview();
+  renderPrintSurface();
+}
+
 function renderTitleColourButtons() {
   const mount = document.getElementById("title-colour-buttons");
   if (!mount) return;
@@ -241,6 +246,14 @@ function renderPosColourButtons() {
   if (!mount) return;
   mount.innerHTML = STYLE_PRESETS.map(p => `
     <button class="colour-option pos-colour-option${hub.style.posColor === p.accent ? ' selected' : ''}" data-key="${p.key}" title="${p.label}" style="background:${p.swatch};" onclick="applyPosColour('${p.key}')"></button>
+  `).join('');
+}
+
+function renderPointsColourButtons() {
+  const mount = document.getElementById("points-colour-buttons");
+  if (!mount) return;
+  mount.innerHTML = STYLE_PRESETS.map(p => `
+    <button class="colour-option points-colour-option${hub.style.pointsColor === p.accent ? ' selected' : ''}" data-key="${p.key}" title="${p.label}" style="background:${p.swatch};" onclick="applyPointsColour('${p.key}')"></button>
   `).join('');
 }
 
@@ -296,24 +309,6 @@ function renderPreviewSizeControls() {
         ${preset.label}
       </button>`;
   }).join('');
-}
-
-function renderColourButtons() {
-  const mount = document.getElementById("colour-buttons");
-  if (!mount) return;
-  mount.innerHTML = STYLE_PRESETS.map(p => `
-    <button class="colour-option" data-key="${p.key}" title="${p.label}" style="background:${p.swatch};" onclick="applyPreset('${p.key}')"></button>
-  `).join('');
-}
-
-function renderPresetSwatches() {
-  const mount = document.getElementById("preset-swatches");
-  if (!mount) return;
-  mount.innerHTML = STYLE_PRESETS.map(p => `
-    <button class="preset-swatch" data-key="${p.key}" style="--swatch-color:${p.swatch}" onclick="applyPreset('${p.key}')">
-      <span class="swatch-dot"></span><span>${p.label}</span>
-    </button>
-  `).join("");
 }
 
 function copyEmbedCode() {
@@ -377,14 +372,19 @@ function renderPrintSurface() {
   surface.style.width = `${preset.widthCm}cm`;
   // Dynamic-tier font applies to the PDF/print surface too, since that's
   // rendered directly on the host page, not inside the themed iframe.
-  surface.style.fontFamily = (hub.style.font === "oswald") ? "'Oswald', sans-serif" : "";
+  surface.style.fontFamily = (hub.style.font === "roboto") ? "'Roboto', sans-serif" : "";
 
-  // Title colour carries through to the PDF heading too. (POS colour
-  // does not yet — the print surface doesn't currently mark up Pos
-  // numbers with any emphasis styling at all, live-embed only for now.)
+  // Title colour and Points colour carry through to the PDF too.
+  // (POS colour does not yet — the print surface doesn't currently
+  // mark up Pos numbers with any emphasis styling at all.)
   const heading = surface.querySelector('.export-header h1');
   if (heading) {
     heading.style.color = hub.style.titleColor ? `#${hub.style.titleColor}` : '';
+  }
+  if (hub.style.pointsColor) {
+    surface.querySelectorAll('td[data-col="points"]').forEach(el => {
+      el.style.color = `#${hub.style.pointsColor}`;
+    });
   }
 
   let pageStyle = document.getElementById('page-size-style');
@@ -443,15 +443,13 @@ function initSportHub(config) {
   hub.activeKey = config.tables[0].key;
 
   renderTableTabs();
-  renderPresetSwatches();
-  renderColourButtons();
   renderTitleColourButtons();
   renderPosColourButtons();
+  renderPointsColourButtons();
   renderPreviewSizeControls();
   renderSizeControls();
-  // Dynamic is now the first style shown/applied on load, instead of
-  // Basic (formerly "Default") — selectTab('preset') both switches
-  // to that tab visually and applies hub.lastPresetKey immediately.
+  // Dynamic is the first style shown/applied on load — selectTab('preset')
+  // both switches to that tab visually and applies it immediately.
   selectTab('preset');
   refreshActiveTable();
 
