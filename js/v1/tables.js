@@ -27,7 +27,7 @@ function applyThemeFromQueryParams() {
   const bg = params.get('bg');                   // hex without '#' — custom background override
   const flags = params.get('flags');             // 'off' hides flag icons; default shown
   const logos = params.get('logos');             // 'off' hides team logo icons; default shown
-  const font = params.get('font');               // e.g. 'roboto' — Dynamic-tier font, see tables.css
+  const font = params.get('font');               // e.g. 'robotocondensed' — Dynamic-tier font, see tables.css
   const titleColor = params.get('titleColor');   // hex without '#' — overrides the .dt-title colour
   const posColor = params.get('posColor');       // hex without '#' — overrides the Pos-column number colour
   const pointsColor = params.get('pointsColor'); // hex without '#' — overrides the PTS-column colour
