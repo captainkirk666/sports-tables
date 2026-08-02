@@ -166,6 +166,28 @@ html, body {
   border-bottom: none;
 }
 
+/* Tighter vertical padding — the default 8px top/bottom read as too
+   deep/spacey once the header went bold and the rows got separated. */
+[data-dt-font="oswald"] .data-table th,
+[data-dt-font="oswald"] .data-table td {
+  padding: 4px 10px;
+}
+
+/* All cell text as caps, across every table (Drivers/Constructors/
+   Results). Numbers are unaffected by text-transform, so this only
+   visibly changes name/team text. */
+[data-dt-font="oswald"] .data-table td {
+  text-transform: uppercase;
+}
+
+/* PTS column, heavier weight. Relies on the data-col="points"
+   attribute tables.js now adds to every cell — same key across all
+   three F1 tables (Drivers/Constructors/Results), so one rule
+   covers all of them. */
+[data-dt-font="oswald"] .data-table td[data-col="points"] {
+  font-weight: 700;
+}
+
 /* First iteration of the Dynamic header: always a black bar with
    reversed (white) type, regardless of which accent colour is
    selected. The accent colour still applies elsewhere (emphasis
@@ -177,12 +199,25 @@ html, body {
   font-weight: 700;
 }
 
-/* Compact keeps the original, smaller header treatment even in
-   Dynamic mode — the enlarged/heavier header above is only meant
-   for Standard and Full, where there's room for it. Higher
-   specificity here (two attribute selectors) guarantees this wins
-   over the rule above regardless of source order. */
+/* Table headline (the coloured "F1 DRIVER STANDINGS" bar above the
+   table) 40% larger — Standard/Full only, see Compact protection
+   block below. */
+[data-dt-font="oswald"] .dt-title {
+  font-size: 1.67rem;
+}
+
+/* Compact protection block — keeps Compact's own smaller, tighter
+   treatment intact even when Dynamic is active. Two attribute
+   selectors gives this higher specificity than the rules above, so
+   it wins regardless of source order. */
+[data-dt-font="oswald"][data-dt-size="compact"] .data-table th,
+[data-dt-font="oswald"][data-dt-size="compact"] .data-table td {
+  padding: 6px 4px;
+}
 [data-dt-font="oswald"][data-dt-size="compact"] .data-table th {
   font-size: 0.82rem;
   font-weight: 600;
+}
+[data-dt-font="oswald"][data-dt-size="compact"] .dt-title {
+  font-size: 0.95rem;
 }
