@@ -286,7 +286,7 @@ function renderPrintSurface() {
     </div>
     <table class="export-table">
       <thead><tr>${activeColumns.map(c =>
-        `<th${c.numeric ? ' class="numeric"' : ''}>${c.label}</th>`).join('')}</tr></thead>
+        `<th${c.numeric ? ' class="numeric"' : ''}>${(isCompact && c.compactLabel) ? c.compactLabel : c.label}</th>`).join('')}</tr></thead>
       <tbody>${rowsHtml}</tbody>
     </table>
     <div class="export-footer">Source: KIKA MEDIA</div>
