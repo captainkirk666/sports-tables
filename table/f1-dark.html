@@ -453,8 +453,8 @@
 
 <script src="../js/site-nav.js"></script>
 <script src="../js/v1/flags.js?v=2"></script>
-<script src="../js/v1/adapters/f1.js?v=4"></script>
-<script src="../js/sport-hub.js?v=10"></script>
+<script src="../js/v1/adapters/f1.js?v=5"></script>
+<script src="../js/sport-hub.js?v=11"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.9/iframeResizer.min.js"></script>
 <script>
 initSportHub({
@@ -485,6 +485,15 @@ initSportHub({
       embedHref: "../embed/f1/results.html",
       sourceUrl: F1_ADAPTERS.raceResults.sourceUrl,
       adapter: F1_ADAPTERS.raceResults,
+      attribution: { label: "Jolpica F1" }
+    },
+    {
+      key: "nextrace",
+      label: "Next Race",
+      title: "F1 Next Race",
+      embedHref: "../embed/f1/next-race.html",
+      sourceUrl: F1_ADAPTERS.nextRace.sourceUrl,
+      adapter: F1_ADAPTERS.nextRace,
       attribution: { label: "Jolpica F1" }
     }
   ]
