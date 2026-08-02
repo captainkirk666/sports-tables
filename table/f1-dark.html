@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <title>F1 — Driver Standings (Dark Concept)</title>
 <link rel="stylesheet" href="../css/site.css?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400&display=swap" rel="stylesheet">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&display=swap');
 
@@ -93,6 +96,19 @@
     font-size: 0.95rem;
     margin: 0 0 1rem;
     color: #111;
+  }
+
+  .theme-section {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #e2e2e2;
+  }
+  .theme-section h3 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #888;
+    margin: 0 0 0.75rem;
   }
 
   .tier-tabs { display: flex; gap: 0.4rem; margin-bottom: 1rem; }
@@ -340,33 +356,36 @@
       <div id="preview-size-controls" class="preview-size-controls"></div>
     </div>
 
-    <div class="tier-tabs" style="margin-top:1.25rem;">
-      <button class="tier-tab active" id="tab-default" onclick="selectTab('default')">Default</button>
-      <button class="tier-tab" id="tab-preset" onclick="selectTab('preset')">Dynamic</button>
-      <button class="tier-tab" id="tab-custom" onclick="selectTab('custom')">Custom</button>
-    </div>
+    <div class="theme-section">
+      <h3>Style</h3>
+      <div class="tier-tabs">
+        <button class="tier-tab active" id="tab-default" onclick="selectTab('default')">Default</button>
+        <button class="tier-tab" id="tab-preset" onclick="selectTab('preset')">Dynamic</button>
+        <button class="tier-tab" id="tab-custom" onclick="selectTab('custom')">Custom</button>
+      </div>
 
-    <div class="tier-panel active" id="panel-default">
-      <p class="panel-desc">Black on white, or its inverse.</p>
-      <button class="preset-swatch default-option selected" data-key="classic" onclick="applyDefault()">
-        <span class="swatch-dot" style="--swatch-color:#fff; border:1px solid #ccc;"></span>Classic
-      </button>
-      <button class="preset-swatch default-option" data-key="reverse" onclick="applyReverse()">
-        <span class="swatch-dot" style="--swatch-color:#111;"></span>Reverse
-      </button>
-    </div>
+      <div class="tier-panel active" id="panel-default">
+        <p class="panel-desc">Black on white, or its inverse.</p>
+        <button class="preset-swatch default-option selected" data-key="classic" onclick="applyDefault()">
+          <span class="swatch-dot" style="--swatch-color:#fff; border:1px solid #ccc;"></span>Classic
+        </button>
+        <button class="preset-swatch default-option" data-key="reverse" onclick="applyReverse()">
+          <span class="swatch-dot" style="--swatch-color:#111;"></span>Reverse
+        </button>
+      </div>
 
-    <div class="tier-panel" id="panel-preset">
-      <p class="panel-desc">Sport-themed presets.</p>
-      <div id="preset-swatches"></div>
-    </div>
+      <div class="tier-panel" id="panel-preset">
+        <p class="panel-desc">Sport-themed presets.</p>
+        <div id="preset-swatches"></div>
+      </div>
 
-    <div class="tier-panel" id="panel-custom">
-      <p class="panel-desc">Tweak the highlight color and background.</p>
-      <div class="custom-controls">
-        <label><input type="checkbox" id="custom-dark"> Dark background</label>
-        <label class="custom-bg-row" style="display:none;">Background colour <input type="color" id="custom-bg" value="#111111"></label>
-        <label>Accent color <input type="color" id="custom-color" value="#e10600"></label>
+      <div class="tier-panel" id="panel-custom">
+        <p class="panel-desc">Tweak the highlight color and background.</p>
+        <div class="custom-controls">
+          <label><input type="checkbox" id="custom-dark"> Dark background</label>
+          <label class="custom-bg-row" style="display:none;">Background colour <input type="color" id="custom-bg" value="#111111"></label>
+          <label>Accent color <input type="color" id="custom-color" value="#e10600"></label>
+        </div>
       </div>
     </div>
 
@@ -417,7 +436,7 @@
 <script src="../js/site-nav.js"></script>
 <script src="../js/v1/flags.js?v=2"></script>
 <script src="../js/v1/adapters/f1.js?v=2"></script>
-<script src="../js/sport-hub.js?v=2"></script>
+<script src="../js/sport-hub.js?v=3"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.9/iframeResizer.min.js"></script>
 <script>
 initSportHub({
