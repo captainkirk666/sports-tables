@@ -71,7 +71,7 @@ function renderRows(container, columns, rows) {
       const flagUrl = col.flag ? col.flag(row) : null;
       const flagHtml = flagUrl ? `<img class="dt-flag" src="${flagUrl}" alt="" width="20" height="14">` : '';
       const text = (isCompact && col.compactGet) ? col.compactGet(row) : col.get(row);
-      return `<td${cls}>${flagHtml}${logoHtml}${text}</td>`;
+      return `<td${cls} data-col="${col.key}">${flagHtml}${logoHtml}${text}</td>`;
     }).join('');
     return `<tr>${cells}</tr>`;
   }).join('');
@@ -93,7 +93,7 @@ function initTable(config) {
       <div class="dt-table-scroll">
         <table class="data-table">
           <thead><tr>${activeColumns.map(c =>
-            `<th${c.numeric ? ' class="numeric"' : ''}>${(isCompactHeader && c.compactLabel) ? c.compactLabel : c.label}</th>`).join('')}</tr></thead>
+            `<th${c.numeric ? ' class="numeric"' : ''} data-col="${c.key}">${(isCompactHeader && c.compactLabel) ? c.compactLabel : c.label}</th>`).join('')}</tr></thead>
           <tbody id="dt-body">
             <tr><td colspan="${activeColumns.length}">Loading…</td></tr>
           </tbody>
