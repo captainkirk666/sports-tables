@@ -58,8 +58,10 @@ html, body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  color: var(--dt-accent);
-  border-left: 4px solid var(--dt-accent);
+  /* Falls back to the shared accent colour unless Title colour has
+     been explicitly picked (see tables.js ?titleColor= param). */
+  color: var(--dt-title-color, var(--dt-accent));
+  border-left: 4px solid var(--dt-title-color, var(--dt-accent));
   padding-left: 8px;
   margin: 0;
 }
@@ -105,7 +107,9 @@ html, body {
 }
 .data-table td.dt-emphasis {
   font-weight: 700;
-  color: var(--dt-accent);
+  /* Falls back to the shared accent colour unless POS colour has
+     been explicitly picked (see tables.js ?posColor= param). */
+  color: var(--dt-pos-color, var(--dt-accent));
 }
 .data-table th:first-child,
 .data-table td:first-child {
@@ -181,7 +185,7 @@ html, body {
 }
 
 /* PTS column, heavier weight. Relies on the data-col="points"
-   attribute tables.js now adds to every cell — same key across all
+   attribute tables.js adds to every cell — same key across all
    three F1 tables (Drivers/Constructors/Results), so one rule
    covers all of them. */
 [data-dt-font="oswald"] .data-table td[data-col="points"] {
