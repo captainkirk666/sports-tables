@@ -3,6 +3,7 @@
    Do not make breaking changes here once embeds
    are live. Add a v2 folder instead and migrate.
    =========================================== */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400&display=swap');
 
 :root {
   --dt-bg: transparent;
@@ -15,7 +16,6 @@
   --dt-radius: 8px;
   --dt-font: system-ui, -apple-system, sans-serif;
 }
-
 /* Dark theme, toggled by tables.js when ?theme=dark is present */
 [data-dt-theme="dark"] {
   --dt-bg: #111;
@@ -25,33 +25,34 @@
   --dt-header-bg: #1c1c1c;
   --dt-row-hover: #1a1a2e;
 }
-
+/* Dynamic-tier font, toggled by tables.js when ?font=oswald is present
+   (set automatically when a Dynamic preset is chosen in sport-hub.js).
+   Add more [data-dt-font="..."] blocks here as Dynamic grows more
+   font options — each just needs its own Google Fonts @import above. */
+[data-dt-font="oswald"] {
+  --dt-font: 'Oswald', sans-serif;
+}
 * { box-sizing: border-box; }
-
 html, body {
   margin: 0;
   padding: 0;
 }
-
 .dt-widget {
   font-family: var(--dt-font);
   background: var(--dt-bg);
   color: var(--dt-text);
   padding: 0.75rem;
 }
-
 .dt-table-scroll {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
-
 .dt-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 0.5rem;
 }
-
 .dt-title {
   font-size: 1.19rem;
   font-weight: 700;
@@ -62,13 +63,11 @@ html, body {
   padding-left: 8px;
   margin: 0;
 }
-
 .data-table {
   border-collapse: collapse;
   width: 100%;
   min-width: max-content;
 }
-
 .data-table th,
 .data-table td {
   padding: 8px 10px;
@@ -76,7 +75,6 @@ html, body {
   text-align: left;
   font-size: 0.9rem;
 }
-
 [data-dt-size="compact"] .data-table th,
 [data-dt-size="compact"] .data-table td {
   padding: 6px 4px;
@@ -90,7 +88,6 @@ html, body {
 [data-dt-size="compact"] .dt-title {
   font-size: 0.95rem;
 }
-
 .data-table th {
   background: var(--dt-accent);
   color: #fff;
@@ -99,22 +96,23 @@ html, body {
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
-
 .data-table tr:hover {
   background: var(--dt-row-hover);
 }
-
 .data-table th.numeric,
 .data-table td.numeric {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
-
 .data-table td.dt-emphasis {
   font-weight: 700;
   color: var(--dt-accent);
 }
-
+.data-table th:first-child,
+.data-table td:first-child {
+  width: 1%;
+  white-space: nowrap;
+}
 .dt-logo {
   width: 18px;
   height: 18px;
@@ -123,7 +121,6 @@ html, body {
   margin-right: 6px;
   border-radius: 2px;
 }
-
 .dt-flag {
   width: 20px;
   height: 14px;
@@ -132,22 +129,18 @@ html, body {
   margin-right: 6px;
   border-radius: 2px;
 }
-
 [data-dt-flags="off"] .dt-flag {
   display: none;
 }
-
 [data-dt-logos="off"] .dt-logo {
   display: none;
 }
-
 .dt-footer {
   margin-top: 0.5rem;
   font-size: 0.7rem;
   color: var(--dt-text-secondary);
   text-align: right;
 }
-
 .dt-footer a {
   color: inherit;
 }
