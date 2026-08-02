@@ -65,7 +65,7 @@ const PREVIEW_SIZES = {
 let hub = {
   tables: [],
   activeKey: null,
-  style: { theme: null, accent: null },
+  style: { theme: null, accent: null, font: null },
   controls: { flags: true, logos: true },
   previewSize: "full",
   printSize: "full",
@@ -103,6 +103,7 @@ function buildEmbedUrl() {
   if (hub.style.theme) params.set("theme", hub.style.theme);
   if (hub.style.accent) params.set("accent", hub.style.accent);
   if (hub.style.bg) params.set("bg", hub.style.bg);
+  if (hub.style.font) params.set("font", hub.style.font);
   if (!hub.controls.flags) params.set("flags", "off");
   if (!hub.controls.logos) params.set("logos", "off");
   if (hub.previewSize === "compact") {
@@ -132,23 +133,28 @@ function selectTab(tab) {
 }
 
 function applyDefault() {
-  hub.style = { theme: null, accent: null };
+  hub.style = { theme: null, accent: null, font: null };
   document.querySelectorAll(".default-option").forEach(el =>
     el.classList.toggle("selected", el.dataset.key === "classic"));
   updateStylePreview();
+  renderPrintSurface();
 }
 
 function applyReverse() {
-  hub.style = { theme: "dark", accent: null };
+  hub.style = { theme: "dark", accent: null, font: null };
   document.querySelectorAll(".default-option").forEach(el =>
     el.classList.toggle("selected", el.dataset.key === "reverse"));
   updateStylePreview();
+  renderPrintSurface();
 }
 
 function applyPreset(key) {
   const preset = STYLE_PRESETS.find(p => p.key === key);
   if (!preset) return;
-  hub.style = { theme: preset.theme, accent: preset.accent };
+  // Dynamic tier — every preset here currently shares the same
+  // Oswald treatment; give a preset its own `font` field if/when
+  // Dynamic grows more than one font option.
+  hub.style = { theme: preset.theme, accent: preset.accent, font: "oswald" };
   document.querySelectorAll(".preset-swatch").forEach(el =>
     el.classList.toggle("selected", el.dataset.key === key));
   document.querySelectorAll(".colour-option").forEach(el =>
@@ -156,6 +162,7 @@ function applyPreset(key) {
   document.querySelectorAll(".default-option").forEach(el =>
     el.classList.remove("selected"));
   updateStylePreview();
+  renderPrintSurface();
 }
 
 function applyCustom() {
@@ -166,8 +173,9 @@ function applyCustom() {
     bgPicker.closest(".custom-bg-row").style.display = isDark ? "flex" : "none";
   }
   const bg = (isDark && bgPicker) ? bgPicker.value.replace("#", "") : null;
-  hub.style = { theme: isDark ? "dark" : null, accent: color, bg: bg };
+  hub.style = { theme: isDark ? "dark" : null, accent: color, bg: bg, font: null };
   updateStylePreview();
+  renderPrintSurface();
 }
 
 function toggleFlags() {
@@ -262,6 +270,7 @@ function toggleCodeVisible() {
 function renderPrintSurface() {
   const preset = SIZE_PRESETS[hub.printSize];
   const table = activeTable();
+  if (!table) return;
   const isCompact = hub.printSize === "compact";
 
   const activeColumns = preset.columns
@@ -275,12 +284,14 @@ function renderPrintSurface() {
         const cells = activeColumns.map(col => {
           const cls = col.numeric ? ' class="numeric"' : '';
           return `<td${cls}>${cellValue(col, row)}</td>`;
-        }).join('');
+        }).join('')
+      + '';
         return `<tr>${cells}</tr>`;
       }).join('')
     : `<tr><td colspan="${activeColumns.length}">No data available.</td></tr>`;
 
-  document.getElementById("print-surface").innerHTML = `
+  const surface = document.getElementById("print-surface");
+  surface.innerHTML = `
     <div class="export-header">
       <h1>${table.title}</h1>
     </div>
@@ -292,7 +303,10 @@ function renderPrintSurface() {
     <div class="export-footer">Source: KIKA MEDIA</div>
   `;
 
-  document.getElementById("print-surface").style.width = `${preset.widthCm}cm`;
+  surface.style.width = `${preset.widthCm}cm`;
+  // Dynamic-tier font applies to the PDF/print surface too, since that's
+  // rendered directly on the host page, not inside the themed iframe.
+  surface.style.fontFamily = (hub.style.font === "oswald") ? "'Oswald', sans-serif" : "";
 
   let pageStyle = document.getElementById('page-size-style');
   if (!pageStyle) {
