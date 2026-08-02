@@ -66,7 +66,12 @@ function renderRows(container, columns, rows) {
     const cells = columns.map(col => {
       const classes = [col.numeric ? 'numeric' : '', col.emphasis ? 'dt-emphasis' : ''].filter(Boolean).join(' ');
       const cls = classes ? ` class="${classes}"` : '';
-    const logoUrl = col.logo ? col.logo(row) : null;
+      const logoUrl = col.logo ? col.logo(row) : null;
+      // Explicit width/height (not just CSS) — without these, the
+      // browser can use the *actual* logo file's pixel dimensions
+      // (often huge, e.g. 2000px+) when calculating table layout
+      // width, even though CSS visually shrinks it to 18px. That
+      // caused the whole table to balloon to several thousand px wide.
       const logoHtml = logoUrl ? `<img class="dt-logo" src="${logoUrl}" alt="" width="18" height="18">` : '';
       const flagUrl = col.flag ? col.flag(row) : null;
       const flagHtml = flagUrl ? `<img class="dt-flag" src="${flagUrl}" alt="" width="20" height="14">` : '';
@@ -113,16 +118,4 @@ function initTable(config) {
         return res.json();
       })
       .then(data => {
-        const rows = config.adapter.extract(data);
-        renderRows(tbody, activeColumns, rows);
-      })
-      .catch(err => {
-        tbody.innerHTML = `<tr><td colspan="${colspan}">Failed to load: ${err.message}</td></tr>`;
-      });
-  }
-
-  load();
-  if (config.refreshSeconds) {
-    setInterval(load, config.refreshSeconds * 1000);
-  }
-}
+        const rows =
