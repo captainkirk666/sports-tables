@@ -194,7 +194,7 @@ html, body {
 }
 [data-dt-font="robotocondensed"] .data-table td[data-col="constructor"],
 [data-dt-font="robotocondensed"] .data-table td[data-col="team"] {
-  text-transform: lowercase;
+  text-transform: capitalize;
 }
 
 /* First iteration of the Dynamic header: always a black bar with
