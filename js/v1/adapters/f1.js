@@ -111,21 +111,76 @@ function flagUrl(nationality) {
   return flagUrlByIso(F1_NATIONALITY_TO_ISO[nationality]);
 }
 
+/**
+ * Jolpica/Ergast's race schedule uses its own country-name format
+ * for each circuit (e.g. "UK", "USA", "UAE") which doesn't match the
+ * full-country-name map in the shared flags.js (which expects
+ * "United Kingdom", "United States", etc.) — so, same pattern as
+ * F1_NATIONALITY_TO_ISO above, that translation lives here rather
+ * than editing the shared file. Add to this as new circuits appear
+ * on the calendar that aren't listed yet.
+ */
+const F1_CIRCUIT_COUNTRY_TO_ISO = {
+  "Bahrain": "bh",
+  "Saudi Arabia": "sa",
+  "Australia": "au",
+  "Japan": "jp",
+  "China": "cn",
+  "USA": "us",
+  "Italy": "it",
+  "Monaco": "mc",
+  "Canada": "ca",
+  "Spain": "es",
+  "Austria": "at",
+  "UK": "gb",
+  "Hungary": "hu",
+  "Belgium": "be",
+  "Netherlands": "nl",
+  "Azerbaijan": "az",
+  "Singapore": "sg",
+  "Mexico": "mx",
+  "Brazil": "br",
+  "Qatar": "qa",
+  "UAE": "ae",
+  "Portugal": "pt",
+  "France": "fr",
+  "Germany": "de",
+  "Turkey": "tr",
+  "Russia": "ru",
+  "Malaysia": "my",
+  "India": "in",
+  "South Korea": "kr",
+  "South Africa": "za",
+};
+
+function f1CircuitFlagUrl(country) {
+  return flagUrlByIso(F1_CIRCUIT_COUNTRY_TO_ISO[country]);
+}
+
+/**
+ * Jolpica/Ergast returns schedule dates/times as separate ISO-ish
+ * strings ("2026-09-14" and "14:00:00Z") — these format them into
+ * something readable for the Next Race table. Times are always UTC
+ * per the API, so labelled as such rather than silently showing a
+ * UTC time with no indication of the timezone.
+ */
+function formatRaceDate(dateStr) {
+  if (!dateStr) return "TBC";
+  const d = new Date(`${dateStr}T00:00:00Z`);
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+}
+function formatRaceTime(timeStr) {
+  if (!timeStr) return "TBC";
+  return `${timeStr.slice(0, 5)} UTC`;
+}
+
 const F1_ADAPTERS = {
   drivers: {
     sourceUrl: "https://api.jolpi.ca/ergast/f1/current/driverStandings.json",
     extract: data => data.MRData.StandingsTable.StandingsLists[0].DriverStandings,
     columns: [
       { key: "pos",    label: "Pos", compactLabel: "#", get: d => d.position, emphasis: true },
-      // shortenAt: which sizes should use compactGet instead of get().
-      // Driver shortens (family name only) at both Compact and
-      // Standard — Standard needs the extra room to hit its target
-      // width. Defaults to ["compact"] if omitted (see Team below).
       { key: "driver", label: "Driver", get: d => `${d.Driver.givenName} ${d.Driver.familyName}`, compactGet: d => d.Driver.familyName, shortenAt: ["compact", "standard"], flag: d => flagUrl(d.Driver.nationality) },
-      // Team's compactGet blanks the cell entirely — that's a
-      // Compact-only behaviour (Compact drops secondary columns),
-      // so shortenAt stays at the default ["compact"] rather than
-      // also blanking Team at Standard.
       { key: "team",   label: "Team",   get: d => f1ShortTeamName(d.Constructors[0]), compactGet: () => "", shortenAt: ["compact"], logo: d => f1TeamLogo(d.Constructors[0]) },
       { key: "points", label: "PTS", get: d => d.points, numeric: true },
       { key: "wins",   label: "Wins",   get: d => d.wins, numeric: true },
@@ -157,6 +212,35 @@ const F1_ADAPTERS = {
       { key: "time",     label: "Time / Status", get: r => r.Time ? r.Time.time : r.status },
       { key: "fastest",  label: "Fastest Lap", get: r => r.FastestLap ? r.FastestLap.Time.time : "—" },
       { key: "points",   label: "PTS",   get: r => r.points, numeric: true },
+    ],
+  },
+
+  /**
+   * The season schedule endpoint returns every race, not just the
+   * next one — Jolpica has no dedicated "next race" endpoint, so
+   * extract() finds the first race whose date/time hasn't passed
+   * yet and returns it as a single-item array. If the season is
+   * over, returns an empty array (renders "No data available",
+   * same as any other table with no rows).
+   */
+  nextRace: {
+    sourceUrl: "https://api.jolpi.ca/ergast/f1/current.json",
+    extract: data => {
+      const races = data.MRData.RaceTable.Races || [];
+      const now = new Date();
+      const upcoming = races.find(r => {
+        const raceDateTime = new Date(`${r.date}T${r.time || '00:00:00Z'}`);
+        return raceDateTime >= now;
+      });
+      return upcoming ? [upcoming] : [];
+    },
+    columns: [
+      { key: "round",    label: "Round", compactLabel: "#", get: r => r.round, emphasis: true },
+      { key: "race",     label: "Race",  get: r => r.raceName },
+      { key: "circuit",  label: "Circuit", get: r => r.Circuit.circuitName },
+      { key: "location", label: "Location", get: r => `${r.Circuit.Location.locality}, ${r.Circuit.Location.country}`, flag: r => f1CircuitFlagUrl(r.Circuit.Location.country) },
+      { key: "date",     label: "Date",  get: r => formatRaceDate(r.date) },
+      { key: "time",     label: "Time",  get: r => formatRaceTime(r.time) },
     ],
   },
 };
