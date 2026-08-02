@@ -129,7 +129,7 @@ const F1_ADAPTERS = {
     extract: data => data.MRData.StandingsTable.StandingsLists[0].ConstructorStandings,
     columns: [
       { key: "pos",         label: "Pos", compactLabel: "#", get: c => c.position, emphasis: true },
-      { key: "constructor", label: "Constructor",  get: c => f1ShortTeamName(c.Constructor), logo: c => f1TeamLogo(c.Constructor) },
+      { key: "constructor", label: "Team",  get: c => f1ShortTeamName(c.Constructor), logo: c => f1TeamLogo(c.Constructor) },
       { key: "nationality", label: "Nationality",  get: c => c.Constructor.nationality, flag: c => flagUrl(c.Constructor.nationality) },
       { key: "points",      label: "PTS",       get: c => c.points, numeric: true },
       { key: "wins",        label: "Wins",         get: c => c.wins, numeric: true },
@@ -143,12 +143,4 @@ const F1_ADAPTERS = {
     },
     columns: [
       { key: "pos",      label: "Pos", compactLabel: "#", get: r => r.position, emphasis: true },
-      { key: "driver",   label: "Driver",   get: r => `${r.Driver.givenName} ${r.Driver.familyName}`, compactGet: r => r.Driver.familyName, flag: r => flagUrl(r.Driver.nationality) },
-      { key: "team",     label: "Team",     get: r => f1ShortTeamName(r.Constructor), compactGet: () => "", logo: r => f1TeamLogo(r.Constructor) },
-      { key: "laps",     label: "Laps",     get: r => r.laps, numeric: true },
-      { key: "time",     label: "Time / Status", get: r => r.Time ? r.Time.time : r.status },
-      { key: "fastest",  label: "Fastest Lap", get: r => r.FastestLap ? r.FastestLap.Time.time : "—" },
-      { key: "points",   label: "PTS",   get: r => r.points, numeric: true },
-    ],
-  },
-};
+      { key: "driver",   label: "Driver",   get: r => `${r.Driver.givenName} ${r.Driver.familyName}`, compactGet: r =>
