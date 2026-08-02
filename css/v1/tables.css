@@ -194,7 +194,7 @@ html, body {
 }
 [data-dt-font="robotocondensed"] .data-table td[data-col="constructor"],
 [data-dt-font="robotocondensed"] .data-table td[data-col="team"] {
-  text-transform: capitalize;
+  text-transform: lowercase;
 }
 
 /* First iteration of the Dynamic header: always a black bar with
@@ -244,4 +244,19 @@ html, body {
 }
 [data-dt-font="robotocondensed"][data-dt-size="compact"] .dt-title {
   font-size: 0.95rem;
+}
+
+/* Standard-specific squeeze — tighter horizontal padding and pulled-
+   back flag/logo spacing (Full width keeps the doubled spacing set
+   earlier; this only pulls it back in for Standard, where every
+   pixel counts toward the 10cm target). Combined with Driver's
+   shortenAt (see f1.js/tables.js), this is what gets Standard close
+   to 10cm without wrapping on the longest names. */
+[data-dt-font="robotocondensed"][data-dt-size="standard"] .data-table th,
+[data-dt-font="robotocondensed"][data-dt-size="standard"] .data-table td {
+  padding: 4px 6px;
+}
+[data-dt-font="robotocondensed"][data-dt-size="standard"] .dt-flag,
+[data-dt-font="robotocondensed"][data-dt-size="standard"] .dt-logo {
+  margin-right: 6px;
 }
