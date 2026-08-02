@@ -284,8 +284,7 @@ function renderPrintSurface() {
         const cells = activeColumns.map(col => {
           const cls = col.numeric ? ' class="numeric"' : '';
           return `<td${cls}>${cellValue(col, row)}</td>`;
-        }).join('')
-      + '';
+        }).join('');
         return `<tr>${cells}</tr>`;
       }).join('')
     : `<tr><td colspan="${activeColumns.length}">No data available.</td></tr>`;
