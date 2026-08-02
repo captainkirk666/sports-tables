@@ -22,14 +22,15 @@
 
 function applyThemeFromQueryParams() {
   const params = new URLSearchParams(window.location.search);
-  const theme = params.get('theme');           // 'light' | 'dark'
-  const accent = params.get('accent');         // hex without '#', e.g. '1d9e75'
-  const bg = params.get('bg');                 // hex without '#' — custom background override
-  const flags = params.get('flags');           // 'off' hides flag icons; default shown
-  const logos = params.get('logos');           // 'off' hides team logo icons; default shown
-  const font = params.get('font');             // e.g. 'oswald' — Dynamic-tier font, see tables.css
-  const titleColor = params.get('titleColor'); // hex without '#' — overrides the .dt-title colour independently of accent
-  const posColor = params.get('posColor');     // hex without '#' — overrides the Pos-column number colour independently of accent
+  const theme = params.get('theme');             // 'light' | 'dark'
+  const accent = params.get('accent');           // hex without '#', e.g. '1d9e75'
+  const bg = params.get('bg');                   // hex without '#' — custom background override
+  const flags = params.get('flags');             // 'off' hides flag icons; default shown
+  const logos = params.get('logos');             // 'off' hides team logo icons; default shown
+  const font = params.get('font');               // e.g. 'roboto' — Dynamic-tier font, see tables.css
+  const titleColor = params.get('titleColor');   // hex without '#' — overrides the .dt-title colour
+  const posColor = params.get('posColor');       // hex without '#' — overrides the Pos-column number colour
+  const pointsColor = params.get('pointsColor'); // hex without '#' — overrides the PTS-column colour
 
   if (theme === 'dark') {
     document.documentElement.setAttribute('data-dt-theme', 'dark');
@@ -55,6 +56,9 @@ function applyThemeFromQueryParams() {
   }
   if (posColor && /^[0-9a-fA-F]{6}$/.test(posColor)) {
     document.documentElement.style.setProperty('--dt-pos-color', `#${posColor}`);
+  }
+  if (pointsColor && /^[0-9a-fA-F]{6}$/.test(pointsColor)) {
+    document.documentElement.style.setProperty('--dt-points-color', `#${pointsColor}`);
   }
   const size = params.get('size');        // 'compact' switches to compactGet where available
   if (size) {
