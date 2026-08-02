@@ -175,7 +175,7 @@ function applyPreset(key) {
   hub.lastPresetKey = key;
   hub.style.theme = preset.theme;
   hub.style.accent = preset.accent;
-  hub.style.font = "roboto";
+  hub.style.font = "robotocondensed";
   updateStylePreview();
   renderPrintSurface();
 }
@@ -372,7 +372,7 @@ function renderPrintSurface() {
   surface.style.width = `${preset.widthCm}cm`;
   // Dynamic-tier font applies to the PDF/print surface too, since that's
   // rendered directly on the host page, not inside the themed iframe.
-  surface.style.fontFamily = (hub.style.font === "roboto") ? "'Roboto', sans-serif" : "";
+  surface.style.fontFamily = (hub.style.font === "robotocondensed") ? "'Roboto Condensed', sans-serif" : "";
 
   // Title colour and Points colour carry through to the PDF too.
   // (POS colour does not yet — the print surface doesn't currently
