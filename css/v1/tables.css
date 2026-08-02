@@ -3,7 +3,7 @@
    Do not make breaking changes here once embeds
    are live. Add a v2 folder instead and migrate.
    =========================================== */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;600;700&display=swap');
 
 :root {
   --dt-bg: transparent;
@@ -25,13 +25,13 @@
   --dt-header-bg: #1c1c1c;
   --dt-row-hover: #1a1a2e;
 }
-/* Dynamic-tier font, toggled by tables.js when ?font=roboto is present
-   (set automatically when the Dynamic tab is opened, via
+/* Dynamic-tier font, toggled by tables.js when ?font=robotocondensed
+   is present (set automatically when the Dynamic tab is opened, via
    sport-hub.js). Add more [data-dt-font="..."] blocks here if
    Dynamic grows more font options — each just needs its own Google
    Fonts @import above. */
-[data-dt-font="roboto"] {
-  --dt-font: 'Roboto', sans-serif;
+[data-dt-font="robotocondensed"] {
+  --dt-font: 'Roboto Condensed', sans-serif;
 }
 * { box-sizing: border-box; }
 html, body {
@@ -157,30 +157,31 @@ html, body {
 
 /* ===========================================
    Dynamic tier — extra styling, scoped entirely
-   to [data-dt-font="roboto"] since that attribute
-   is only ever set when the Dynamic tab is opened
-   in sport-hub.js. Basic and Custom tiers never
-   get this attribute, so they're unaffected.
+   to [data-dt-font="robotocondensed"] since that
+   attribute is only ever set when the Dynamic tab
+   is opened in sport-hub.js. Basic and Custom
+   tiers never get this attribute, so they're
+   unaffected.
    =========================================== */
 
 /* Light grey rows with a visible gap between them. Switches from
    collapsed borders to separated rows so each row reads as its own
    distinct block rather than a continuous striped table. */
-[data-dt-font="roboto"] .data-table {
+[data-dt-font="robotocondensed"] .data-table {
   border-collapse: separate;
   border-spacing: 0 2px;
 }
-[data-dt-font="roboto"] .data-table tbody tr {
+[data-dt-font="robotocondensed"] .data-table tbody tr {
   background: #f0f0f0;
 }
-[data-dt-font="roboto"] .data-table tbody td {
+[data-dt-font="robotocondensed"] .data-table tbody td {
   border-bottom: none;
 }
 
 /* Tighter vertical padding — the default 8px top/bottom read as too
    deep/spacey once the header went bold and the rows got separated. */
-[data-dt-font="roboto"] .data-table th,
-[data-dt-font="roboto"] .data-table td {
+[data-dt-font="robotocondensed"] .data-table th,
+[data-dt-font="robotocondensed"] .data-table td {
   padding: 4px 10px;
 }
 
@@ -188,23 +189,17 @@ html, body {
    Results). Numbers are unaffected by text-transform, so this only
    visibly changes name/team text. Constructor/team names are
    overridden back to lowercase just below. */
-[data-dt-font="roboto"] .data-table td {
+[data-dt-font="robotocondensed"] .data-table td {
   text-transform: uppercase;
 }
-[data-dt-font="roboto"] .data-table td[data-col="constructor"],
-[data-dt-font="roboto"] .data-table td[data-col="team"] {
+[data-dt-font="robotocondensed"] .data-table td[data-col="constructor"],
+[data-dt-font="robotocondensed"] .data-table td[data-col="team"] {
   text-transform: lowercase;
-}
-
-/* PTS column, heavier weight (colour itself is handled by the
-   global --dt-points-color rule above, not scoped to Dynamic). */
-[data-dt-font="roboto"] .data-table td[data-col="points"] {
-  font-weight: 700;
 }
 
 /* First iteration of the Dynamic header: always a black bar with
    reversed (white) type, regardless of internal accent state. */
-[data-dt-font="roboto"] .data-table th {
+[data-dt-font="robotocondensed"] .data-table th {
   background: #000;
   color: #fff;
   font-size: 0.98rem;
@@ -213,23 +208,40 @@ html, body {
 
 /* Table headline (the coloured "F1 DRIVER STANDINGS" bar above the
    table) 40% larger — Standard/Full only, see Compact protection
-   block below. */
-[data-dt-font="roboto"] .dt-title {
+   block below. Weight 700, matching the base .dt-title weight but
+   made explicit here since this is Dynamic's own typographic scale. */
+[data-dt-font="robotocondensed"] .dt-title {
   font-size: 1.67rem;
+  font-weight: 700;
+}
+
+/* Per-column weights — Driver name / Pos / PTS all a semi-bold 600,
+   Team/Constructor left at a plain 400 so it reads lighter against
+   the heavier surrounding columns. Higher specificity than the base
+   .dt-emphasis rule (which sets Pos to 700 outside Dynamic), so this
+   correctly wins for the Pos column here regardless of source order. */
+[data-dt-font="robotocondensed"] .data-table td[data-col="driver"],
+[data-dt-font="robotocondensed"] .data-table td[data-col="pos"],
+[data-dt-font="robotocondensed"] .data-table td[data-col="points"] {
+  font-weight: 600;
+}
+[data-dt-font="robotocondensed"] .data-table td[data-col="team"],
+[data-dt-font="robotocondensed"] .data-table td[data-col="constructor"] {
+  font-weight: 400;
 }
 
 /* Compact protection block — keeps Compact's own smaller, tighter
    treatment intact even when Dynamic is active. Two attribute
    selectors gives this higher specificity than the rules above, so
    it wins regardless of source order. */
-[data-dt-font="roboto"][data-dt-size="compact"] .data-table th,
-[data-dt-font="roboto"][data-dt-size="compact"] .data-table td {
+[data-dt-font="robotocondensed"][data-dt-size="compact"] .data-table th,
+[data-dt-font="robotocondensed"][data-dt-size="compact"] .data-table td {
   padding: 6px 4px;
 }
-[data-dt-font="roboto"][data-dt-size="compact"] .data-table th {
+[data-dt-font="robotocondensed"][data-dt-size="compact"] .data-table th {
   font-size: 0.82rem;
   font-weight: 600;
 }
-[data-dt-font="roboto"][data-dt-size="compact"] .dt-title {
+[data-dt-font="robotocondensed"][data-dt-size="compact"] .dt-title {
   font-size: 0.95rem;
 }
