@@ -79,6 +79,7 @@ function initTable(config) {
     ? config.adapter.columns.filter(c => colsParam.split(',').includes(c.key))
     : config.adapter.columns;
 
+  const isCompactHeader = document.documentElement.getAttribute('data-dt-size') === 'compact';
   const root = document.querySelector(config.containerSelector);
   root.innerHTML = `
     <div class="dt-widget">
@@ -88,7 +89,7 @@ function initTable(config) {
       <div class="dt-table-scroll">
         <table class="data-table">
           <thead><tr>${activeColumns.map(c =>
-            `<th${c.numeric ? ' class="numeric"' : ''}>${c.label}</th>`).join('')}</tr></thead>
+            `<th${c.numeric ? ' class="numeric"' : ''}>${(isCompactHeader && c.compactLabel) ? c.compactLabel : c.label}</th>`).join('')}</tr></thead>
           <tbody id="dt-body">
             <tr><td colspan="${activeColumns.length}">Loading…</td></tr>
           </tbody>
