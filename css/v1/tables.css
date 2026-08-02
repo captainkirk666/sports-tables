@@ -178,6 +178,21 @@ html, body {
   border-bottom: none;
 }
 
+/* Podium tint — 1st place a light gold, fading toward the base grey
+   by 3rd. Uses nth-child since standings rows are always rendered in
+   rank order, so row 1 is always position 1. Higher specificity than
+   the plain tbody row rule above (nth-child counts like a class), so
+   these correctly win over the flat grey for just these three rows. */
+[data-dt-font="robotocondensed"] .data-table tbody tr:nth-child(1) {
+  background: #f0dfa8;
+}
+[data-dt-font="robotocondensed"] .data-table tbody tr:nth-child(2) {
+  background: #eeecdf;
+}
+[data-dt-font="robotocondensed"] .data-table tbody tr:nth-child(3) {
+  background: #f0f0f0;
+}
+
 /* Tighter vertical padding — the default 8px top/bottom read as too
    deep/spacey once the header went bold and the rows got separated. */
 [data-dt-font="robotocondensed"] .data-table th,
@@ -188,13 +203,15 @@ html, body {
 /* All cell text as caps, across every table (Drivers/Constructors/
    Results). Numbers are unaffected by text-transform, so this only
    visibly changes name/team text. Constructor/team names are
-   overridden back to lowercase just below. */
+   overridden to Title Case just below (capitalize, not lowercase —
+   this was accidentally reverted in a previous full-file rewrite;
+   fixed here). */
 [data-dt-font="robotocondensed"] .data-table td {
   text-transform: uppercase;
 }
 [data-dt-font="robotocondensed"] .data-table td[data-col="constructor"],
 [data-dt-font="robotocondensed"] .data-table td[data-col="team"] {
-  text-transform: lowercase;
+  text-transform: capitalize;
 }
 
 /* First iteration of the Dynamic header: always a black bar with
@@ -209,10 +226,15 @@ html, body {
 /* Table headline (the coloured "F1 DRIVER STANDINGS" bar above the
    table) 40% larger — Standard/Full only, see Compact protection
    block below. Weight 700, matching the base .dt-title weight but
-   made explicit here since this is Dynamic's own typographic scale. */
+   made explicit here since this is Dynamic's own typographic scale.
+   Vertical accent bar removed per request — border-left dropped,
+   padding-left collapsed to 0 so the text isn't left indented with
+   nothing there. */
 [data-dt-font="robotocondensed"] .dt-title {
   font-size: 1.67rem;
   font-weight: 700;
+  border-left: none;
+  padding-left: 0;
 }
 
 /* Per-column weights — Driver name / Pos / PTS all a semi-bold 600,
@@ -259,4 +281,15 @@ html, body {
 [data-dt-font="robotocondensed"][data-dt-size="standard"] .dt-flag,
 [data-dt-font="robotocondensed"][data-dt-size="standard"] .dt-logo {
   margin-right: 6px;
+}
+
+/* Pos <-> Driver gap tightening — placed after the compact/standard
+   blocks above (and using the same two-selector specificity, via
+   data-col) so it correctly overrides their padding shorthand on
+   just these two sides, across every size. */
+[data-dt-font="robotocondensed"] .data-table td[data-col="pos"] {
+  padding-right: 2px;
+}
+[data-dt-font="robotocondensed"] .data-table td[data-col="driver"] {
+  padding-left: 2px;
 }
