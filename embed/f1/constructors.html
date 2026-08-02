@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>F1 Driver Standings</title>
+<title>F1 Constructor Standings</title>
 <link rel="stylesheet" href="../../css/v1/tables.css?v=6">
 </head>
 <body>
@@ -13,10 +13,10 @@
 <script>
 initTable({
   containerSelector: "#dt-app",
-  title: "F1 driver standings",
-  sourceUrl: F1_ADAPTERS.drivers.sourceUrl,
-  adapter: F1_ADAPTERS.drivers,
-  refreshSeconds: 30,
+  title: "F1 constructor standings",
+  sourceUrl: F1_ADAPTERS.constructors.sourceUrl,
+  adapter: F1_ADAPTERS.constructors,
+  refreshSeconds: 20,
   attribution: { label: "Data: Jolpica F1", href: "https://github.com/jolpica/jolpica-f1" }
 });
 </script>
