@@ -116,7 +116,7 @@ const F1_ADAPTERS = {
     sourceUrl: "https://api.jolpi.ca/ergast/f1/current/driverStandings.json",
     extract: data => data.MRData.StandingsTable.StandingsLists[0].DriverStandings,
     columns: [
-      { key: "pos",    label: "Pos",    get: d => d.position, emphasis: true },
+      { key: "pos",    label: "Pos", compactLabel: "#", get: d => d.position, emphasis: true },
       { key: "driver", label: "Driver", get: d => `${d.Driver.givenName} ${d.Driver.familyName}`, compactGet: d => d.Driver.familyName, flag: d => flagUrl(d.Driver.nationality) },
       { key: "team",   label: "Team",   get: d => f1ShortTeamName(d.Constructors[0]), compactGet: () => "", logo: d => f1TeamLogo(d.Constructors[0]) },
       { key: "points", label: "PTS", get: d => d.points, numeric: true },
@@ -128,7 +128,7 @@ const F1_ADAPTERS = {
     sourceUrl: "https://api.jolpi.ca/ergast/f1/current/constructorStandings.json",
     extract: data => data.MRData.StandingsTable.StandingsLists[0].ConstructorStandings,
     columns: [
-      { key: "pos",         label: "Pos",          get: c => c.position, emphasis: true },
+      { key: "pos",         label: "Pos", compactLabel: "#", get: c => c.position, emphasis: true },
       { key: "constructor", label: "Constructor",  get: c => f1ShortTeamName(c.Constructor), logo: c => f1TeamLogo(c.Constructor) },
       { key: "nationality", label: "Nationality",  get: c => c.Constructor.nationality, flag: c => flagUrl(c.Constructor.nationality) },
       { key: "points",      label: "PTS",       get: c => c.points, numeric: true },
@@ -142,7 +142,7 @@ const F1_ADAPTERS = {
       return races && races.length ? races[0].Results : [];
     },
     columns: [
-      { key: "pos",      label: "Pos",      get: r => r.position, emphasis: true },
+      { key: "pos",      label: "Pos", compactLabel: "#", get: r => r.position, emphasis: true },
       { key: "driver",   label: "Driver",   get: r => `${r.Driver.givenName} ${r.Driver.familyName}`, compactGet: r => r.Driver.familyName, flag: r => flagUrl(r.Driver.nationality) },
       { key: "team",     label: "Team",     get: r => f1ShortTeamName(r.Constructor), compactGet: () => "", logo: r => f1TeamLogo(r.Constructor) },
       { key: "laps",     label: "Laps",     get: r => r.laps, numeric: true },
