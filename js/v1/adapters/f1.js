@@ -117,8 +117,16 @@ const F1_ADAPTERS = {
     extract: data => data.MRData.StandingsTable.StandingsLists[0].DriverStandings,
     columns: [
       { key: "pos",    label: "Pos", compactLabel: "#", get: d => d.position, emphasis: true },
-      { key: "driver", label: "Driver", get: d => `${d.Driver.givenName} ${d.Driver.familyName}`, compactGet: d => d.Driver.familyName, flag: d => flagUrl(d.Driver.nationality) },
-      { key: "team",   label: "Team",   get: d => f1ShortTeamName(d.Constructors[0]), compactGet: () => "", logo: d => f1TeamLogo(d.Constructors[0]) },
+      // shortenAt: which sizes should use compactGet instead of get().
+      // Driver shortens (family name only) at both Compact and
+      // Standard — Standard needs the extra room to hit its target
+      // width. Defaults to ["compact"] if omitted (see Team below).
+      { key: "driver", label: "Driver", get: d => `${d.Driver.givenName} ${d.Driver.familyName}`, compactGet: d => d.Driver.familyName, shortenAt: ["compact", "standard"], flag: d => flagUrl(d.Driver.nationality) },
+      // Team's compactGet blanks the cell entirely — that's a
+      // Compact-only behaviour (Compact drops secondary columns),
+      // so shortenAt stays at the default ["compact"] rather than
+      // also blanking Team at Standard.
+      { key: "team",   label: "Team",   get: d => f1ShortTeamName(d.Constructors[0]), compactGet: () => "", shortenAt: ["compact"], logo: d => f1TeamLogo(d.Constructors[0]) },
       { key: "points", label: "PTS", get: d => d.points, numeric: true },
       { key: "wins",   label: "Wins",   get: d => d.wins, numeric: true },
     ],
@@ -143,8 +151,8 @@ const F1_ADAPTERS = {
     },
     columns: [
       { key: "pos",      label: "Pos", compactLabel: "#", get: r => r.position, emphasis: true },
-      { key: "driver",   label: "Driver",   get: r => `${r.Driver.givenName} ${r.Driver.familyName}`, compactGet: r => r.Driver.familyName, flag: r => flagUrl(r.Driver.nationality) },
-      { key: "team",     label: "Team",     get: r => f1ShortTeamName(r.Constructor), compactGet: () => "", logo: r => f1TeamLogo(r.Constructor) },
+      { key: "driver",   label: "Driver",   get: r => `${r.Driver.givenName} ${r.Driver.familyName}`, compactGet: r => r.Driver.familyName, shortenAt: ["compact", "standard"], flag: r => flagUrl(r.Driver.nationality) },
+      { key: "team",     label: "Team",     get: r => f1ShortTeamName(r.Constructor), compactGet: () => "", shortenAt: ["compact"], logo: r => f1TeamLogo(r.Constructor) },
       { key: "laps",     label: "Laps",     get: r => r.laps, numeric: true },
       { key: "time",     label: "Time / Status", get: r => r.Time ? r.Time.time : r.status },
       { key: "fastest",  label: "Fastest Lap", get: r => r.FastestLap ? r.FastestLap.Time.time : "—" },
