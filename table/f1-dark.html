@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="../css/site.css?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&display=swap" rel="stylesheet">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&display=swap');
 
@@ -178,15 +178,19 @@
   .colour-buttons {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 4px;
   }
+  /* Shrunk so all 12 swatches fit on a single row inside the 364px
+     panel column — used for the main Colours row and both the
+     Title colour / POS colour pickers below it. */
   .colour-option {
-    width: 32px;
-    height: 32px;
+    width: 22px;
+    height: 22px;
     border: 2px solid transparent;
-    border-radius: 6px;
+    border-radius: 5px;
     cursor: pointer;
     padding: 0;
+    flex-shrink: 0;
   }
   .colour-option.selected {
     border-color: #111;
@@ -366,12 +370,12 @@
     <div class="theme-section">
       <h3>Style</h3>
       <div class="tier-tabs">
-        <button class="tier-tab active" id="tab-default" onclick="selectTab('default')">Default</button>
-        <button class="tier-tab" id="tab-preset" onclick="selectTab('preset')">Dynamic</button>
+        <button class="tier-tab" id="tab-default" onclick="selectTab('default')">Basic</button>
+        <button class="tier-tab active" id="tab-preset" onclick="selectTab('preset')">Dynamic</button>
         <button class="tier-tab" id="tab-custom" onclick="selectTab('custom')">Custom</button>
       </div>
 
-      <div class="tier-panel active" id="panel-default">
+      <div class="tier-panel" id="panel-default">
         <p class="panel-desc">Black on white, or its inverse.</p>
         <button class="preset-swatch default-option selected" data-key="classic" onclick="applyDefault()">
           <span class="swatch-dot" style="--swatch-color:#fff; border:1px solid #ccc;"></span>Classic
@@ -381,7 +385,7 @@
         </button>
       </div>
 
-      <div class="tier-panel" id="panel-preset">
+      <div class="tier-panel active" id="panel-preset">
         <p class="panel-desc">Sport-themed presets.</p>
         <div id="preset-swatches"></div>
       </div>
@@ -399,6 +403,16 @@
     <div class="colour-section">
       <h3>Colours</h3>
       <div id="colour-buttons" class="colour-buttons"></div>
+    </div>
+
+    <div class="colour-section">
+      <h3>Title colour</h3>
+      <div id="title-colour-buttons" class="colour-buttons"></div>
+    </div>
+
+    <div class="colour-section">
+      <h3>POS colour</h3>
+      <div id="pos-colour-buttons" class="colour-buttons"></div>
     </div>
 
     <div class="controls-section">
@@ -443,7 +457,7 @@
 <script src="../js/site-nav.js"></script>
 <script src="../js/v1/flags.js?v=2"></script>
 <script src="../js/v1/adapters/f1.js?v=3"></script>
-<script src="../js/sport-hub.js?v=4"></script>
+<script src="../js/sport-hub.js?v=5"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.9/iframeResizer.min.js"></script>
 <script>
 initSportHub({
