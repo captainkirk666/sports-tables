@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>F1 Next Race</title>
+<link rel="stylesheet" href="../../css/v1/tables.css?v=11">
+</head>
+<body>
+<div id="dt-app"></div>
+<script src="../../js/v1/flags.js?v=2"></script>
+<script src="../../js/v1/adapters/f1.js?v=5"></script>
+<script src="../../js/v1/tables.js?v=9"></script>
+<script>
+initTable({
+  containerSelector: "#dt-app",
+  title: "F1 next race",
+  sourceUrl: F1_ADAPTERS.nextRace.sourceUrl,
+  adapter: F1_ADAPTERS.nextRace,
+  refreshSeconds: 60,
+  attribution: { label: "Data: Jolpica F1", href: "https://github.com/jolpica/jolpica-f1" }
+});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.9/iframeResizer.contentWindow.min.js"></script>
+</body>
+</html>
