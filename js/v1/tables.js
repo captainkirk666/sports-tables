@@ -12,9 +12,13 @@
  *   refreshSeconds: 30,             // 0/undefined = no auto refresh
  *   adapter: {
  *     extract(data) -> array of rows,
- *     columns: [{ label, get(row), numeric?, emphasis?, logo?(row) }]
+ *     columns: [{ label, get(row), numeric?, emphasis?, logo?(row),
+ *                 compactGet?, shortenAt? }]
  *              // logo(row) is optional — return an image URL and it
  *              // renders as a small icon before the cell's text.
+ *              // shortenAt: array of size names ('compact','standard')
+ *              // at which compactGet should be used instead of get().
+ *              // Defaults to ['compact'] if omitted.
  *   },
  *   attribution: { label: "Data: Jolpica F1", href: "https://..." }
  * }
@@ -60,7 +64,7 @@ function applyThemeFromQueryParams() {
   if (pointsColor && /^[0-9a-fA-F]{6}$/.test(pointsColor)) {
     document.documentElement.style.setProperty('--dt-points-color', `#${pointsColor}`);
   }
-  const size = params.get('size');        // 'compact' switches to compactGet where available
+  const size = params.get('size');        // 'compact' | 'standard' — switches to compactGet where a column opts in via shortenAt
   if (size) {
     document.documentElement.setAttribute('data-dt-size', size);
   }
@@ -73,7 +77,8 @@ function renderRows(container, columns, rows) {
     container.innerHTML = `<tr><td colspan="${colspan}">No data available.</td></tr>`;
     return;
   }
-  const isCompact = document.documentElement.getAttribute('data-dt-size') === 'compact';
+  const size = document.documentElement.getAttribute('data-dt-size') || 'full';
+  const isCompact = size === 'compact';
   container.innerHTML = rows.map(row => {
     const cells = columns.map(col => {
       const classes = [col.numeric ? 'numeric' : '', col.emphasis ? 'dt-emphasis' : ''].filter(Boolean).join(' ');
@@ -82,7 +87,9 @@ function renderRows(container, columns, rows) {
       const logoHtml = logoUrl ? `<img class="dt-logo" src="${logoUrl}" alt="" width="18" height="18">` : '';
       const flagUrl = col.flag ? col.flag(row) : null;
       const flagHtml = flagUrl ? `<img class="dt-flag" src="${flagUrl}" alt="" width="20" height="14">` : '';
-      const text = (isCompact && col.compactGet) ? col.compactGet(row) : col.get(row);
+      const shortenAt = col.shortenAt || ['compact'];
+      const shouldShorten = col.compactGet && shortenAt.includes(size);
+      const text = shouldShorten ? col.compactGet(row) : col.get(row);
       return `<td${cls} data-col="${col.key}">${flagHtml}${logoHtml}${text}</td>`;
     }).join('');
     return `<tr>${cells}</tr>`;
