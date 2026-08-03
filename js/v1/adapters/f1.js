@@ -225,7 +225,7 @@ const F1_ADAPTERS = {
       { key: "driver",   label: "Driver",   get: r => `${r.Driver.givenName} ${r.Driver.familyName}`, compactGet: r => r.Driver.familyName, shortenAt: ["compact", "standard"], flag: r => flagUrl(r.Driver.nationality) },
       { key: "team",     label: "Team",     get: r => f1ShortTeamName(r.Constructor), compactGet: () => "", shortenAt: ["compact"], logo: r => f1TeamLogo(r.Constructor) },
       { key: "laps",     label: "Laps",     get: r => r.laps, numeric: true },
-      { key: "time",     label: "Time / Status", get: r => r.Time ? r.Time.time : r.status },
+      { key: "raceTime", label: "Time / Status", get: r => r.Time ? r.Time.time : r.status },
       { key: "fastest",  label: "Fastest Lap", get: r => r.FastestLap ? r.FastestLap.Time.time : "—" },
       { key: "points",   label: "PTS",   get: r => r.points, numeric: true },
     ],
