@@ -181,6 +181,14 @@ html, body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
+  /* border-spacing (the gap between rows) looks fine on screen but
+     rasterizes with a visible anti-aliased edge in print, making
+     each row look like it's sitting in its own small shadowed card
+     and inflating the row height. Collapsing it removes that
+     without affecting the live embed at all. */
+  .data-table {
+    border-spacing: 0;
+  }
 }
 
 /* ===========================================
@@ -211,6 +219,16 @@ html, body {
 }
 [data-dt-font="robotocondensed"] .data-table tbody td {
   border-bottom: none;
+}
+
+/* Grey rule — a thin divider line between rows, toggleable
+   independently of Row background / Top 3 highlight. Two attribute
+   selectors gives this higher specificity than the border-bottom:
+   none rule above, so it correctly wins regardless of source order.
+   Not mutually exclusive with row backgrounds — can combine either
+   way, whatever look is wanted. */
+[data-dt-font="robotocondensed"][data-dt-rule="on"] .data-table tbody td {
+  border-bottom: 1px solid #d0d0d0;
 }
 
 /* Podium tint — gold/silver/bronze on the top 3 rows. Uses nth-child
