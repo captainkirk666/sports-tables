@@ -171,6 +171,18 @@ html, body {
   color: inherit;
 }
 
+/* Browsers strip background colours/images by default when
+   printing, to save ink — this silently drops the black header bar,
+   grey rows, and gold/silver/bronze podium tint in the PDF export
+   even though everything else (text colour, the logo) survives.
+   This opts back in globally wherever tables.css is loaded. */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
 /* ===========================================
    The site's one table style — Roboto Condensed,
    black header, bold identity column, grey rows
