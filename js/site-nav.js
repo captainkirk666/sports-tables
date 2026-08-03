@@ -24,7 +24,7 @@
 
   var SPORTS = [
     { key: "f1",  label: "F1",  href: BASE + "/table/f1.html" },
-    { key: "epl", label: "EPL", href: BASE + "/table/epl-dark.html" }
+    { key: "epl", label: "EPL", href: BASE + "/table/epl.html" }
   ];
 
   var PAGES = [
