@@ -7,7 +7,8 @@
  *
  * config = {
  *   containerSelector: "#dt-app",   // where to mount
- *   title: "F1 driver standings",
+ *   title: "Driver Standings",      // does NOT include the sport name — see sportLogo
+ *   sportLogo: "https://...",       // optional — shown inline before the title text
  *   sourceUrl: "https://...",       // your own cached API, not the raw upstream
  *   refreshSeconds: 30,             // 0/undefined = no auto refresh
  *   adapter: {
@@ -26,19 +27,22 @@
 
 function applyThemeFromQueryParams() {
   const params = new URLSearchParams(window.location.search);
-  const theme = params.get('theme');             // 'light' | 'dark'
-  const accent = params.get('accent');           // hex without '#', e.g. '1d9e75'
+  const accent = params.get('accent');           // hex without '#' — still supported, rarely used now that Title/Position/Points colour cover most cases
   const bg = params.get('bg');                   // hex without '#' — custom background override
   const flags = params.get('flags');             // 'off' hides flag icons; default shown
   const logos = params.get('logos');             // 'off' hides team logo icons; default shown
-  const font = params.get('font');               // e.g. 'robotocondensed' — Dynamic-tier font, see tables.css
   const titleColor = params.get('titleColor');   // hex without '#' — overrides the .dt-title colour
   const posColor = params.get('posColor');       // hex without '#' — overrides the Pos-column number colour
   const pointsColor = params.get('pointsColor'); // hex without '#' — overrides the PTS-column colour
+  const rowbg = params.get('rowbg');             // 'off' removes the grey row background (and, via the shared fallback, the podium tint too)
+  const podium = params.get('podium');           // 'off' removes just the gold/silver/bronze top-3 highlight, independent of rowbg
 
-  if (theme === 'dark') {
-    document.documentElement.setAttribute('data-dt-theme', 'dark');
-  }
+  // The site's one canonical table style (Roboto Condensed, black
+  // header, bold identity column, etc.) is now always applied — no
+  // longer conditional on a ?font= param, since Basic/Custom were
+  // removed and this is the only look anymore.
+  document.documentElement.setAttribute('data-dt-font', 'robotocondensed');
+
   if (accent && /^[0-9a-fA-F]{6}$/.test(accent)) {
     document.documentElement.style.setProperty('--dt-accent', `#${accent}`);
   }
@@ -52,9 +56,6 @@ function applyThemeFromQueryParams() {
   if (logos === 'off') {
     document.documentElement.setAttribute('data-dt-logos', 'off');
   }
-  if (font) {
-    document.documentElement.setAttribute('data-dt-font', font);
-  }
   if (titleColor && /^[0-9a-fA-F]{6}$/.test(titleColor)) {
     document.documentElement.style.setProperty('--dt-title-color', `#${titleColor}`);
   }
@@ -63,6 +64,12 @@ function applyThemeFromQueryParams() {
   }
   if (pointsColor && /^[0-9a-fA-F]{6}$/.test(pointsColor)) {
     document.documentElement.style.setProperty('--dt-points-color', `#${pointsColor}`);
+  }
+  if (rowbg === 'off') {
+    document.documentElement.setAttribute('data-dt-rowbg', 'off');
+  }
+  if (podium === 'off') {
+    document.documentElement.setAttribute('data-dt-podium', 'off');
   }
   const size = params.get('size');        // 'compact' | 'standard' — switches to compactGet where a column opts in via shortenAt
   if (size) {
@@ -104,10 +111,11 @@ function initTable(config) {
 
   const isCompactHeader = document.documentElement.getAttribute('data-dt-size') === 'compact';
   const root = document.querySelector(config.containerSelector);
+  const logoHtml = config.sportLogo ? `<img class="dt-title-logo" src="${config.sportLogo}" alt="">` : '';
   root.innerHTML = `
     <div class="dt-widget">
       <div class="dt-header">
-        <p class="dt-title">${config.title}</p>
+        <p class="dt-title">${logoHtml}${config.title}</p>
       </div>
       <div class="dt-table-scroll">
         <table class="data-table">
