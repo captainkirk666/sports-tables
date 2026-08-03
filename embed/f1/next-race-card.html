@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>F1 Next Race</title>
+<link rel="stylesheet" href="../../css/v1/cards.css?v=1">
+</head>
+<body>
+<div id="dt-app"></div>
+<script src="../../js/v1/flags.js?v=2"></script>
+<script src="../../js/v1/adapters/f1.js?v=6"></script>
+<script src="../../js/v1/cards.js?v=1"></script>
+<script>
+initCard({
+  containerSelector: "#dt-app",
+  variant: "preview",
+  eyebrow: "Next Race",
+  sourceUrl: F1_ADAPTERS.nextRaceCard.sourceUrl,
+  adapter: F1_ADAPTERS.nextRaceCard,
+  refreshSeconds: 60
+});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.9/iframeResizer.contentWindow.min.js"></script>
+</body>
+</html>
