@@ -23,7 +23,7 @@
   var BASE = "https://captainkirk666.github.io/sports-tables";
 
   var SPORTS = [
-    { key: "f1",  label: "F1",  href: BASE + "/table/f1-dark.html" },
+    { key: "f1",  label: "F1",  href: BASE + "/table/f1.html" },
     { key: "epl", label: "EPL", href: BASE + "/table/epl-dark.html" }
   ];
 
