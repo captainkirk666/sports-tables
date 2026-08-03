@@ -103,14 +103,17 @@ function renderRows(container, columns, rows) {
   }).join('');
 }
 
-function initTable(config) {
-  const colsParam = applyThemeFromQueryParams();
-  const activeColumns = colsParam
-    ? config.adapter.columns.filter(c => colsParam.split(',').includes(c.key))
-    : config.adapter.columns;
-
+/**
+ * Builds the title/header/table skeleton and returns the empty
+ * tbody, ready for renderRows() to fill in. Shared by initTable()
+ * (live embed, fetches its own data) and sport-hub.js's export path
+ * (already has the data in `hub.rows`) — this is what guarantees
+ * PDF/PNG export always matches the live preview's actual markup,
+ * rather than maintaining a second, separately-styled copy that can
+ * drift out of sync.
+ */
+function renderTableShell(root, config, activeColumns) {
   const isCompactHeader = document.documentElement.getAttribute('data-dt-size') === 'compact';
-  const root = document.querySelector(config.containerSelector);
   const logoHtml = config.sportLogo ? `<img class="dt-title-logo" src="${config.sportLogo}" alt="">` : '';
   root.innerHTML = `
     <div class="dt-widget">
@@ -121,7 +124,7 @@ function initTable(config) {
         <table class="data-table">
           <thead><tr>${activeColumns.map(c =>
             `<th${c.numeric ? ' class="numeric"' : ''} data-col="${c.key}">${(isCompactHeader && c.compactLabel) ? c.compactLabel : c.label}</th>`).join('')}</tr></thead>
-          <tbody id="dt-body">
+          <tbody>
             <tr><td colspan="${activeColumns.length}">Loading…</td></tr>
           </tbody>
         </table>
@@ -129,8 +132,17 @@ function initTable(config) {
       <div class="dt-footer">Source: KIKA MEDIA</div>
     </div>
   `;
+  return root.querySelector('tbody');
+}
 
-  const tbody = document.getElementById('dt-body');
+function initTable(config) {
+  const colsParam = applyThemeFromQueryParams();
+  const activeColumns = colsParam
+    ? config.adapter.columns.filter(c => colsParam.split(',').includes(c.key))
+    : config.adapter.columns;
+
+  const root = document.querySelector(config.containerSelector);
+  const tbody = renderTableShell(root, config, activeColumns);
   const colspan = activeColumns.length;
 
   function load() {
