@@ -331,7 +331,13 @@ function renderExportSurface() {
     pageStyle.id = 'page-size-style';
     document.head.appendChild(pageStyle);
   }
-  pageStyle.textContent = `@page { size: ${preset.widthCm}cm 40cm; margin: 0; }`;
+  // Measure the surface's actual rendered height rather than
+  // guessing a fixed page size — a Top 3 list and a Full list of 20+
+  // rows need very different page heights, and a fixed height left
+  // a lot of dead white space below shorter tables. 96 CSS px per
+  // inch, 2.54cm per inch; +1cm as a small buffer.
+  const contentHeightCm = (surface.scrollHeight / 96 * 2.54) + 1;
+  pageStyle.textContent = `@page { size: ${preset.widthCm}cm ${contentHeightCm}cm; margin: 0; }`;
 }
 
 function downloadPdf() {
