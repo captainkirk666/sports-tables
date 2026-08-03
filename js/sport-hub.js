@@ -331,13 +331,27 @@ function renderExportSurface() {
     pageStyle.id = 'page-size-style';
     document.head.appendChild(pageStyle);
   }
-  // Measure the surface's actual rendered height rather than
-  // guessing a fixed page size — a Top 3 list and a Full list of 20+
-  // rows need very different page heights, and a fixed height left
-  // a lot of dead white space below shorter tables. 96 CSS px per
-  // inch, 2.54cm per inch; +1cm as a small buffer.
+
+  // #print-surface is display:none outside of @media print, so its
+  // scrollHeight reads as 0 unless we briefly force it visible
+  // (off-screen, so nothing flashes) to measure the real rendered
+  // height at the actual print width. This was the root cause of a
+  // one-row-per-page pagination bug — the calculated page height was
+  // effectively zero, forcing a page break after nearly every row.
+  surface.style.display = 'block';
+  surface.style.position = 'fixed';
+  surface.style.left = '-9999px';
+  surface.style.top = '0';
+  surface.style.width = `${preset.widthCm}cm`;
+
   const contentHeightCm = (surface.scrollHeight / 96 * 2.54) + 1;
   pageStyle.textContent = `@page { size: ${preset.widthCm}cm ${contentHeightCm}cm; margin: 0; }`;
+
+  surface.style.display = '';
+  surface.style.position = '';
+  surface.style.left = '';
+  surface.style.top = '';
+  surface.style.width = '';
 }
 
 function downloadPdf() {
