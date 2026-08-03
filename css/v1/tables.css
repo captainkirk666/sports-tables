@@ -68,8 +68,12 @@ html, body {
   /* Tight leading on wrapped titles (Standard's 2-line headlines,
      Compact's own wrapping) — no line-height was set previously,
      so it fell back to the browser default (~1.2), which read as
-     too gappy once titles started wrapping. */
-  line-height: 1.15;
+     too gappy once titles started wrapping. Pushed lower than the
+     usual 1.0-1.1 floor since this text is always all-caps (see the
+     uppercase text-transform below) — no descenders (g/y/p etc.) to
+     risk clipping, so there's real headroom here that wouldn't
+     exist for mixed-case text. */
+  line-height: 0.95;
 }
 .dt-title-logo {
   height: 1.1em;
