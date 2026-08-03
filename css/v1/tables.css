@@ -46,6 +46,9 @@ html, body {
   margin-bottom: 0.5rem;
 }
 .dt-title {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
   font-size: 1.19rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -57,10 +60,15 @@ html, body {
   padding-left: 8px;
   margin: 0;
 }
+.dt-title-text {
+  /* Without this, a long unbroken title can force the flex row
+     wider than intended instead of wrapping — a common flexbox
+     gotcha, especially relevant at Compact's tight 189px width. */
+  min-width: 0;
+}
 .dt-title-logo {
   height: 1.1em;
-  vertical-align: middle;
-  margin-right: 6px;
+  flex-shrink: 0;
 }
 .data-table {
   border-collapse: collapse;
@@ -85,6 +93,7 @@ html, body {
 }
 [data-dt-size="compact"] .dt-title {
   font-size: 0.95rem;
+  align-items: flex-start;
 }
 .data-table th {
   background: var(--dt-accent);
