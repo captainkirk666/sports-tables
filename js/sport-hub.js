@@ -1,26 +1,48 @@
 /**
  * Sport hub page — one page per sport, with a tab bar across the top
  * to switch between that sport's tables (Standings, Results, etc).
- * Everything below (Style & Theme panel, live preview, embed code,
- * PDF/PNG export) is shared and just re-renders for whichever table
- * is active.
  *
- * Usage:
+ * TEMPLATE ARCHITECTURE: this file generates the ENTIRE Style &
+ * Theme panel and Live Preview panel — every heading, section, and
+ * control — not just the swatch rows inside them. Each sport's hub
+ * page (table/<sport>-dark.html) contains nothing but two empty
+ * mount points:
+ *
+ *   <div class="panel" id="style-theme-panel"></div>
+ *   <div class="panel" id="live-preview-panel"></div>
+ *
+ * This is deliberate: it's not enough for every sport's panel to
+ * look the same (that's what hub.css guarantees) — it needs to BE
+ * the same DOM, generated from one place, so it's structurally
+ * impossible for a future sport's panel to quietly drift from this
+ * one. If you ever want to add/remove/reorder a control, do it here
+ * once — every sport picks it up.
+ *
+ * Usage — each sport's inline <script> just calls:
  *   initSportHub({
  *     sport: "F1",
  *     tables: [
  *       { key: "drivers", label: "Driver Standings", title: "F1 Driver Standings",
- *         embedHref: "../../embed/f1/drivers.html", sourceUrl: ..., adapter: ..., attribution: {...} },
+ *         tableLabel: "Driver Standings", sportLogo: "...",
+ *         embedHref: "../embed/f1/drivers.html", sourceUrl: ..., adapter: ...,
+ *         attribution: {...},
+ *         // sizeColumns is per-TABLE (not a shared global whitelist)
+ *         // deliberately — a global whitelist across every table in
+ *         // every sport is exactly what caused a real bug earlier
+ *         // (two different tables' columns sharing one key name,
+ *         // "time", collided). Omit a size entirely (or omit
+ *         // sizeColumns altogether) to show every column at that
+ *         // size — that's the Full-width default.
+ *         sizeColumns: { compact: ["pos","driver","points"], standard: [...] } },
  *       ...
  *     ]
  *   });
  *
- * This file relies on renderTableShell() and renderRows() from
- * tables.js also being loaded on this page (see f1-dark.html) —
- * export (PDF/PNG) builds the exact same .dt-widget markup the live
- * embed uses, driven by the same `hub` state, rather than
- * maintaining a second separately-styled copy that can drift out of
- * sync with the live look.
+ * This file relies on renderTableShell()/renderRows() from
+ * tables.js also being loaded on this page (see loader.js) — export
+ * (PDF/PNG) builds the exact same .dt-widget markup the live embed
+ * uses, driven by the same `hub` state, rather than maintaining a
+ * second separately-styled copy that can drift out of sync.
  */
 
 /**
@@ -43,22 +65,26 @@ const STYLE_PRESETS = [
 ];
 
 /**
- * STANDARD SIZE ARCHITECTURE — applies to every sport, not just F1.
+ * STANDARD SIZE ARCHITECTURE — physical dimensions only, applies to
+ * every sport identically. Which COLUMNS are visible at each size is
+ * no longer decided here — that's each table's own `sizeColumns`
+ * field in its config (see file header above). This keeps the
+ * shared engine genuinely sport-agnostic: adding a new sport never
+ * requires editing this file.
  */
 const SIZE_PRESETS = {
-  compact:  { label: "Compact (1 col)",  widthCm: 5,  maxRows: null,
-    columns: ["pos", "rank", "driver", "constructor", "points", "pts", "round", "race", "date"] },
-  standard: { label: "Standard (2 col)", widthCm: 10, maxRows: null,
-    columns: ["pos", "rank", "driver", "constructor", "team", "nationality", "played", "points", "wins", "losses", "draws", "gd", "pct", "round", "race", "circuit", "location", "date", "time"] },
-  full:     { label: "Full width",       widthCm: 18, maxRows: null,
-    columns: ["pos", "rank", "driver", "constructor", "team", "nationality", "played", "laps", "time", "raceTime", "fastest", "points", "wins", "losses", "draws", "gd", "pct", "round", "race", "circuit", "location", "date"] },
+  compact:  { label: "Compact (1 col)",  widthCm: 5 },
+  standard: { label: "Standard (2 col)", widthCm: 10 },
+  full:     { label: "Full width",       widthCm: 18 },
 };
 
-const PREVIEW_SIZES = {
-  full:     { label: "Full width", width: "100%" },
-  standard: { label: "Standard",   width: "378px" },
-  compact:  { label: "Compact",    width: "189px" },
-};
+/** Which columns to show for a table at a given size. Returns null
+ *  for "no restriction, show everything" — the default when a table
+ *  doesn't define sizeColumns for that size (or at all). */
+function columnsForSize(table, size) {
+  if (size === 'full') return null;
+  return (table.sizeColumns && table.sizeColumns[size]) || null;
+}
 
 let hub = {
   tables: [],
@@ -73,6 +99,92 @@ let hub = {
 
 function activeTable() {
   return hub.tables.find(t => t.key === hub.activeKey);
+}
+
+/* ---------- Panel generation — the template itself ----------
+ * Every sport's hub page gets IDENTICAL markup here, not a
+ * hand-copied version of it. */
+
+function renderStyleThemePanel() {
+  const mount = document.getElementById("style-theme-panel");
+  if (!mount) return;
+  mount.innerHTML = `
+    <h2>Style &amp; Theme</h2>
+
+    <div class="size-section" style="margin-top:0; padding-top:0; border-top:none;">
+      <h3>Size</h3>
+      <div id="preview-size-controls" class="preview-size-controls"></div>
+    </div>
+
+    <div class="size-section">
+      <h3>Rows</h3>
+      <div id="row-limit-controls" class="preview-size-controls"></div>
+    </div>
+
+    <div class="colour-section">
+      <h3>Title colour</h3>
+      <div id="title-colour-buttons" class="colour-buttons"></div>
+    </div>
+
+    <div class="colour-section">
+      <h3>Position &amp; Points colour</h3>
+      <div id="pospoints-colour-buttons" class="colour-buttons"></div>
+    </div>
+
+    <div class="controls-section">
+      <h3>Controls</h3>
+      <div class="control-row">
+        <span>Flags</span>
+        <label class="switch">
+          <input type="checkbox" id="control-flags" checked>
+          <span class="switch-track"></span>
+        </label>
+      </div>
+      <div class="control-row" style="margin-top:0.75rem;">
+        <span>Team logos</span>
+        <label class="switch">
+          <input type="checkbox" id="control-logos" checked>
+          <span class="switch-track"></span>
+        </label>
+      </div>
+      <div class="control-row" style="margin-top:0.75rem;">
+        <span>Row background</span>
+        <label class="switch">
+          <input type="checkbox" id="control-rowbg" checked>
+          <span class="switch-track"></span>
+        </label>
+      </div>
+      <div class="control-row" style="margin-top:0.75rem;">
+        <span>Top 3 highlight</span>
+        <label class="switch">
+          <input type="checkbox" id="control-podium" checked>
+          <span class="switch-track"></span>
+        </label>
+      </div>
+    </div>
+  `;
+}
+
+function renderLivePreviewPanel() {
+  const mount = document.getElementById("live-preview-panel");
+  if (!mount) return;
+  mount.innerHTML = `
+    <div class="preview-header">
+      <h2>Live preview</h2>
+      <div class="action-buttons">
+        <button id="toggle-code-btn" class="action-btn">Get embed code</button>
+        <button id="download-btn" class="action-btn">Download PDF</button>
+        <button id="download-png-btn" class="action-btn">Download PNG</button>
+        <button id="copy-btn" class="action-btn primary">Copy to clipboard</button>
+      </div>
+    </div>
+    <div class="preview-surface">
+      <div id="preview-surface-inner">
+        <iframe id="preview-frame"></iframe>
+      </div>
+    </div>
+    <code id="embed-code" class="hidden"></code>
+  `;
 }
 
 /* ---------- Table (top) tabs ---------- */
@@ -107,12 +219,10 @@ function buildEmbedUrl() {
   if (!hub.controls.rowBg) params.set("rowbg", "off");
   if (!hub.controls.podium) params.set("podium", "off");
   if (hub.rowLimit) params.set("rows", hub.rowLimit);
-  if (hub.previewSize === "compact") {
-    params.set("size", "compact");
-    params.set("cols", SIZE_PRESETS.compact.columns.join(","));
-  } else if (hub.previewSize === "standard") {
-    params.set("size", "standard");
-    params.set("cols", SIZE_PRESETS.standard.columns.join(","));
+  if (hub.previewSize === "compact" || hub.previewSize === "standard") {
+    params.set("size", hub.previewSize);
+    const cols = columnsForSize(table, hub.previewSize);
+    if (cols) params.set("cols", cols.join(","));
   }
   const qs = params.toString();
   return qs ? `${table.embedHref}?${qs}` : table.embedHref;
@@ -132,7 +242,7 @@ function updateStylePreview() {
 /* ---------- Independent Title / Position & Points colour pickers ---------- */
 
 function applyTitleColour(key) {
-  const preset = STYLE_PRESETS.find(p => p.key === key);
+  const preset = STYLE_PRESETS_LOOKUP(key);
   if (!preset) return;
   hub.style.titleColor = preset.accent;
   document.querySelectorAll(".title-colour-option").forEach(el =>
@@ -142,7 +252,7 @@ function applyTitleColour(key) {
 }
 
 function applyPosPointsColour(key) {
-  const preset = STYLE_PRESETS.find(p => p.key === key);
+  const preset = STYLE_PRESETS_LOOKUP(key);
   if (!preset) return;
   hub.style.posColor = preset.accent;
   hub.style.pointsColor = preset.accent;
@@ -150,6 +260,10 @@ function applyPosPointsColour(key) {
     el.classList.toggle("selected", el.dataset.key === key));
   updateStylePreview();
   renderExportSurface();
+}
+
+function STYLE_PRESETS_LOOKUP(key) {
+  return STYLE_PRESETS.find(p => p.key === key);
 }
 
 function renderTitleColourButtons() {
@@ -192,13 +306,44 @@ function togglePodium() {
   renderExportSurface();
 }
 
+/* Rows — independent of Size. Limits how many rows render, from
+   Top 3 / Top 10 / the full list. A no-op on single-row content
+   like a "Next Race" style table (slicing a 1-item array just
+   returns the 1 item). */
+const ROW_LIMIT_OPTIONS = [
+  { key: "3",    label: "Top 3",    value: 3 },
+  { key: "10",   label: "Top 10",   value: 10 },
+  { key: "full", label: "Full list", value: null },
+];
+
+function selectRowLimit(key) {
+  const option = ROW_LIMIT_OPTIONS.find(o => o.key === key);
+  if (!option) return;
+  hub.rowLimit = option.value;
+  document.querySelectorAll(".row-limit-option").forEach(el =>
+    el.classList.toggle("selected", el.dataset.key === key));
+  updateStylePreview();
+  renderExportSurface();
+}
+
+function renderRowLimitControls() {
+  const mount = document.getElementById("row-limit-controls");
+  if (!mount) return;
+  const activeKey = hub.rowLimit === 3 ? "3" : hub.rowLimit === 10 ? "10" : "full";
+  mount.innerHTML = ROW_LIMIT_OPTIONS.map(o => `
+    <button class="preview-size-option row-limit-option${o.key === activeKey ? ' selected' : ''}" data-key="${o.key}" onclick="selectRowLimit('${o.key}')">
+      ${o.label}
+    </button>`).join('');
+}
+
 function selectPreviewSize(key) {
   hub.previewSize = key;
   hub.printSize = key;
-  const preset = PREVIEW_SIZES[key];
+  const preset = SIZE_PRESETS[key];
   const surface = document.getElementById("preview-surface-inner");
-  if (surface) surface.style.width = preset.width;
-  document.querySelectorAll(".preview-size-option").forEach(el =>
+  const widthPx = key === 'full' ? '100%' : key === 'standard' ? '378px' : '189px';
+  if (surface) surface.style.width = widthPx;
+  document.querySelectorAll(".preview-size-option:not(.row-limit-option)").forEach(el =>
     el.classList.toggle("selected", el.dataset.key === key));
 
   const flagsInput = document.getElementById("control-flags");
@@ -226,43 +371,15 @@ function renderPreviewSizeControls() {
   const mount = document.getElementById("preview-size-controls");
   if (!mount) return;
   mount.innerHTML = ["full", "standard", "compact"].map(key => {
-    const preset = PREVIEW_SIZES[key];
+    const preset = SIZE_PRESETS[key];
     return `
-      <button class="preview-size-option${key === hub.previewSize ? ' selected' : ''}" data-key="${key}" onclick="selectPreviewSize('${key}')">
+      <button class="preview-size-option" data-key="${key}" onclick="selectPreviewSize('${key}')">
         ${preset.label}
       </button>`;
   }).join('');
-}
-
-/* Rows — independent of Size (Compact/Standard/Full); limits how
-   many rows render, from Top 3 / Top 10 / the full list. Works the
-   same way at any size, and is a no-op on single-row content like
-   Next Race (slicing a 1-item array to 3 or 10 just returns the 1
-   item, so no special-casing is needed there). */
-const ROW_LIMIT_OPTIONS = [
-  { key: "3",    label: "Top 3",    value: 3 },
-  { key: "10",   label: "Top 10",   value: 10 },
-  { key: "full", label: "Full list", value: null },
-];
-
-function selectRowLimit(key) {
-  const option = ROW_LIMIT_OPTIONS.find(o => o.key === key);
-  if (!option) return;
-  hub.rowLimit = option.value;
-  document.querySelectorAll(".row-limit-option").forEach(el =>
-    el.classList.toggle("selected", el.dataset.key === key));
-  updateStylePreview();
-  renderExportSurface();
-}
-
-function renderRowLimitControls() {
-  const mount = document.getElementById("row-limit-controls");
-  if (!mount) return;
-  const activeKey = hub.rowLimit === 3 ? "3" : hub.rowLimit === 10 ? "10" : "full";
-  mount.innerHTML = ROW_LIMIT_OPTIONS.map(o => `
-    <button class="preview-size-option row-limit-option${o.key === activeKey ? ' selected' : ''}" data-key="${o.key}" onclick="selectRowLimit('${o.key}')">
-      ${o.label}
-    </button>`).join('');
+  // set initial selected state to match hub.previewSize
+  document.querySelectorAll("#preview-size-controls .preview-size-option").forEach(el =>
+    el.classList.toggle("selected", el.dataset.key === hub.previewSize));
 }
 
 function copyEmbedCode() {
@@ -282,13 +399,7 @@ function toggleCodeVisible() {
   btn.textContent = hidden ? "Show code" : "Hide code";
 }
 
-/* ---------- Export (PDF via print, and PNG) ----------
- * Both reuse renderTableShell()/renderRows() from tables.js, and
- * mirror the current style state onto THIS page's own <html>
- * element the same way tables.js's applyThemeFromQueryParams()
- * does inside the embed iframe — so the export surface always
- * matches the live preview exactly, by construction, rather than
- * needing separate CSS kept manually in sync. */
+/* ---------- Export (PDF via print, and PNG) ---------- */
 
 function applyExportThemeAttributes() {
   const el = document.documentElement;
@@ -315,8 +426,9 @@ function renderExportSurface() {
   applyExportThemeAttributes();
 
   const preset = SIZE_PRESETS[hub.printSize];
-  const activeColumns = preset.columns
-    ? table.adapter.columns.filter(c => preset.columns.includes(c.key))
+  const cols = columnsForSize(table, hub.printSize);
+  const activeColumns = cols
+    ? table.adapter.columns.filter(c => cols.includes(c.key))
     : table.adapter.columns;
 
   const surface = document.getElementById("print-surface");
@@ -334,10 +446,8 @@ function renderExportSurface() {
 
   // #print-surface is display:none outside of @media print, so its
   // scrollHeight reads as 0 unless we briefly force it visible
-  // (off-screen, so nothing flashes) to measure the real rendered
-  // height at the actual print width. This was the root cause of a
-  // one-row-per-page pagination bug — the calculated page height was
-  // effectively zero, forcing a page break after nearly every row.
+  // (off-screen) to measure the real rendered height at the actual
+  // print width.
   surface.style.display = 'block';
   surface.style.position = 'fixed';
   surface.style.left = '-9999px';
@@ -366,11 +476,8 @@ function downloadPng() {
   renderExportSurface();
   const surface = document.getElementById("print-surface");
 
-  // Give the raster capture a real, generous width rather than the
-  // paper-constrained cm width used for PDF — there's no "page" to
-  // fit onto for a flat image, and overflow-x:auto (fine for an
-  // interactive iframe) makes no sense once flattened to a PNG.
-  const widthPx = hub.printSize === 'full' ? '1100px' : PREVIEW_SIZES[hub.printSize].width;
+  const widthPx = hub.printSize === 'full' ? '1100px'
+    : hub.printSize === 'standard' ? '378px' : '189px';
   surface.style.width = widthPx;
   surface.style.display = 'block';
   surface.style.position = 'fixed';
@@ -428,6 +535,9 @@ function refreshActiveTable() {
 function initSportHub(config) {
   hub.tables = config.tables;
   hub.activeKey = config.tables[0].key;
+
+  renderStyleThemePanel();
+  renderLivePreviewPanel();
 
   renderTableTabs();
   renderTitleColourButtons();
