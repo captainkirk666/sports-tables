@@ -3,17 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <title>F1 Driver Standings</title>
-<link rel="stylesheet" href="../../css/v1/tables.css?v=11">
+<link rel="stylesheet" href="../../css/v1/tables.css?v=12">
 </head>
 <body>
 <div id="dt-app"></div>
 <script src="../../js/v1/flags.js?v=2"></script>
 <script src="../../js/v1/adapters/f1.js?v=6"></script>
-<script src="../../js/v1/tables.js?v=9"></script>
+<script src="../../js/v1/tables.js?v=10"></script>
 <script>
 initTable({
   containerSelector: "#dt-app",
-  title: "F1 driver standings",
+  title: "Driver Standings",
+  sportLogo: "../../assets/logos/f1/f1-logo.png",
   sourceUrl: F1_ADAPTERS.drivers.sourceUrl,
   adapter: F1_ADAPTERS.drivers,
   refreshSeconds: 30,
