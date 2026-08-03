@@ -35,6 +35,7 @@ function applyThemeFromQueryParams() {
   const posColor = params.get('posColor');       // hex without '#' — overrides the Pos-column number colour
   const pointsColor = params.get('pointsColor'); // hex without '#' — overrides the PTS-column colour
   const rowbg = params.get('rowbg');             // 'off' removes the grey row background (and, via the shared fallback, the podium tint too)
+  const rowLimit = params.get('rows');           // '3' | '10' — limits how many rows render; absent/anything else = full list
   const podium = params.get('podium');           // 'off' removes just the gold/silver/bronze top-3 highlight, independent of rowbg
 
   // The site's one canonical table style (Roboto Condensed, black
@@ -75,7 +76,7 @@ function applyThemeFromQueryParams() {
   if (size) {
     document.documentElement.setAttribute('data-dt-size', size);
   }
-  return params.get('cols');               // comma-separated column keys to show, or null for all
+  return { cols: params.get('cols'), rowLimit: rowLimit ? parseInt(rowLimit, 10) : null };
 }
 
 function renderRows(container, columns, rows) {
@@ -136,7 +137,7 @@ function renderTableShell(root, config, activeColumns) {
 }
 
 function initTable(config) {
-  const colsParam = applyThemeFromQueryParams();
+  const { cols: colsParam, rowLimit } = applyThemeFromQueryParams();
   const activeColumns = colsParam
     ? config.adapter.columns.filter(c => colsParam.split(',').includes(c.key))
     : config.adapter.columns;
@@ -153,7 +154,8 @@ function initTable(config) {
       })
       .then(data => {
         const rows = config.adapter.extract(data);
-        renderRows(tbody, activeColumns, rows);
+        const limitedRows = rowLimit ? rows.slice(0, rowLimit) : rows;
+        renderRows(tbody, activeColumns, limitedRows);
       })
       .catch(err => {
         tbody.innerHTML = `<tr><td colspan="${colspan}">Failed to load: ${err.message}</td></tr>`;
