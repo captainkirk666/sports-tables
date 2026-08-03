@@ -37,6 +37,7 @@ function applyThemeFromQueryParams() {
   const rowbg = params.get('rowbg');             // 'off' removes the grey row background (and, via the shared fallback, the podium tint too)
   const rowLimit = params.get('rows');           // '3' | '10' — limits how many rows render; absent/anything else = full list
   const podium = params.get('podium');           // 'off' removes just the gold/silver/bronze top-3 highlight, independent of rowbg
+  const rule = params.get('rule');                // 'on' adds a thin grey divider line between rows, independent of rowbg/podium
 
   // The site's one canonical table style (Roboto Condensed, black
   // header, bold identity column, etc.) is now always applied — no
@@ -71,6 +72,9 @@ function applyThemeFromQueryParams() {
   }
   if (podium === 'off') {
     document.documentElement.setAttribute('data-dt-podium', 'off');
+  }
+  if (rule === 'on') {
+    document.documentElement.setAttribute('data-dt-rule', 'on');
   }
   const size = params.get('size');        // 'compact' | 'standard' — switches to compactGet where a column opts in via shortenAt
   if (size) {
