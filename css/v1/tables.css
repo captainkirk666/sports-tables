@@ -73,7 +73,7 @@ html, body {
      uppercase text-transform below) — no descenders (g/y/p etc.) to
      risk clipping, so there's real headroom here that wouldn't
      exist for mixed-case text. */
-  line-height: 0.95;
+  line-height: 0.85;
 }
 .dt-title-logo {
   height: 1.1em;
