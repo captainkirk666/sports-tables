@@ -16,20 +16,11 @@
   --dt-radius: 8px;
   --dt-font: system-ui, -apple-system, sans-serif;
 }
-/* Dark theme, toggled by tables.js when ?theme=dark is present */
-[data-dt-theme="dark"] {
-  --dt-bg: #111;
-  --dt-text: #eee;
-  --dt-text-secondary: #999;
-  --dt-border: #333;
-  --dt-header-bg: #1c1c1c;
-  --dt-row-hover: #1a1a2e;
-}
-/* Dynamic-tier font, toggled by tables.js when ?font=robotocondensed
-   is present (set automatically when the Dynamic tab is opened, via
-   sport-hub.js). Add more [data-dt-font="..."] blocks here if
-   Dynamic grows more font options — each just needs its own Google
-   Fonts @import above. */
+/* Dynamic-tier font — now the site's only style, always applied by
+   tables.js unconditionally. Selectors below are still scoped to
+   this attribute (rather than flattened to the whole document) so
+   nothing changes structurally if a second look is ever wanted
+   again later. */
 [data-dt-font="robotocondensed"] {
   --dt-font: 'Roboto Condensed', sans-serif;
 }
@@ -65,6 +56,11 @@ html, body {
   border-left: 4px solid var(--dt-title-color, var(--dt-accent));
   padding-left: 8px;
   margin: 0;
+}
+.dt-title-logo {
+  height: 1.1em;
+  vertical-align: middle;
+  margin-right: 6px;
 }
 .data-table {
   border-collapse: collapse;
@@ -156,35 +152,42 @@ html, body {
 }
 
 /* ===========================================
-   Dynamic tier — extra styling, scoped entirely
-   to [data-dt-font="robotocondensed"] since that
-   attribute is only ever set when the Dynamic tab
-   is opened in sport-hub.js. Basic and Custom
-   tiers never get this attribute, so they're
-   unaffected.
+   The site's one table style — Roboto Condensed,
+   black header, bold identity column, grey rows
+   with a podium tint on the top 3. Scoped to
+   [data-dt-font="robotocondensed"], which
+   tables.js now sets unconditionally on every
+   load (Basic/Custom tiers were removed).
    =========================================== */
 
-/* Light grey rows with a visible gap between them. Switches from
-   collapsed borders to separated rows so each row reads as its own
-   distinct block rather than a continuous striped table. */
+/* Row background — a CSS variable rather than a flat value, so the
+   "Remove background" control (data-dt-rowbg="off") and the podium
+   tint below can both cleanly fall back to one source of truth
+   instead of needing separate on/off logic in two places. */
+[data-dt-font="robotocondensed"] {
+  --dt-row-bg: #f0f0f0;
+}
+[data-dt-rowbg="off"] {
+  --dt-row-bg: transparent;
+}
 [data-dt-font="robotocondensed"] .data-table {
   border-collapse: separate;
   border-spacing: 0 2px;
 }
 [data-dt-font="robotocondensed"] .data-table tbody tr {
-  background: #f0f0f0;
+  background: var(--dt-row-bg);
 }
 [data-dt-font="robotocondensed"] .data-table tbody td {
   border-bottom: none;
 }
 
-/* Podium tint — gold/silver/bronze, with real contrast against the
-   base grey (silver and bronze were previously too close to it to
-   read as podium positions). Uses nth-child since standings rows
-   are always rendered in rank order, so row 1 is always position 1.
-   Higher specificity than the plain tbody row rule above (nth-child
-   counts like a class), so these correctly win for just these three
-   rows regardless of source order. */
+/* Podium tint — gold/silver/bronze on the top 3 rows. Uses nth-child
+   since standings rows are always rendered in rank order, so row 1
+   is always position 1. The "Top 3 highlight" control
+   (data-dt-podium="off") makes these three rows fall back to
+   --dt-row-bg — the exact same variable every other row already
+   uses — so turning off Row background automatically clears the
+   podium tint too, with no separate logic needed for that case. */
 [data-dt-font="robotocondensed"] .data-table tbody tr:nth-child(1) {
   background: #f0dfa8;
 }
@@ -193,6 +196,11 @@ html, body {
 }
 [data-dt-font="robotocondensed"] .data-table tbody tr:nth-child(3) {
   background: #e3c9ad;
+}
+[data-dt-podium="off"] .data-table tbody tr:nth-child(1),
+[data-dt-podium="off"] .data-table tbody tr:nth-child(2),
+[data-dt-podium="off"] .data-table tbody tr:nth-child(3) {
+  background: var(--dt-row-bg);
 }
 
 /* Tighter vertical padding — the default 8px top/bottom read as too
@@ -203,20 +211,19 @@ html, body {
 }
 
 /* All cell text as caps, across every table (Drivers/Constructors/
-   Results). Numbers are unaffected by text-transform. The secondary
-   Team column (only present in Drivers/Results, always column 3
-   there) is overridden to Title Case just below — Constructor
-   Standings has no "team" key at all, so this never touches its
-   primary identity column. */
+   Results). Numbers are unaffected by text-transform. Team
+   (secondary column, Drivers/Results only) and Nationality
+   (Constructor Standings) are overridden to Title Case just below. */
 [data-dt-font="robotocondensed"] .data-table td {
   text-transform: uppercase;
 }
-[data-dt-font="robotocondensed"] .data-table td[data-col="team"] {
+[data-dt-font="robotocondensed"] .data-table td[data-col="team"],
+[data-dt-font="robotocondensed"] .data-table td[data-col="nationality"] {
   text-transform: capitalize;
 }
 
-/* First iteration of the Dynamic header: always a black bar with
-   reversed (white) type, regardless of internal accent state. */
+/* Always a black bar with reversed (white) type, regardless of
+   internal accent state. */
 [data-dt-font="robotocondensed"] .data-table th {
   background: #000;
   color: #fff;
@@ -239,11 +246,8 @@ html, body {
    name in Drivers/Results, Constructor name in Constructor
    Standings. It's always the second column regardless of adapter,
    so nth-child works uniformly here without needing a per-table or
-   per-key rule (this replaces an earlier data-col="driver" rule
-   that incorrectly missed Constructor Standings, since its identity
-   column uses a different key name). Bold, and already uppercase
-   via the general rule above — this is the "key data of success"
-   column, so it should read as clearly prominent. */
+   per-key rule. Bold, and already uppercase via the general rule
+   above — this is the "key data of success" column. */
 [data-dt-font="robotocondensed"] .data-table td:nth-child(2) {
   font-weight: 600;
 }
@@ -259,9 +263,9 @@ html, body {
 }
 
 /* Compact protection block — keeps Compact's own smaller, tighter
-   treatment intact even when Dynamic is active. Two attribute
-   selectors gives this higher specificity than the rules above, so
-   it wins regardless of source order. */
+   treatment intact. Two attribute selectors gives this higher
+   specificity than the rules above, so it wins regardless of
+   source order. */
 [data-dt-font="robotocondensed"][data-dt-size="compact"] .data-table th,
 [data-dt-font="robotocondensed"][data-dt-size="compact"] .data-table td {
   padding: 6px 4px;
@@ -277,9 +281,7 @@ html, body {
 /* Standard-specific squeeze — tighter horizontal padding and pulled-
    back flag/logo spacing (Full width keeps the doubled spacing set
    earlier; this only pulls it back in for Standard, where every
-   pixel counts toward the 10cm target). Combined with Driver's
-   shortenAt (see f1.js/tables.js), this is what gets Standard close
-   to 10cm without wrapping on the longest names. */
+   pixel counts toward the 10cm target). */
 [data-dt-font="robotocondensed"][data-dt-size="standard"] .data-table th,
 [data-dt-font="robotocondensed"][data-dt-size="standard"] .data-table td {
   padding: 4px 6px;
