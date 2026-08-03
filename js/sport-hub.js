@@ -2,7 +2,7 @@
  * Sport hub page — one page per sport, with a tab bar across the top
  * to switch between that sport's tables (Standings, Results, etc).
  * Everything below (Style & Theme panel, live preview, embed code,
- * print export) is shared and just re-renders for whichever table
+ * PDF/PNG export) is shared and just re-renders for whichever table
  * is active.
  *
  * Usage:
@@ -14,14 +14,18 @@
  *       ...
  *     ]
  *   });
+ *
+ * This file relies on renderTableShell() and renderRows() from
+ * tables.js also being loaded on this page (see f1-dark.html) —
+ * export (PDF/PNG) builds the exact same .dt-widget markup the live
+ * embed uses, driven by the same `hub` state, rather than
+ * maintaining a second separately-styled copy that can drift out of
+ * sync with the live look.
  */
 
 /**
  * Palette used by the Title colour and Position & Points colour
- * pickers. Previously also drove a Basic/Dynamic/Custom style
- * switcher — that tier system was removed since the site now ships
- * one canonical table style always, so this is just a colour list
- * now, nothing more.
+ * pickers.
  */
 const STYLE_PRESETS = [
   { key: "c1",  label: "Red",       accent: "E10600", swatch: "#E10600" },
@@ -40,20 +44,6 @@ const STYLE_PRESETS = [
 
 /**
  * STANDARD SIZE ARCHITECTURE — applies to every sport, not just F1.
- * Every new sport's adapter should be built to work with these same
- * three tiers, so the whole site stays consistent:
- *
- *   compact  — exactly 3 fields: Pos/Rank, primary name, Points.
- *              No secondary/affiliation columns (e.g. team on a
- *              driver table), no logos-as-separate-column, no extra
- *              stats. If a table's own identity IS the "team" (e.g.
- *              Constructor Standings), that name stays — it's not
- *              secondary there, it's the row's whole identity.
- *   standard — a fuller view, most columns, still readable narrow.
- *   full     — everything the table has.
- *
- * When adding a new sport, give each table's columns stable `key`s
- * and list which ones belong in each tier below.
  */
 const SIZE_PRESETS = {
   compact:  { label: "Compact (1 col)",  widthCm: 5,  maxRows: null,
@@ -137,12 +127,7 @@ function updateStylePreview() {
   }
 }
 
-/* ---------- Independent Title / Position & Points colour pickers ----------
- * Position and Points used to be two separate pickers — merged into
- * one, since they were commonly set together anyway. One click now
- * sets both --dt-pos-color and --dt-points-color to the same value.
- * Falls back sensibly (via CSS var() chains in tables.css) whenever
- * left unset. */
+/* ---------- Independent Title / Position & Points colour pickers ---------- */
 
 function applyTitleColour(key) {
   const preset = STYLE_PRESETS.find(p => p.key === key);
@@ -151,7 +136,7 @@ function applyTitleColour(key) {
   document.querySelectorAll(".title-colour-option").forEach(el =>
     el.classList.toggle("selected", el.dataset.key === key));
   updateStylePreview();
-  renderPrintSurface();
+  renderExportSurface();
 }
 
 function applyPosPointsColour(key) {
@@ -162,7 +147,7 @@ function applyPosPointsColour(key) {
   document.querySelectorAll(".pospoints-colour-option").forEach(el =>
     el.classList.toggle("selected", el.dataset.key === key));
   updateStylePreview();
-  renderPrintSurface();
+  renderExportSurface();
 }
 
 function renderTitleColourButtons() {
@@ -184,26 +169,25 @@ function renderPosPointsColourButtons() {
 function toggleFlags() {
   hub.controls.flags = document.getElementById("control-flags").checked;
   updateStylePreview();
-  renderPrintSurface();
+  renderExportSurface();
 }
 
 function toggleLogos() {
   hub.controls.logos = document.getElementById("control-logos").checked;
   updateStylePreview();
-  renderPrintSurface();
+  renderExportSurface();
 }
 
-/* Row background / Top 3 highlight — live embed only for now (the
-   PDF/print surface doesn't have row-background styling at all
-   currently, so there's nothing there to toggle yet). */
 function toggleRowBg() {
   hub.controls.rowBg = document.getElementById("control-rowbg").checked;
   updateStylePreview();
+  renderExportSurface();
 }
 
 function togglePodium() {
   hub.controls.podium = document.getElementById("control-podium").checked;
   updateStylePreview();
+  renderExportSurface();
 }
 
 function selectPreviewSize(key) {
@@ -233,7 +217,7 @@ function selectPreviewSize(key) {
   hub.controls.logos = !isCompact;
 
   updateStylePreview();
-  renderPrintSurface();
+  renderExportSurface();
 }
 
 function renderPreviewSizeControls() {
@@ -265,59 +249,47 @@ function toggleCodeVisible() {
   btn.textContent = hidden ? "Show code" : "Hide code";
 }
 
-/* ---------- Print size picker + hidden print-only render ---------- */
+/* ---------- Export (PDF via print, and PNG) ----------
+ * Both reuse renderTableShell()/renderRows() from tables.js, and
+ * mirror the current style state onto THIS page's own <html>
+ * element the same way tables.js's applyThemeFromQueryParams()
+ * does inside the embed iframe — so the export surface always
+ * matches the live preview exactly, by construction, rather than
+ * needing separate CSS kept manually in sync. */
 
-function renderPrintSurface() {
-  const preset = SIZE_PRESETS[hub.printSize];
+function applyExportThemeAttributes() {
+  const el = document.documentElement;
+  el.setAttribute('data-dt-font', 'robotocondensed');
+  el.setAttribute('data-dt-size', hub.printSize);
+
+  if (hub.style.titleColor) el.style.setProperty('--dt-title-color', `#${hub.style.titleColor}`);
+  else el.style.removeProperty('--dt-title-color');
+  if (hub.style.posColor) el.style.setProperty('--dt-pos-color', `#${hub.style.posColor}`);
+  else el.style.removeProperty('--dt-pos-color');
+  if (hub.style.pointsColor) el.style.setProperty('--dt-points-color', `#${hub.style.pointsColor}`);
+  else el.style.removeProperty('--dt-points-color');
+
+  if (!hub.controls.flags) el.setAttribute('data-dt-flags', 'off'); else el.removeAttribute('data-dt-flags');
+  if (!hub.controls.logos) el.setAttribute('data-dt-logos', 'off'); else el.removeAttribute('data-dt-logos');
+  if (!hub.controls.rowBg) el.setAttribute('data-dt-rowbg', 'off'); else el.removeAttribute('data-dt-rowbg');
+  if (!hub.controls.podium) el.setAttribute('data-dt-podium', 'off'); else el.removeAttribute('data-dt-podium');
+}
+
+function renderExportSurface() {
   const table = activeTable();
   if (!table) return;
-  const isCompact = hub.printSize === "compact";
 
+  applyExportThemeAttributes();
+
+  const preset = SIZE_PRESETS[hub.printSize];
   const activeColumns = preset.columns
     ? table.adapter.columns.filter(c => preset.columns.includes(c.key))
     : table.adapter.columns;
 
-  const cellValue = (col, row) => (isCompact && col.compactGet) ? col.compactGet(row) : col.get(row);
-
-  const rowsHtml = hub.rows.length
-    ? hub.rows.map(row => {
-        const cells = activeColumns.map(col => {
-          const cls = col.numeric ? ' class="numeric"' : '';
-          const logoUrl = (hub.controls.logos && col.logo) ? col.logo(row) : null;
-          const logoHtml = logoUrl ? `<img class="export-logo" src="${logoUrl}" alt="" width="16" height="16">` : '';
-          const flagUrl = (hub.controls.flags && col.flag) ? col.flag(row) : null;
-          const flagHtml = flagUrl ? `<img class="export-flag" src="${flagUrl}" alt="" width="18" height="13">` : '';
-          return `<td${cls} data-col="${col.key}">${flagHtml}${logoHtml}${cellValue(col, row)}</td>`;
-        }).join('');
-        return `<tr>${cells}</tr>`;
-      }).join('')
-    : `<tr><td colspan="${activeColumns.length}">No data available.</td></tr>`;
-
   const surface = document.getElementById("print-surface");
-  surface.innerHTML = `
-    <div class="export-header">
-      <h1>${table.title}</h1>
-    </div>
-    <table class="export-table">
-      <thead><tr>${activeColumns.map(c =>
-        `<th${c.numeric ? ' class="numeric"' : ''} data-col="${c.key}">${(isCompact && c.compactLabel) ? c.compactLabel : c.label}</th>`).join('')}</tr></thead>
-      <tbody>${rowsHtml}</tbody>
-    </table>
-    <div class="export-footer">Source: KIKA MEDIA</div>
-  `;
-
-  surface.style.width = `${preset.widthCm}cm`;
-  surface.style.fontFamily = "'Roboto Condensed', sans-serif";
-
-  const heading = surface.querySelector('.export-header h1');
-  if (heading) {
-    heading.style.color = hub.style.titleColor ? `#${hub.style.titleColor}` : '';
-  }
-  if (hub.style.pointsColor) {
-    surface.querySelectorAll('td[data-col="points"]').forEach(el => {
-      el.style.color = `#${hub.style.pointsColor}`;
-    });
-  }
+  const config = { title: table.tableLabel || table.title, sportLogo: table.sportLogo };
+  const tbody = renderTableShell(surface, config, activeColumns);
+  renderRows(tbody, activeColumns, hub.rows);
 
   let pageStyle = document.getElementById('page-size-style');
   if (!pageStyle) {
@@ -328,21 +300,49 @@ function renderPrintSurface() {
   pageStyle.textContent = `@page { size: ${preset.widthCm}cm 40cm; margin: 0; }`;
 }
 
-function selectSize(key) {
-  hub.printSize = key;
-  document.querySelectorAll('.size-option').forEach(el =>
-    el.classList.toggle('selected', el.dataset.key === key));
-  renderPrintSurface();
+function downloadPdf() {
+  renderExportSurface();
+  window.print();
 }
 
-function renderSizeControls() {
-  const mount = document.getElementById("size-controls");
-  if (!mount) return;
-  mount.innerHTML = Object.entries(SIZE_PRESETS).map(([key, preset]) => `
-    <button class="size-option${key === hub.printSize ? ' selected' : ''}" data-key="${key}" onclick="selectSize('${key}')">
-      ${preset.label}<br><span class="size-dim">${preset.widthCm}cm wide</span>
-    </button>
-  `).join('');
+function downloadPng() {
+  const table = activeTable();
+  if (!table || typeof html2canvas === 'undefined') return;
+
+  renderExportSurface();
+  const surface = document.getElementById("print-surface");
+
+  // Give the raster capture a real, generous width rather than the
+  // paper-constrained cm width used for PDF — there's no "page" to
+  // fit onto for a flat image, and overflow-x:auto (fine for an
+  // interactive iframe) makes no sense once flattened to a PNG.
+  const widthPx = hub.printSize === 'full' ? '1100px' : PREVIEW_SIZES[hub.printSize].width;
+  surface.style.width = widthPx;
+  surface.style.display = 'block';
+  surface.style.position = 'fixed';
+  surface.style.left = '-9999px';
+  surface.style.top = '0';
+  const scrollEl = surface.querySelector('.dt-table-scroll');
+  if (scrollEl) scrollEl.style.overflow = 'visible';
+
+  html2canvas(surface, { backgroundColor: '#ffffff', scale: 2 }).then(canvas => {
+    surface.style.display = 'none';
+    surface.style.position = '';
+    surface.style.left = '';
+    surface.style.top = '';
+    surface.style.width = '';
+
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${table.key}-${hub.printSize}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 'image/png');
+  });
 }
 
 /* ---------- Switching / loading the active table ---------- */
@@ -364,7 +364,7 @@ function refreshActiveTable() {
     })
     .then(data => {
       hub.rows = table.adapter.extract(data) || [];
-      renderPrintSurface();
+      renderExportSurface();
     })
     .catch(err => {
       document.getElementById("print-surface").innerHTML = `<p style="padding:1rem;">Failed to load: ${err.message}</p>`;
@@ -379,7 +379,6 @@ function initSportHub(config) {
   renderTitleColourButtons();
   renderPosPointsColourButtons();
   renderPreviewSizeControls();
-  renderSizeControls();
   refreshActiveTable();
 
   const controlFlags = document.getElementById("control-flags");
@@ -392,5 +391,7 @@ function initSportHub(config) {
   if (controlPodium) controlPodium.addEventListener("change", togglePodium);
   document.getElementById("copy-btn").addEventListener("click", copyEmbedCode);
   document.getElementById("toggle-code-btn").addEventListener("click", toggleCodeVisible);
-  document.getElementById("download-btn").addEventListener("click", () => window.print());
+  document.getElementById("download-btn").addEventListener("click", downloadPdf);
+  const downloadPngBtn = document.getElementById("download-png-btn");
+  if (downloadPngBtn) downloadPngBtn.addEventListener("click", downloadPng);
 }
