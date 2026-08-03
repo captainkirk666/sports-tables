@@ -65,6 +65,11 @@ html, body {
      wider than intended instead of wrapping — a common flexbox
      gotcha, especially relevant at Compact's tight 189px width. */
   min-width: 0;
+  /* Tight leading on wrapped titles (Standard's 2-line headlines,
+     Compact's own wrapping) — no line-height was set previously,
+     so it fell back to the browser default (~1.2), which read as
+     too gappy once titles started wrapping. */
+  line-height: 1.15;
 }
 .dt-title-logo {
   height: 1.1em;
@@ -92,7 +97,7 @@ html, body {
   margin-right: 4px;
 }
 [data-dt-size="compact"] .dt-title {
-  font-size: 0.95rem;
+  font-size: 1.19rem;
   flex-direction: column;
   align-items: flex-start;
   gap: 2px;
