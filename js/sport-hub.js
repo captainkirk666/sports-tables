@@ -90,7 +90,7 @@ let hub = {
   tables: [],
   activeKey: null,
   style: { titleColor: null, posColor: null, pointsColor: null },
-  controls: { flags: true, logos: true, rowBg: true, podium: true },
+  controls: { flags: true, logos: true, rowBg: true, podium: true, rule: false },
   previewSize: "full",
   printSize: "full",
   rowLimit: null,
@@ -161,6 +161,13 @@ function renderStyleThemePanel() {
           <span class="switch-track"></span>
         </label>
       </div>
+      <div class="control-row" style="margin-top:0.75rem;">
+        <span>Grey rule</span>
+        <label class="switch">
+          <input type="checkbox" id="control-rule">
+          <span class="switch-track"></span>
+        </label>
+      </div>
     </div>
   `;
 }
@@ -218,6 +225,7 @@ function buildEmbedUrl() {
   if (!hub.controls.logos) params.set("logos", "off");
   if (!hub.controls.rowBg) params.set("rowbg", "off");
   if (!hub.controls.podium) params.set("podium", "off");
+  if (hub.controls.rule) params.set("rule", "on");
   if (hub.rowLimit) params.set("rows", hub.rowLimit);
   if (hub.previewSize === "compact" || hub.previewSize === "standard") {
     params.set("size", hub.previewSize);
@@ -302,6 +310,12 @@ function toggleRowBg() {
 
 function togglePodium() {
   hub.controls.podium = document.getElementById("control-podium").checked;
+  updateStylePreview();
+  renderExportSurface();
+}
+
+function toggleRule() {
+  hub.controls.rule = document.getElementById("control-rule").checked;
   updateStylePreview();
   renderExportSurface();
 }
@@ -417,6 +431,7 @@ function applyExportThemeAttributes() {
   if (!hub.controls.logos) el.setAttribute('data-dt-logos', 'off'); else el.removeAttribute('data-dt-logos');
   if (!hub.controls.rowBg) el.setAttribute('data-dt-rowbg', 'off'); else el.removeAttribute('data-dt-rowbg');
   if (!hub.controls.podium) el.setAttribute('data-dt-podium', 'off'); else el.removeAttribute('data-dt-podium');
+  if (hub.controls.rule) el.setAttribute('data-dt-rule', 'on'); else el.removeAttribute('data-dt-rule');
 }
 
 function renderExportSurface() {
@@ -554,6 +569,8 @@ function initSportHub(config) {
   if (controlRowBg) controlRowBg.addEventListener("change", toggleRowBg);
   const controlPodium = document.getElementById("control-podium");
   if (controlPodium) controlPodium.addEventListener("change", togglePodium);
+  const controlRule = document.getElementById("control-rule");
+  if (controlRule) controlRule.addEventListener("change", toggleRule);
   document.getElementById("copy-btn").addEventListener("click", copyEmbedCode);
   document.getElementById("toggle-code-btn").addEventListener("click", toggleCodeVisible);
   document.getElementById("download-btn").addEventListener("click", downloadPdf);
