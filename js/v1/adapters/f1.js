@@ -160,9 +160,9 @@ function f1CircuitFlagUrl(country) {
 /**
  * Jolpica/Ergast returns schedule dates/times as separate ISO-ish
  * strings ("2026-09-14" and "14:00:00Z") — these format them into
- * something readable for the Next Race table. Times are always UTC
- * per the API, so labelled as such rather than silently showing a
- * UTC time with no indication of the timezone.
+ * something readable. Times are always UTC per the API, so labelled
+ * as such rather than silently showing a UTC time with no
+ * indication of the timezone.
  */
 function formatRaceDate(dateStr) {
   if (!dateStr) return "TBC";
@@ -172,6 +172,22 @@ function formatRaceDate(dateStr) {
 function formatRaceTime(timeStr) {
   if (!timeStr) return "TBC";
   return `${timeStr.slice(0, 5)} UTC`;
+}
+
+/**
+ * Shared by both nextRace (table) and nextRaceCard (card) below —
+ * Jolpica has no dedicated "next race" endpoint, so this finds the
+ * first race in the season schedule whose date/time hasn't passed
+ * yet. Kept as one function so the date-comparison logic only
+ * exists in one place, used by two different presentation adapters.
+ */
+function f1FindNextRace(data) {
+  const races = data.MRData.RaceTable.Races || [];
+  const now = new Date();
+  return races.find(r => {
+    const raceDateTime = new Date(`${r.date}T${r.time || '00:00:00Z'}`);
+    return raceDateTime >= now;
+  }) || null;
 }
 
 const F1_ADAPTERS = {
@@ -215,24 +231,13 @@ const F1_ADAPTERS = {
     ],
   },
 
-  /**
-   * The season schedule endpoint returns every race, not just the
-   * next one — Jolpica has no dedicated "next race" endpoint, so
-   * extract() finds the first race whose date/time hasn't passed
-   * yet and returns it as a single-item array. If the season is
-   * over, returns an empty array (renders "No data available",
-   * same as any other table with no rows).
-   */
+  /* Table-shaped version — a single-row table, used by
+     embed/f1/next-race.html via tables.js/initTable(). */
   nextRace: {
     sourceUrl: "https://api.jolpi.ca/ergast/f1/current.json",
     extract: data => {
-      const races = data.MRData.RaceTable.Races || [];
-      const now = new Date();
-      const upcoming = races.find(r => {
-        const raceDateTime = new Date(`${r.date}T${r.time || '00:00:00Z'}`);
-        return raceDateTime >= now;
-      });
-      return upcoming ? [upcoming] : [];
+      const r = f1FindNextRace(data);
+      return r ? [r] : [];
     },
     columns: [
       { key: "round",    label: "Round", compactLabel: "#", get: r => r.round, emphasis: true },
@@ -242,5 +247,26 @@ const F1_ADAPTERS = {
       { key: "date",     label: "Date",  get: r => formatRaceDate(r.date) },
       { key: "time",     label: "Time",  get: r => formatRaceTime(r.time) },
     ],
+  },
+
+  /* Card-shaped version — a single object, used by
+     embed/f1/next-race-card.html via cards.js/initCard(). Same
+     underlying data (f1FindNextRace) as nextRace above, just
+     reshaped for the Preview card's expected field names instead of
+     a columns array. F1 has no second "team", so logoLeft/logoRight
+     are left out — the card handles that gracefully. */
+  nextRaceCard: {
+    sourceUrl: "https://api.jolpi.ca/ergast/f1/current.json",
+    extract: data => {
+      const r = f1FindNextRace(data);
+      if (!r) return null;
+      return {
+        headline: r.raceName,
+        flag: f1CircuitFlagUrl(r.Circuit.Location.country),
+        location: `${r.Circuit.Location.locality}, ${r.Circuit.Location.country}`,
+        date: formatRaceDate(r.date),
+        time: formatRaceTime(r.time),
+      };
+    },
   },
 };
