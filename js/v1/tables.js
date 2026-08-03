@@ -115,7 +115,7 @@ function initTable(config) {
   root.innerHTML = `
     <div class="dt-widget">
       <div class="dt-header">
-        <p class="dt-title">${logoHtml}${config.title}</p>
+        <p class="dt-title">${logoHtml}<span class="dt-title-text">${config.title}</span></p>
       </div>
       <div class="dt-table-scroll">
         <table class="data-table">
