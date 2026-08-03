@@ -43,7 +43,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.2rem;
 }
 .dt-title {
   display: flex;
@@ -93,7 +93,9 @@ html, body {
 }
 [data-dt-size="compact"] .dt-title {
   font-size: 0.95rem;
+  flex-direction: column;
   align-items: flex-start;
+  gap: 2px;
 }
 .data-table th {
   background: var(--dt-accent);
