@@ -1,0 +1,280 @@
+/* ===========================================
+   Shared hub-page chrome — v1
+   Style & Theme panel, Live preview panel, hero
+   layout, tabs. Used by every sport's hub page
+   (table/<sport>-dark.html), loaded via
+   hub-loader.js. Nothing sport-specific lives
+   here — each hub page supplies only its own
+   hero background-image and initSportHub()
+   config, via its own small inline <style>/<script>.
+   =========================================== */
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #f5f5f5;
+  color: #111;
+}
+
+/* --- Hero banner --- */
+.hero {
+  position: relative;
+  padding: 3rem 4rem 12rem;
+  background-size: cover;
+  background-position: right center;
+  background-repeat: no-repeat;
+}
+.hero-content {
+  max-width: 640px;
+  color: #111;
+}
+.hero-content h1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 700;
+  font-size: 5rem;
+  margin: 0 0 0.75rem;
+  line-height: 1.1;
+}
+.hero-logo {
+  height: 0.8em;
+  flex-shrink: 0;
+}
+.hero-title-text {
+  min-width: 0;
+}
+.hero-content p {
+  font-size: 1.3rem;
+  max-width: 440px;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* --- Table-switcher tabs --- */
+.table-tabs {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 4rem;
+}
+.table-tab {
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  background: #fff;
+  color: #444;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.table-tab.active {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+  font-weight: 600;
+}
+
+/* --- Two column layout, pulled up to overlap the hero art --- */
+.layout {
+  position: relative;
+  z-index: 1;
+  margin-top: -140px;
+  display: grid;
+  grid-template-columns: 364px 1fr;
+  gap: 1.5rem;
+  padding: 1.5rem 4rem 3rem;
+  align-items: stretch;
+}
+@media (max-width: 800px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+.panel {
+  background: #fff;
+  border: 1px solid #e2e2e2;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+}
+.panel h2 {
+  font-size: 0.95rem;
+  margin: 0 0 1rem;
+  color: #111;
+}
+
+.preview-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;
+}
+.preview-header h2 { margin: 0; font-size: 0.95rem; color: #111; }
+.action-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.action-btn {
+  border: 1px solid #e2e2e2; background: #fff; color: #444;
+  padding: 0.5rem 0.9rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer;
+}
+.action-btn.primary { background: #e10600; color: #fff; border-color: #e10600; }
+.action-btn:hover { border-color: #111; }
+
+.preview-surface {
+  background: #fafafa;
+  border: 1px solid #e2e2e2;
+  border-radius: 10px;
+  padding: 1rem;
+  overflow-x: auto;
+}
+#preview-surface-inner {
+  width: 100%;
+  transition: width 0.2s ease;
+}
+#preview-frame { width: 100%; border: 0; min-height: 500px; border-radius: 8px; overflow: hidden; background: #fff; }
+
+.colour-section {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e2e2e2;
+}
+.colour-section h3 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #888;
+  margin: 0 0 0.75rem;
+}
+.colour-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.colour-option {
+  width: 22px;
+  height: 22px;
+  border: 2px solid transparent;
+  border-radius: 5px;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+.colour-option.selected {
+  border-color: #111;
+  box-shadow: 0 0 0 2px #fff inset;
+}
+
+.size-section {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e2e2e2;
+}
+.size-section h3 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #888;
+  margin: 0 0 0.75rem;
+}
+.preview-size-controls {
+  display: flex;
+  gap: 0.4rem;
+}
+.preview-size-option {
+  flex: 1;
+  border: 1px solid #e2e2e2;
+  border-radius: 6px;
+  background: #fff;
+  color: #444;
+  padding: 0.5rem 0.4rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+  text-align: center;
+}
+.preview-size-option.selected {
+  background: #e10600;
+  color: #fff;
+  border-color: #e10600;
+  font-weight: 600;
+}
+
+#embed-code {
+  display: block;
+  background: #f5f5f5; color: #444;
+  padding: 0.6rem 0.9rem; border-radius: 6px;
+  font-size: 0.75rem; margin-top: 0.75rem;
+  white-space: pre-wrap; word-break: break-all;
+}
+#embed-code.hidden { display: none; }
+
+#print-surface { display: none; }
+
+/* Hide everything except the print surface when actually printing */
+@media print {
+  #site-nav, .site-nav, .hero, #table-tabs, .layout {
+    display: none !important;
+  }
+  #print-surface {
+    display: block !important;
+  }
+  body { margin: 0; padding: 0; background: none; }
+}
+
+.controls-section {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e2e2e2;
+}
+.controls-section h3 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #888;
+  margin: 0 0 0.75rem;
+}
+.control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #333;
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 38px;
+  height: 22px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.switch-track {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #ccc;
+  border-radius: 22px;
+  transition: 0.15s;
+}
+.switch-track::before {
+  content: "";
+  position: absolute;
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: 0.15s;
+}
+.switch input:checked + .switch-track {
+  background: #e10600;
+}
+.switch input:checked + .switch-track::before {
+  transform: translateX(16px);
+}
+.switch input:disabled + .switch-track {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
