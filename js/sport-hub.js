@@ -67,6 +67,7 @@ let hub = {
   controls: { flags: true, logos: true, rowBg: true, podium: true },
   previewSize: "full",
   printSize: "full",
+  rowLimit: null,
   rows: [],
 };
 
@@ -105,6 +106,7 @@ function buildEmbedUrl() {
   if (!hub.controls.logos) params.set("logos", "off");
   if (!hub.controls.rowBg) params.set("rowbg", "off");
   if (!hub.controls.podium) params.set("podium", "off");
+  if (hub.rowLimit) params.set("rows", hub.rowLimit);
   if (hub.previewSize === "compact") {
     params.set("size", "compact");
     params.set("cols", SIZE_PRESETS.compact.columns.join(","));
@@ -232,6 +234,37 @@ function renderPreviewSizeControls() {
   }).join('');
 }
 
+/* Rows — independent of Size (Compact/Standard/Full); limits how
+   many rows render, from Top 3 / Top 10 / the full list. Works the
+   same way at any size, and is a no-op on single-row content like
+   Next Race (slicing a 1-item array to 3 or 10 just returns the 1
+   item, so no special-casing is needed there). */
+const ROW_LIMIT_OPTIONS = [
+  { key: "3",    label: "Top 3",    value: 3 },
+  { key: "10",   label: "Top 10",   value: 10 },
+  { key: "full", label: "Full list", value: null },
+];
+
+function selectRowLimit(key) {
+  const option = ROW_LIMIT_OPTIONS.find(o => o.key === key);
+  if (!option) return;
+  hub.rowLimit = option.value;
+  document.querySelectorAll(".row-limit-option").forEach(el =>
+    el.classList.toggle("selected", el.dataset.key === key));
+  updateStylePreview();
+  renderExportSurface();
+}
+
+function renderRowLimitControls() {
+  const mount = document.getElementById("row-limit-controls");
+  if (!mount) return;
+  const activeKey = hub.rowLimit === 3 ? "3" : hub.rowLimit === 10 ? "10" : "full";
+  mount.innerHTML = ROW_LIMIT_OPTIONS.map(o => `
+    <button class="preview-size-option row-limit-option${o.key === activeKey ? ' selected' : ''}" data-key="${o.key}" onclick="selectRowLimit('${o.key}')">
+      ${o.label}
+    </button>`).join('');
+}
+
 function copyEmbedCode() {
   const text = document.getElementById("embed-code").textContent;
   navigator.clipboard.writeText(text).then(() => {
@@ -289,7 +322,8 @@ function renderExportSurface() {
   const surface = document.getElementById("print-surface");
   const config = { title: table.tableLabel || table.title, sportLogo: table.sportLogo };
   const tbody = renderTableShell(surface, config, activeColumns);
-  renderRows(tbody, activeColumns, hub.rows);
+  const limitedRows = hub.rowLimit ? hub.rows.slice(0, hub.rowLimit) : hub.rows;
+  renderRows(tbody, activeColumns, limitedRows);
 
   let pageStyle = document.getElementById('page-size-style');
   if (!pageStyle) {
@@ -379,6 +413,7 @@ function initSportHub(config) {
   renderTitleColourButtons();
   renderPosPointsColourButtons();
   renderPreviewSizeControls();
+  renderRowLimitControls();
   refreshActiveTable();
 
   const controlFlags = document.getElementById("control-flags");
