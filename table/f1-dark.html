@@ -3,314 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <title>F1 — Driver Standings (Dark Concept)</title>
-<link rel="stylesheet" href="../css/site.css?v=2">
 <script src="https://captainkirk666.github.io/sports-tables/js/loader.js"></script>
+<script src="https://captainkirk666.github.io/sports-tables/js/hub-loader.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
+  /* Everything below is genuinely F1-specific — the hero art and the
+     Cormorant Garamond import. Every other rule now lives in the
+     shared hub.css (see hub-loader.js), not duplicated here. */
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&display=swap');
-
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: system-ui, -apple-system, sans-serif;
-    background: #f5f5f5;
-    color: #111;
-  }
-
-  /* --- Hero banner: real art, bleeding down slightly below the cards' top edge --- */
   .hero {
-    position: relative;
-    padding: 3rem 4rem 12rem;
     background-image: url('../assets/logos/f1/f1-hero-art.png');
-    background-size: cover;
-    background-position: right center;
-    background-repeat: no-repeat;
-  }
-  .hero-content {
-    max-width: 640px;
-    color: #111;
-  }
-  .hero-content h1 {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 700;
-    font-size: 5rem;
-    margin: 0 0 0.75rem;
-    line-height: 1.1;
-  }
-  .hero-logo {
-    height: 0.8em;
-    flex-shrink: 0;
-  }
-  .hero-title-text {
-    min-width: 0;
-  }
-  .hero-content p {
-    font-size: 1.3rem;
-    max-width: 440px;
-    margin: 0;
-    line-height: 1.4;
-  }
-
-  /* --- Table-switcher tabs --- */
-  .table-tabs {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-top: 4rem;
-  }
-  .table-tab {
-    border: 1px solid #ddd;
-    border-radius: 20px;
-    background: #fff;
-    color: #444;
-    padding: 0.5rem 1.1rem;
-    font-size: 0.85rem;
-    cursor: pointer;
-  }
-  .table-tab.active {
-    background: #111;
-    color: #fff;
-    border-color: #111;
-    font-weight: 600;
-  }
-
-  /* --- Two column layout, pulled up to overlap the tail of the hero art --- */
-  .layout {
-    position: relative;
-    z-index: 1;
-    margin-top: -140px;
-    display: grid;
-    grid-template-columns: 364px 1fr;
-    gap: 1.5rem;
-    padding: 1.5rem 4rem 3rem;
-    align-items: stretch;
-  }
-  @media (max-width: 800px) {
-    .layout { grid-template-columns: 1fr; }
-  }
-
-  .panel {
-    background: #fff;
-    border: 1px solid #e2e2e2;
-    border-radius: 12px;
-    padding: 1.25rem;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-  }
-  .panel h2 {
-    font-size: 0.95rem;
-    margin: 0 0 1rem;
-    color: #111;
-  }
-
-  .preview-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;
-  }
-  .preview-header h2 { margin: 0; font-size: 0.95rem; color: #111; }
-  .action-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-  .action-btn {
-    border: 1px solid #e2e2e2; background: #fff; color: #444;
-    padding: 0.5rem 0.9rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer;
-  }
-  .action-btn.primary { background: #e10600; color: #fff; border-color: #e10600; }
-  .action-btn:hover { border-color: #111; }
-
-  .preview-surface {
-    background: #fafafa;
-    border: 1px solid #e2e2e2;
-    border-radius: 10px;
-    padding: 1rem;
-    overflow-x: auto;
-  }
-  #preview-surface-inner {
-    width: 100%;
-    transition: width 0.2s ease;
-  }
-  #preview-frame { width: 100%; border: 0; min-height: 500px; border-radius: 8px; overflow: hidden; background: #fff; }
-
-  .colour-section {
-    margin-top: 1.25rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid #e2e2e2;
-  }
-  .colour-section h3 {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: #888;
-    margin: 0 0 0.75rem;
-  }
-  .colour-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-  .colour-option {
-    width: 22px;
-    height: 22px;
-    border: 2px solid transparent;
-    border-radius: 5px;
-    cursor: pointer;
-    padding: 0;
-    flex-shrink: 0;
-  }
-  .colour-option.selected {
-    border-color: #111;
-    box-shadow: 0 0 0 2px #fff inset;
-  }
-
-  .size-section {
-    margin-top: 1.25rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid #e2e2e2;
-  }
-  .size-section h3 {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: #888;
-    margin: 0 0 0.75rem;
-  }
-  .preview-size-controls {
-    display: flex;
-    gap: 0.4rem;
-  }
-  .preview-size-option {
-    flex: 1;
-    border: 1px solid #e2e2e2;
-    border-radius: 6px;
-    background: #fff;
-    color: #444;
-    padding: 0.5rem 0.4rem;
-    font-size: 0.78rem;
-    cursor: pointer;
-    text-align: center;
-  }
-  .preview-size-option.selected {
-    background: #e10600;
-    color: #fff;
-    border-color: #e10600;
-    font-weight: 600;
-  }
-
-  #embed-code {
-    display: block;
-    background: #f5f5f5; color: #444;
-    padding: 0.6rem 0.9rem; border-radius: 6px;
-    font-size: 0.75rem; margin-top: 0.75rem;
-    white-space: pre-wrap; word-break: break-all;
-  }
-  #embed-code.hidden { display: none; }
-
-  #print-surface { display: none; }
-
-  /* Print/export table — tightened vertical spacing for newspaper use */
-  .export-header {
-    display: flex; align-items: baseline; justify-content: space-between;
-    border-bottom: 2px solid #e10600; padding-bottom: 0.4rem; margin-bottom: 0.75rem;
-  }
-  .export-header h1 { font-size: 1.2rem; margin: 0; }
-  .export-meta { font-size: 0.7rem; color: #666; text-align: right; }
-  .export-table { border-collapse: collapse; width: 100%; }
-  .export-table th, .export-table td {
-    padding: 3px 8px;
-    line-height: 1.15;
-    border-bottom: 1px solid #ddd;
-    text-align: left;
-    font-size: 0.85rem;
-  }
-  .export-table th {
-    background: #f2f2f2;
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-  }
-  .export-table td.numeric { text-align: right; font-variant-numeric: tabular-nums; }
-  .export-logo, .export-flag {
-    vertical-align: middle;
-    margin-right: 4px;
-    border-radius: 2px;
-  }
-  .export-logo { width: 16px; height: 16px; object-fit: contain; }
-  .export-flag { width: 18px; height: 13px; object-fit: cover; }
-  .export-truncated { font-size: 0.7rem; color: #999; margin-top: 0.3rem; font-style: italic; }
-  .export-footer { margin-top: 0.6rem; font-size: 0.68rem; color: #999; }
-
-  /* Hide everything except the print surface when actually printing */
-  @media print {
-    #site-nav, .site-nav, .hero, #table-tabs, .layout {
-      display: none !important;
-    }
-    #print-surface {
-      display: block !important;
-    }
-    body { margin: 0; padding: 0; background: none; }
-  }
-  .controls-section {
-    margin-top: 1.25rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid #e2e2e2;
-  }
-  .controls-section h3 {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: #888;
-    margin: 0 0 0.75rem;
-  }
-  .control-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 0.9rem;
-    color: #333;
-  }
-  .switch {
-    position: relative;
-    display: inline-block;
-    width: 38px;
-    height: 22px;
-  }
-  .switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-  .switch-track {
-    position: absolute;
-    cursor: pointer;
-    inset: 0;
-    background: #ccc;
-    border-radius: 22px;
-    transition: 0.15s;
-  }
-  .switch-track::before {
-    content: "";
-    position: absolute;
-    height: 16px;
-    width: 16px;
-    left: 3px;
-    bottom: 3px;
-    background: #fff;
-    border-radius: 50%;
-    transition: 0.15s;
-  }
-  .switch input:checked + .switch-track {
-    background: #e10600;
-  }
-  .switch input:checked + .switch-track::before {
-    transform: translateX(16px);
-  }
-  .switch input:disabled + .switch-track {
-    opacity: 0.4;
-    cursor: not-allowed;
   }
 </style>
 </head>
@@ -328,84 +32,12 @@
 </section>
 
 <div class="layout">
-  <div class="panel">
-    <h2>Style &amp; Theme</h2>
-
-    <div class="size-section" style="margin-top:0; padding-top:0; border-top:none;">
-      <h3>Size</h3>
-      <div id="preview-size-controls" class="preview-size-controls"></div>
-    </div>
-
-    <div class="size-section">
-      <h3>Rows</h3>
-      <div id="row-limit-controls" class="preview-size-controls"></div>
-    </div>
-
-    <div class="colour-section">
-      <h3>Title colour</h3>
-      <div id="title-colour-buttons" class="colour-buttons"></div>
-    </div>
-
-    <div class="colour-section">
-      <h3>Position &amp; Points colour</h3>
-      <div id="pospoints-colour-buttons" class="colour-buttons"></div>
-    </div>
-
-    <div class="controls-section">
-      <h3>Controls</h3>
-      <div class="control-row">
-        <span>Flags</span>
-        <label class="switch">
-          <input type="checkbox" id="control-flags" checked>
-          <span class="switch-track"></span>
-        </label>
-      </div>
-      <div class="control-row" style="margin-top:0.75rem;">
-        <span>Team logos</span>
-        <label class="switch">
-          <input type="checkbox" id="control-logos" checked>
-          <span class="switch-track"></span>
-        </label>
-      </div>
-      <div class="control-row" style="margin-top:0.75rem;">
-        <span>Row background</span>
-        <label class="switch">
-          <input type="checkbox" id="control-rowbg" checked>
-          <span class="switch-track"></span>
-        </label>
-      </div>
-      <div class="control-row" style="margin-top:0.75rem;">
-        <span>Top 3 highlight</span>
-        <label class="switch">
-          <input type="checkbox" id="control-podium" checked>
-          <span class="switch-track"></span>
-        </label>
-      </div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <div class="preview-header">
-      <h2>Live preview</h2>
-      <div class="action-buttons">
-        <button id="toggle-code-btn" class="action-btn">Get embed code</button>
-        <button id="download-btn" class="action-btn">Download PDF</button>
-        <button id="download-png-btn" class="action-btn">Download PNG</button>
-        <button id="copy-btn" class="action-btn primary">Copy to clipboard</button>
-      </div>
-    </div>
-    <div class="preview-surface">
-      <div id="preview-surface-inner">
-        <iframe id="preview-frame"></iframe>
-      </div>
-    </div>
-    <code id="embed-code" class="hidden"></code>
-  </div>
+  <div class="panel" id="style-theme-panel"></div>
+  <div class="panel" id="live-preview-panel"></div>
 </div>
 
 <div id="print-surface"></div>
 
-<script src="../js/site-nav.js"></script>
 <script src="../js/v1/adapters/f1.js?v=7"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.9/iframeResizer.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -422,7 +54,11 @@ initSportHub({
       embedHref: "../embed/f1/drivers.html",
       sourceUrl: F1_ADAPTERS.drivers.sourceUrl,
       adapter: F1_ADAPTERS.drivers,
-      attribution: { label: "Jolpica F1" }
+      attribution: { label: "Jolpica F1" },
+      sizeColumns: {
+        compact: ["pos", "driver", "points"],
+        standard: ["pos", "driver", "team", "points", "wins"]
+      }
     },
     {
       key: "constructors",
@@ -433,7 +69,11 @@ initSportHub({
       embedHref: "../embed/f1/constructors.html",
       sourceUrl: F1_ADAPTERS.constructors.sourceUrl,
       adapter: F1_ADAPTERS.constructors,
-      attribution: { label: "Jolpica F1" }
+      attribution: { label: "Jolpica F1" },
+      sizeColumns: {
+        compact: ["pos", "constructor", "points"],
+        standard: ["pos", "constructor", "nationality", "points", "wins"]
+      }
     },
     {
       key: "results",
@@ -444,7 +84,11 @@ initSportHub({
       embedHref: "../embed/f1/results.html",
       sourceUrl: F1_ADAPTERS.raceResults.sourceUrl,
       adapter: F1_ADAPTERS.raceResults,
-      attribution: { label: "Jolpica F1" }
+      attribution: { label: "Jolpica F1" },
+      sizeColumns: {
+        compact: ["pos", "driver", "points"],
+        standard: ["pos", "driver", "team", "points"]
+      }
     },
     {
       key: "nextrace",
@@ -455,7 +99,11 @@ initSportHub({
       embedHref: "../embed/f1/next-race.html",
       sourceUrl: F1_ADAPTERS.nextRace.sourceUrl,
       adapter: F1_ADAPTERS.nextRace,
-      attribution: { label: "Jolpica F1" }
+      attribution: { label: "Jolpica F1" },
+      sizeColumns: {
+        compact: ["round", "race", "date"],
+        standard: ["round", "race", "circuit", "location", "date", "time"]
+      }
     }
   ]
 });
