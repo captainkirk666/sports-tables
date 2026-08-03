@@ -1,38 +1,56 @@
 /**
- * Site navbar — single config, rendered on every site page (not embed pages).
+ * Global nav bar — v2
  *
- * Usage: <div id="site-nav"></div> then <script src="js/site-nav.js"></script>
- * Pass the current page's key via a data attribute so the active link highlights:
- *   <div id="site-nav" data-active="home"></div>
+ * Renders into <div id="site-nav" data-active="..."> — reads the
+ * data-active attribute to know which item (a sport, or a site
+ * page) should show as highlighted, then REPLACES that div entirely
+ * via outerHTML (so the final element is <nav class="site-nav">,
+ * no wrapper div, no id — this matches an existing documented
+ * behaviour, see PROJECT-HANDOFF.md gotcha #6 re: @media print
+ * rules needing to target .site-nav, not #site-nav, for exactly
+ * this reason).
+ *
+ * SPORTS below is the ONE place a new sport gets added to the
+ * global nav — every hub page picks it up automatically via
+ * hub-loader.js, with no per-page editing needed.
+ *
+ * Loaded unversioned (no ?v=) as its own separate script tag on
+ * each hub page — kept OUT of hub-loader.js deliberately, since it
+ * needs to run after the DOM has the #site-nav div, and
+ * hub-loader.js runs earlier, in <head>.
  */
+(function () {
+  var BASE = "https://captainkirk666.github.io/sports-tables";
 
-const SITE_BASE = "https://captainkirk666.github.io/sports-tables";
+  var SPORTS = [
+    { key: "f1",  label: "F1",  href: BASE + "/table/f1-dark.html" },
+    { key: "epl", label: "EPL", href: BASE + "/table/epl-dark.html" }
+  ];
 
-const NAV_LINKS = [
-  { key: "home", label: "Home", href: `${SITE_BASE}/index.html` },
-  { key: "style", label: "Style options", href: `${SITE_BASE}/style.html` },
-  { key: "docs", label: "Embed guide", href: `${SITE_BASE}/docs.html` },
-];
+  var PAGES = [
+    { key: "home",  label: "Home",          href: BASE + "/index.html" },
+    { key: "style", label: "Style options", href: BASE + "/style.html" },
+    { key: "embed", label: "Embed guide",   href: BASE + "/docs.html" }
+  ];
 
-function renderSiteNav() {
-  const mount = document.getElementById('site-nav');
+  var mount = document.getElementById("site-nav");
   if (!mount) return;
-  const active = mount.dataset.active || '';
+  var active = mount.getAttribute("data-active") || "";
 
-  mount.outerHTML = `
-    <nav class="site-nav">
-      <a class="brand" href="${SITE_BASE}/index.html">Live<span>Tables</span></a>
-      <ul>
-        ${NAV_LINKS.map(link => `
-          <li>
-            <a class="nav-link${link.key === active ? ' active' : ''}" href="${link.href}">
-              ${link.label}
-            </a>
-          </li>
-        `).join('')}
-      </ul>
-    </nav>
-  `;
-}
+  var sportLinksHtml = SPORTS.map(function (s) {
+    var cls = "sport-link" + (s.key === active ? " active" : "");
+    return '<a href="' + s.href + '" class="' + cls + '">' + s.label + '</a>';
+  }).join("");
 
-renderSiteNav();
+  var pageLinksHtml = PAGES.map(function (p) {
+    var cls = "nav-link" + (p.key === active ? " active" : "");
+    return '<li><a href="' + p.href + '" class="' + cls + '">' + p.label + '</a></li>';
+  }).join("");
+
+  mount.outerHTML =
+    '<nav class="site-nav" data-active="' + active + '">' +
+      '<a href="' + BASE + '/index.html" class="brand">Live<span>Tables</span></a>' +
+      '<div class="sport-links">' + sportLinksHtml + '</div>' +
+      '<ul>' + pageLinksHtml + '</ul>' +
+    '</nav>';
+})();
