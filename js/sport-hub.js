@@ -61,7 +61,7 @@ const SIZE_PRESETS = {
   standard: { label: "Standard (2 col)", widthCm: 10, maxRows: null,
     columns: ["pos", "rank", "driver", "constructor", "team", "nationality", "played", "points", "wins", "losses", "draws", "gd", "pct", "round", "race", "circuit", "location", "date", "time"] },
   full:     { label: "Full width",       widthCm: 18, maxRows: null,
-    columns: ["pos", "rank", "driver", "constructor", "team", "nationality", "played", "laps", "time", "fastest", "points", "wins", "losses", "draws", "gd", "pct", "round", "race", "circuit", "location", "date"] },
+    columns: ["pos", "rank", "driver", "constructor", "team", "nationality", "played", "laps", "time", "raceTime", "fastest", "points", "wins", "losses", "draws", "gd", "pct", "round", "race", "circuit", "location", "date"] },
 };
 
 const PREVIEW_SIZES = {
@@ -349,7 +349,8 @@ function renderSizeControls() {
 
 function refreshActiveTable() {
   const table = activeTable();
-  document.getElementById("page-title").textContent = table.title;
+  const heroLogo = table.sportLogo ? `<img class="hero-logo" src="${table.sportLogo}" alt="">` : '';
+  document.getElementById("page-title").innerHTML = `${heroLogo}<span class="hero-title-text">${table.tableLabel || table.title}</span>`;
   document.title = `${table.title} — Live sports data tables`;
   updateStylePreview();
 
