@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EPL Table</title>
+<script src="https://captainkirk666.github.io/sports-tables/js/loader.js"></script>
+</head>
+<body>
+<div id="dt-app"></div>
+<script src="../../js/v1/adapters/epl.js?v=1"></script>
+<script>
+initTable({
+  containerSelector: "#dt-app",
+  title: "Table",
+  sportLogo: "../../assets/logos/epl/epl-logo.png",
+  sourceUrl: EPL_ADAPTERS.table.sourceUrl,
+  adapter: EPL_ADAPTERS.table,
+  refreshSeconds: 300,
+  attribution: { label: "Data: ESPN", href: "https://www.espn.com/soccer/table/_/league/eng.1" }
+});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.9/iframeResizer.contentWindow.min.js"></script>
+</body>
+</html>
