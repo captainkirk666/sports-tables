@@ -1,5 +1,7 @@
 /* Site chrome — navbar, page layout.
    NOT used by embed pages (embed/**) — those stay bare for iframing. */
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;600;700&display=swap');
+
 * { box-sizing: border-box; }
 body {
   font-family: system-ui, -apple-system, sans-serif;
