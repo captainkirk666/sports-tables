@@ -32,11 +32,21 @@
     color: #111;
   }
   .hero-content h1 {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
     font-family: 'Cormorant Garamond', serif;
     font-weight: 700;
     font-size: 5rem;
     margin: 0 0 0.75rem;
     line-height: 1.1;
+  }
+  .hero-logo {
+    height: 0.8em;
+    flex-shrink: 0;
+  }
+  .hero-title-text {
+    min-width: 0;
   }
   .hero-content p {
     font-size: 1.3rem;
@@ -390,8 +400,8 @@
 
 <script src="../js/site-nav.js"></script>
 <script src="../js/v1/flags.js?v=2"></script>
-<script src="../js/v1/adapters/f1.js?v=6"></script>
-<script src="../js/sport-hub.js?v=12"></script>
+<script src="../js/v1/adapters/f1.js?v=7"></script>
+<script src="../js/sport-hub.js?v=13"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.9/iframeResizer.min.js"></script>
 <script>
 initSportHub({
@@ -401,6 +411,8 @@ initSportHub({
       key: "drivers",
       label: "Driver Standings",
       title: "F1 Driver Standings",
+      tableLabel: "Driver Standings",
+      sportLogo: "../assets/logos/f1/f1-logo.png",
       embedHref: "../embed/f1/drivers.html",
       sourceUrl: F1_ADAPTERS.drivers.sourceUrl,
       adapter: F1_ADAPTERS.drivers,
@@ -410,6 +422,8 @@ initSportHub({
       key: "constructors",
       label: "Constructor Standings",
       title: "F1 Constructor Standings",
+      tableLabel: "Constructor Standings",
+      sportLogo: "../assets/logos/f1/f1-logo.png",
       embedHref: "../embed/f1/constructors.html",
       sourceUrl: F1_ADAPTERS.constructors.sourceUrl,
       adapter: F1_ADAPTERS.constructors,
@@ -419,6 +433,8 @@ initSportHub({
       key: "results",
       label: "Race Results",
       title: "F1 Race Results",
+      tableLabel: "Race Results",
+      sportLogo: "../assets/logos/f1/f1-logo.png",
       embedHref: "../embed/f1/results.html",
       sourceUrl: F1_ADAPTERS.raceResults.sourceUrl,
       adapter: F1_ADAPTERS.raceResults,
@@ -428,6 +444,8 @@ initSportHub({
       key: "nextrace",
       label: "Next Race",
       title: "F1 Next Race",
+      tableLabel: "Next Race",
+      sportLogo: "../assets/logos/f1/f1-logo.png",
       embedHref: "../embed/f1/next-race.html",
       sourceUrl: F1_ADAPTERS.nextRace.sourceUrl,
       adapter: F1_ADAPTERS.nextRace,
