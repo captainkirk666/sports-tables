@@ -90,11 +90,12 @@ let hub = {
   tables: [],
   activeKey: null,
   style: { titleColor: null, posColor: null, pointsColor: null },
-  controls: { flags: true, logos: true, rowBg: true, podium: true, rule: false },
+  controls: { flags: false, logos: false, rowBg: true, podium: false, rule: true },
   previewSize: "full",
   printSize: "full",
   rowLimit: null,
   rows: [],
+  lastUpdated: null,
 };
 
 function activeTable() {
@@ -134,20 +135,6 @@ function renderStyleThemePanel() {
     <div class="controls-section">
       <h3>Controls</h3>
       <div class="control-row">
-        <span>Flags</span>
-        <label class="switch">
-          <input type="checkbox" id="control-flags" checked>
-          <span class="switch-track"></span>
-        </label>
-      </div>
-      <div class="control-row" style="margin-top:0.75rem;">
-        <span>Team logos</span>
-        <label class="switch">
-          <input type="checkbox" id="control-logos" checked>
-          <span class="switch-track"></span>
-        </label>
-      </div>
-      <div class="control-row" style="margin-top:0.75rem;">
         <span>Row background</span>
         <label class="switch">
           <input type="checkbox" id="control-rowbg" checked>
@@ -155,16 +142,30 @@ function renderStyleThemePanel() {
         </label>
       </div>
       <div class="control-row" style="margin-top:0.75rem;">
-        <span>Top 3 highlight</span>
+        <span>Grey rule</span>
         <label class="switch">
-          <input type="checkbox" id="control-podium" checked>
+          <input type="checkbox" id="control-rule" checked>
           <span class="switch-track"></span>
         </label>
       </div>
       <div class="control-row" style="margin-top:0.75rem;">
-        <span>Grey rule</span>
+        <span>Top 3 highlight</span>
         <label class="switch">
-          <input type="checkbox" id="control-rule">
+          <input type="checkbox" id="control-podium">
+          <span class="switch-track"></span>
+        </label>
+      </div>
+      <div class="control-row" style="margin-top:0.75rem;">
+        <span>Flags</span>
+        <label class="switch">
+          <input type="checkbox" id="control-flags">
+          <span class="switch-track"></span>
+        </label>
+      </div>
+      <div class="control-row" style="margin-top:0.75rem;">
+        <span>Team logos</span>
+        <label class="switch">
+          <input type="checkbox" id="control-logos">
           <span class="switch-track"></span>
         </label>
       </div>
@@ -224,8 +225,8 @@ function buildEmbedUrl() {
   if (!hub.controls.flags) params.set("flags", "off");
   if (!hub.controls.logos) params.set("logos", "off");
   if (!hub.controls.rowBg) params.set("rowbg", "off");
-  if (!hub.controls.podium) params.set("podium", "off");
-  if (hub.controls.rule) params.set("rule", "on");
+  if (hub.controls.podium) params.set("podium", "on");
+  if (!hub.controls.rule) params.set("rule", "off");
   if (hub.rowLimit) params.set("rows", hub.rowLimit);
   if (hub.previewSize === "compact" || hub.previewSize === "standard") {
     params.set("size", hub.previewSize);
@@ -367,15 +368,17 @@ function selectPreviewSize(key) {
   if (flagsInput) {
     flagsInput.disabled = isCompact;
     if (isCompact) flagsInput.checked = false;
-    else flagsInput.checked = true;
+    else flagsInput.checked = hub.controls.flags;
   }
   if (logosInput) {
     logosInput.disabled = isCompact;
     if (isCompact) logosInput.checked = false;
-    else logosInput.checked = true;
+    else logosInput.checked = hub.controls.logos;
   }
-  hub.controls.flags = !isCompact;
-  hub.controls.logos = !isCompact;
+  if (isCompact) {
+    hub.controls.flags = false;
+    hub.controls.logos = false;
+  }
 
   updateStylePreview();
   renderExportSurface();
@@ -430,8 +433,8 @@ function applyExportThemeAttributes() {
   if (!hub.controls.flags) el.setAttribute('data-dt-flags', 'off'); else el.removeAttribute('data-dt-flags');
   if (!hub.controls.logos) el.setAttribute('data-dt-logos', 'off'); else el.removeAttribute('data-dt-logos');
   if (!hub.controls.rowBg) el.setAttribute('data-dt-rowbg', 'off'); else el.removeAttribute('data-dt-rowbg');
-  if (!hub.controls.podium) el.setAttribute('data-dt-podium', 'off'); else el.removeAttribute('data-dt-podium');
-  if (hub.controls.rule) el.setAttribute('data-dt-rule', 'on'); else el.removeAttribute('data-dt-rule');
+  if (hub.controls.podium) el.setAttribute('data-dt-podium', 'on'); else el.removeAttribute('data-dt-podium');
+  if (!hub.controls.rule) el.setAttribute('data-dt-rule', 'off'); else el.removeAttribute('data-dt-rule');
 }
 
 function renderExportSurface() {
@@ -451,6 +454,10 @@ function renderExportSurface() {
   const tbody = renderTableShell(surface, config, activeColumns);
   const limitedRows = hub.rowLimit ? hub.rows.slice(0, hub.rowLimit) : hub.rows;
   renderRows(tbody, activeColumns, limitedRows);
+  const updatedEl = surface.querySelector('.dt-updated');
+  if (updatedEl && hub.lastUpdated) {
+    updatedEl.textContent = 'Updated ' + hub.lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' — ';
+  }
 
   let pageStyle = document.getElementById('page-size-style');
   if (!pageStyle) {
@@ -540,6 +547,7 @@ function refreshActiveTable() {
     })
     .then(data => {
       hub.rows = table.adapter.extract(data) || [];
+      hub.lastUpdated = new Date();
       renderExportSurface();
     })
     .catch(err => {
