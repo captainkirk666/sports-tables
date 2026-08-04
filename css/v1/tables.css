@@ -263,7 +263,7 @@ html, body {
 [data-dt-font="robotocondensed"] .data-table td {
   text-transform: uppercase;
 }
-[data-dt-font="robotocondensed"] .data-table td[data-col="team"],
+[data-dt-font="robotocondensed"] .data-table td[data-col="team"]:not(:nth-child(2)),
 [data-dt-font="robotocondensed"] .data-table td[data-col="nationality"] {
   text-transform: capitalize;
 }
@@ -302,9 +302,14 @@ html, body {
 [data-dt-font="robotocondensed"] .data-table td[data-col="points"] {
   font-weight: 600;
 }
-/* Team (secondary column, Drivers/Results only) stays a plain 400
-   so it reads lighter than the bold identity/points columns. */
-[data-dt-font="robotocondensed"] .data-table td[data-col="team"] {
+/* Team (secondary column, e.g. F1 Drivers/Results) stays a plain 400
+   so it reads lighter than the bold identity/points columns. The
+   :not(:nth-child(2)) guard is what stops this from wrongly
+   demoting a table where "team" IS the primary identity column
+   instead (e.g. EPL's League Table) — same bug class as the earlier
+   Constructor Standings fix, recurring because a different sport
+   reused the same key name for a different role. */
+[data-dt-font="robotocondensed"] .data-table td[data-col="team"]:not(:nth-child(2)) {
   font-weight: 400;
 }
 
