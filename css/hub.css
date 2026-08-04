@@ -17,13 +17,27 @@ body {
   color: #111;
 }
 
-/* --- Hero banner --- */
+/* --- Hero banner ---
+   Background image lives on ::before, not on .hero itself — this
+   lets the fade mask apply only to the image, not the heading/
+   subtitle text sitting on top of it (a mask-image on .hero directly
+   would fade the text out too). Each sport's hub page sets its own
+   background-image on .hero::before (see table/f1.html for the
+   pattern). Same technique already used on the homepage hero. */
 .hero {
   position: relative;
   padding: 3rem 4rem 12rem;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   background-size: cover;
   background-position: right center;
   background-repeat: no-repeat;
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 70%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 0%, black 70%, transparent 100%);
 }
 .hero-content {
   max-width: 640px;
@@ -123,14 +137,21 @@ body {
   background: #fafafa;
   border: 1px solid #e2e2e2;
   border-radius: 10px;
-  padding: 1rem;
+  padding: 1rem calc(1rem + 20px);
   overflow-x: auto;
 }
 #preview-surface-inner {
   width: 100%;
   transition: width 0.2s ease;
 }
-#preview-frame { width: 100%; border: 0; min-height: 500px; border-radius: 8px; overflow: hidden; background: #fff; }
+#preview-frame {
+  width: 100%; border: 0; min-height: 500px; border-radius: 8px; overflow: hidden; background: #fff;
+  /* Visual-only enlargement for reviewing the preview — the actual
+     embed code and exported PDF/PNG stay at their real size,
+     unaffected by this. zoom is widely supported in Chrome/Safari/
+     Edge; older Firefox versions may not honour it. */
+  zoom: 1.25;
+}
 
 .colour-section {
   margin-top: 1.25rem;
