@@ -23,7 +23,7 @@
  * minutes after an edit (see PROJECT-HANDOFF.md gotcha #4).
  */
 (function () {
-  var HUB_VERSION = "5"; // <-- bump ONLY this number when site.css/hub.css changes
+  var HUB_VERSION = "6"; // <-- bump ONLY this number when site.css/hub.css changes
   var BASE = "https://captainkirk666.github.io/sports-tables";
 
   document.write('<link rel="stylesheet" href="' + BASE + '/css/site.css?v=' + HUB_VERSION + '">');
