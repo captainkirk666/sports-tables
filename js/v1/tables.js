@@ -36,8 +36,8 @@ function applyThemeFromQueryParams() {
   const pointsColor = params.get('pointsColor'); // hex without '#' — overrides the PTS-column colour
   const rowbg = params.get('rowbg');             // 'off' removes the grey row background (and, via the shared fallback, the podium tint too)
   const rowLimit = params.get('rows');           // '3' | '10' — limits how many rows render; absent/anything else = full list
-  const podium = params.get('podium');           // 'off' removes just the gold/silver/bronze top-3 highlight, independent of rowbg
-  const rule = params.get('rule');                // 'on' adds a thin grey divider line between rows, independent of rowbg/podium
+  const podium = params.get('podium');           // 'on' shows the gold/silver/bronze top-3 highlight (default off), independent of rowbg
+  const rule = params.get('rule');                // 'off' removes the thin grey divider line between rows (default on), independent of rowbg/podium
 
   // The site's one canonical table style (Roboto Condensed, black
   // header, bold identity column, etc.) is now always applied — no
@@ -70,11 +70,11 @@ function applyThemeFromQueryParams() {
   if (rowbg === 'off') {
     document.documentElement.setAttribute('data-dt-rowbg', 'off');
   }
-  if (podium === 'off') {
-    document.documentElement.setAttribute('data-dt-podium', 'off');
+  if (podium === 'on') {
+    document.documentElement.setAttribute('data-dt-podium', 'on');
   }
-  if (rule === 'on') {
-    document.documentElement.setAttribute('data-dt-rule', 'on');
+  if (rule === 'off') {
+    document.documentElement.setAttribute('data-dt-rule', 'off');
   }
   const size = params.get('size');        // 'compact' | 'standard' — switches to compactGet where a column opts in via shortenAt
   if (size) {
@@ -116,6 +116,12 @@ function renderRows(container, columns, rows) {
  * PDF/PNG export always matches the live preview's actual markup,
  * rather than maintaining a second, separately-styled copy that can
  * drift out of sync.
+ *
+ * The .dt-updated span in the footer shows when THIS WIDGET last
+ * successfully fetched fresh data — not when the source API itself
+ * last refreshed its underlying data, since neither Jolpica (F1) nor
+ * ESPN (EPL) expose a genuine data-freshness timestamp in their
+ * responses. This is the closest honest proxy available.
  */
 function renderTableShell(root, config, activeColumns) {
   const isCompactHeader = document.documentElement.getAttribute('data-dt-size') === 'compact';
@@ -134,7 +140,7 @@ function renderTableShell(root, config, activeColumns) {
           </tbody>
         </table>
       </div>
-      <div class="dt-footer">Source: KIKA MEDIA</div>
+      <div class="dt-footer"><span class="dt-updated"></span>Source: KIKA MEDIA</div>
     </div>
   `;
   return root.querySelector('tbody');
@@ -160,6 +166,11 @@ function initTable(config) {
         const rows = config.adapter.extract(data);
         const limitedRows = rowLimit ? rows.slice(0, rowLimit) : rows;
         renderRows(tbody, activeColumns, limitedRows);
+        const updatedEl = root.querySelector('.dt-updated');
+        if (updatedEl) {
+          const now = new Date();
+          updatedEl.textContent = 'Updated ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' — ';
+        }
       })
       .catch(err => {
         tbody.innerHTML = `<tr><td colspan="${colspan}">Failed to load: ${err.message}</td></tr>`;
