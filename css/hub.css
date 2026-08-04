@@ -124,7 +124,7 @@ body {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;
 }
-.preview-header h2 { margin: 0; font-size: 0.95rem; color: #111; }
+.preview-header h2 { margin: 0; font-size: 1.19rem; color: #111; }
 .action-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .action-btn {
   border: 1px solid #e2e2e2; background: #fff; color: #444;
@@ -144,14 +144,7 @@ body {
   width: 100%;
   transition: width 0.2s ease;
 }
-#preview-frame {
-  width: 100%; border: 0; min-height: 500px; border-radius: 8px; overflow: hidden; background: #fff;
-  /* Visual-only enlargement for reviewing the preview — the actual
-     embed code and exported PDF/PNG stay at their real size,
-     unaffected by this. zoom is widely supported in Chrome/Safari/
-     Edge; older Firefox versions may not honour it. */
-  zoom: 1.25;
-}
+#preview-frame { width: 100%; border: 0; min-height: 500px; border-radius: 8px; overflow: hidden; background: #fff; }
 
 .colour-section {
   margin-top: 1.25rem;
