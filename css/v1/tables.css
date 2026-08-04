@@ -170,6 +170,10 @@ html, body {
 .dt-footer a {
   color: inherit;
 }
+.dt-updated {
+  font-size: 0.85em;
+  opacity: 0.85;
+}
 
 /* Browsers strip background colours/images by default when
    printing, to save ink — this silently drops the black header bar,
@@ -217,40 +221,32 @@ html, body {
 [data-dt-font="robotocondensed"] .data-table tbody tr {
   background: var(--dt-row-bg);
 }
+/* Grey rule — a thin divider line between rows. Default ON now (was
+   default off) — this is now the site-wide default look, alongside
+   Row background; the "Grey rule" control needs data-dt-rule="off"
+   to hide it. Not mutually exclusive with row backgrounds — can
+   combine either way, whatever look is wanted. */
 [data-dt-font="robotocondensed"] .data-table tbody td {
-  border-bottom: none;
-}
-
-/* Grey rule — a thin divider line between rows, toggleable
-   independently of Row background / Top 3 highlight. Two attribute
-   selectors gives this higher specificity than the border-bottom:
-   none rule above, so it correctly wins regardless of source order.
-   Not mutually exclusive with row backgrounds — can combine either
-   way, whatever look is wanted. */
-[data-dt-font="robotocondensed"][data-dt-rule="on"] .data-table tbody td {
   border-bottom: 1px solid #d0d0d0;
+}
+[data-dt-font="robotocondensed"][data-dt-rule="off"] .data-table tbody td {
+  border-bottom: none;
 }
 
 /* Podium tint — gold/silver/bronze on the top 3 rows. Uses nth-child
    since standings rows are always rendered in rank order, so row 1
-   is always position 1. The "Top 3 highlight" control
-   (data-dt-podium="off") makes these three rows fall back to
-   --dt-row-bg — the exact same variable every other row already
-   uses — so turning off Row background automatically clears the
-   podium tint too, with no separate logic needed for that case. */
-[data-dt-font="robotocondensed"] .data-table tbody tr:nth-child(1) {
+   is always position 1. Default OFF now (was default on) — the
+   "Top 3 highlight" control needs data-dt-podium="on" to show it,
+   matching the new site-wide default of a clean grey-rule look with
+   this as an optional accent, not a default-on decoration. */
+[data-dt-font="robotocondensed"][data-dt-podium="on"] .data-table tbody tr:nth-child(1) {
   background: #f0dfa8;
 }
-[data-dt-font="robotocondensed"] .data-table tbody tr:nth-child(2) {
+[data-dt-font="robotocondensed"][data-dt-podium="on"] .data-table tbody tr:nth-child(2) {
   background: #d9d9de;
 }
-[data-dt-font="robotocondensed"] .data-table tbody tr:nth-child(3) {
+[data-dt-font="robotocondensed"][data-dt-podium="on"] .data-table tbody tr:nth-child(3) {
   background: #e3c9ad;
-}
-[data-dt-podium="off"] .data-table tbody tr:nth-child(1),
-[data-dt-podium="off"] .data-table tbody tr:nth-child(2),
-[data-dt-podium="off"] .data-table tbody tr:nth-child(3) {
-  background: var(--dt-row-bg);
 }
 
 /* Tighter vertical padding — the default 8px top/bottom read as too
