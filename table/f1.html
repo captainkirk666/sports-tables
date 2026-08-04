@@ -2,19 +2,34 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>F1 — Driver Standings (Dark Concept)</title>
+<title>F1</title>
 <script src="https://captainkirk666.github.io/sports-tables/js/loader.js"></script>
 <script src="https://captainkirk666.github.io/sports-tables/js/hub-loader.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  /* Everything below is genuinely F1-specific — the hero art and the
-     Cormorant Garamond import. Every other rule now lives in the
-     shared hub.css (see hub-loader.js), not duplicated here. */
+  /* Genuinely F1-specific: the hero art (now targets ::before, per
+     hub.css's fade-mask structure) and the Cormorant Garamond
+     import. Every other rule lives in the shared hub.css. */
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&display=swap');
-  .hero {
+  .hero::before {
     background-image: url('../assets/logos/f1/f1-hero-art.png');
+  }
+
+  /* TEST — F1 only, not yet in the shared hub.css. Plain Roboto
+     (not Condensed — that's the nav bar's separate font) for the
+     page's general typography. Deliberately does NOT touch the
+     hero H1 or the embedded table's own .dt-title — those already
+     have their own explicit font-family rules (Cormorant Garamond
+     and Roboto Condensed respectively) with higher CSS specificity
+     than this plain `body` rule, so they're naturally unaffected
+     without needing an explicit exclusion here. The embedded table
+     graphic itself is a separate document inside an iframe, so it
+     was never going to inherit this either way. */
+  body {
+    font-family: 'Roboto', sans-serif;
   }
 </style>
 </head>
