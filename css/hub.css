@@ -2,17 +2,18 @@
    Shared hub-page chrome — v1
    Style & Theme panel, Live preview panel, hero
    layout, tabs. Used by every sport's hub page
-   (table/<sport>-dark.html), loaded via
-   hub-loader.js. Nothing sport-specific lives
-   here — each hub page supplies only its own
-   hero background-image and initSportHub()
-   config, via its own small inline <style>/<script>.
+   (table/<sport>.html), loaded via hub-loader.js.
+   Nothing sport-specific lives here — each hub
+   page supplies only its own hero background-
+   image and initSportHub() config, via its own
+   small inline <style>/<script>.
    =========================================== */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
 
 * { box-sizing: border-box; }
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Roboto', sans-serif;
   background: #f5f5f5;
   color: #111;
 }
