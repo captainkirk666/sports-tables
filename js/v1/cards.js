@@ -19,6 +19,12 @@
  *   refreshSeconds: 60,             // 0/undefined = no auto refresh
  * }
  *
+ * Size (compact/standard/full) is NOT part of config — same
+ * convention as tables.js: it's read directly from the embed page's
+ * own URL (?size=...) by applyCardSizeFromQueryParams(), so
+ * sport-hub.js's existing Size buttons drive card embeds exactly the
+ * same way they drive table embeds (see buildEmbedUrl() there).
+ *
  * Preview variant expects extract() to return:
  *   { headline, logoLeft?, logoRight?, flag?, location, date, time }
  *   headline is a plain string — either an event name ("British
@@ -38,6 +44,22 @@
  * cards.css's comment on .card-fixture for why this is a separate
  * variant rather than a branch inside renderPreviewCard.
  */
+
+/**
+ * Mirrors applyThemeFromQueryParams() in tables.js — same attribute
+ * (data-dt-size), same param name (?size=), same three values
+ * (compact/standard/full, full being the unset default). Kept as its
+ * own small function here rather than importing tables.js's, since
+ * card embed pages only load card-loader.js, not the table engine —
+ * duplicating three lines is cheaper than adding a cross-engine
+ * dependency for it.
+ */
+function applyCardSizeFromQueryParams() {
+  const size = new URLSearchParams(window.location.search).get('size');
+  if (size) {
+    document.documentElement.setAttribute('data-dt-size', size);
+  }
+}
 
 function renderPreviewCard(root, data, config) {
   root.innerHTML = `
@@ -61,18 +83,20 @@ function renderPreviewCard(root, data, config) {
 function renderFixtureCard(root, data, config) {
   root.innerHTML = `
     <div class="card-widget card-fixture-widget">
-      <div class="card-eyebrow">${config.eyebrow || ''}</div>
-      <div class="card-fixture">
-        ${data.homeCrest ? `<img class="card-crest" src="${data.homeCrest}" alt="">` : ''}
-        <div class="card-fixture-teams">
-          <div class="card-fixture-team-name">${data.homeName}</div>
-          <div class="card-vs">vs</div>
-          <div class="card-fixture-team-name">${data.awayName}</div>
-        </div>
-        ${data.awayCrest ? `<img class="card-crest" src="${data.awayCrest}" alt="">` : ''}
+      <div class="card-fixture-crests">
+        ${data.homeCrest ? `<img class="card-crest card-crest-left" src="${data.homeCrest}" alt="">` : ''}
+        ${data.awayCrest ? `<img class="card-crest card-crest-right" src="${data.awayCrest}" alt="">` : ''}
       </div>
-      <div class="card-datetime">${data.date}</div>
-      ${data.venue ? `<div class="card-venue">${data.venue}</div>` : ''}
+      <div class="card-eyebrow">${config.eyebrow || ''}</div>
+      <div class="card-fixture-teams">
+        <span class="card-fixture-team-name">${data.homeName}</span>
+        <span class="card-vs">vs</span>
+        <span class="card-fixture-team-name">${data.awayName}</span>
+      </div>
+      <div class="card-fixture-meta">
+        <span class="card-datetime">${data.date}</span>
+        ${data.venue ? `<span class="card-venue">${data.venue}</span>` : ''}
+      </div>
       <div class="card-footer">Source: KIKA MEDIA</div>
     </div>
   `;
@@ -102,6 +126,7 @@ function renderResultCard(root, data, config) {
 }
 
 function initCard(config) {
+  applyCardSizeFromQueryParams();
   const root = document.querySelector(config.containerSelector);
   root.innerHTML = `<div class="card-widget"><p style="padding:1rem;">Loading…</p></div>`;
 
