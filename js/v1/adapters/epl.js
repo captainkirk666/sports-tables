@@ -58,19 +58,25 @@ function eplCompetitor(comp, homeAway) {
   return (comp.competitors || []).find(c => c.homeAway === homeAway) || null;
 }
 /**
- * event.date is a single full ISO datetime ("2026-08-21T19:00Z"),
- * unlike F1/Jolpica's separate date+time strings — one formatter
- * pair covers both, using the viewer's local timezone (soccer
- * kickoffs are widely reported in local time, unlike F1's UTC
- * convention on the timing sheets).
+ * Fixture card date format: "Saturday 6 August, 2026" — day-of-week
+ * plus ordinal day plus full month, no time (the fixture card design
+ * doesn't show kickoff time, only the date and venue). Mixed case
+ * here deliberately, same convention as dt-title elsewhere on the
+ * site — cards.css applies text-transform via CSS, not baked into
+ * the string, so this stays reusable if a future context wants
+ * normal case.
  */
-function eplFormatMatchDate(iso) {
-  if (!iso) return "TBC";
-  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+function eplOrdinal(n) {
+  const s = ["th", "st", "nd", "rd"], v = n % 100;
+  return s[(v - 20) % 10] || s[v] || s[0];
 }
-function eplFormatMatchTime(iso) {
-  if (!iso) return "TBC";
-  return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+function eplFormatFixtureDate(iso) {
+  if (!iso) return "Date TBC";
+  const d = new Date(iso);
+  const weekday = d.toLocaleDateString('en-GB', { weekday: 'long' });
+  const month = d.toLocaleDateString('en-GB', { month: 'long' });
+  const day = d.getDate();
+  return `${weekday} ${day}${eplOrdinal(day)} ${month}, ${d.getFullYear()}`;
 }
 
 const EPL_ADAPTERS = {
@@ -95,9 +101,14 @@ const EPL_ADAPTERS = {
   },
 
   /* Card-shaped version — a single object, used by
-     embed/epl/next-fixture-card.html via cards.js/initCard(). Whole-
-     league scope: whichever two teams kick off next, not any one
-     team's fixture — see eplFindNextFixture() above for why. */
+     embed/epl/next-fixture-card.html via cards.js/initCard()'s
+     "fixture" variant. Whole-league scope: whichever two teams kick
+     off next, not any one team's fixture — see eplFindNextFixture()
+     above for why. No round/matchweek number — ESPN's hidden API
+     doesn't expose one for soccer (confirmed against the live
+     endpoint and corroborated by other API consumers hitting the
+     same gap), so the card's eyebrow is just the static "EPL" label,
+     set in the embed page rather than computed here. */
   nextFixtureCard: {
     sourceUrl: "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard",
     extract: data => {
@@ -110,12 +121,12 @@ const EPL_ADAPTERS = {
       const venue = comp.venue || {};
       const city = venue.address && venue.address.city;
       return {
-        headline: `${home.team.shortDisplayName} v ${away.team.shortDisplayName}`,
-        logoLeft: home.team.logo || null,
-        logoRight: away.team.logo || null,
-        location: city ? `${venue.fullName}, ${city}` : (venue.fullName || "Venue TBC"),
-        date: eplFormatMatchDate(event.date),
-        time: eplFormatMatchTime(event.date),
+        homeName: home.team.shortDisplayName,
+        awayName: away.team.shortDisplayName,
+        homeCrest: home.team.logo || null,
+        awayCrest: away.team.logo || null,
+        date: eplFormatFixtureDate(event.date),
+        venue: city ? `${venue.fullName}, ${city}` : (venue.fullName || null),
       };
     },
   },
