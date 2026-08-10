@@ -35,6 +35,15 @@
  *         // size — that's the Full-width default.
  *         sizeColumns: { compact: ["pos","driver","points"], standard: [...] } },
  *       ...
+ *     ],
+ *     // Optional — cards get their own tab too. See the block near
+ *     // refreshActiveCard() below for why they're deliberately kept
+ *     // simpler than tables (no style controls, no PDF/PNG export).
+ *     cards: [
+ *       { key: "next-fixture", label: "Next Fixture", title: "EPL Next Fixture",
+ *         tableLabel: "Next Fixture", sportLogo: "...",
+ *         embedHref: "../embed/epl/next-fixture-card.html" },
+ *       ...
  *     ]
  *   });
  *
@@ -88,7 +97,9 @@ function columnsForSize(table, size) {
 
 let hub = {
   tables: [],
+  cards: [],
   activeKey: null,
+  activeType: "table", // "table" | "card"
   style: { titleColor: null, posColor: null, pointsColor: null },
   controls: { flags: false, logos: false, rowBg: true, podium: false, rule: true },
   previewSize: "full",
@@ -100,6 +111,9 @@ let hub = {
 
 function activeTable() {
   return hub.tables.find(t => t.key === hub.activeKey);
+}
+function activeCard() {
+  return hub.cards.find(c => c.key === hub.activeKey);
 }
 
 /* ---------- Panel generation — the template itself ----------
@@ -200,23 +214,38 @@ function renderLivePreviewPanel() {
 function renderTableTabs() {
   const mount = document.getElementById("table-tabs");
   if (!mount) return;
-  mount.innerHTML = hub.tables.map(t => `
-    <button class="table-tab${t.key === hub.activeKey ? ' active' : ''}" data-key="${t.key}" onclick="selectTableTab('${t.key}')">
-      ${t.label}
+  const tableTabs = hub.tables.map(t => tabButtonHtml(t.key, t.label, "table"));
+  const cardTabs = hub.cards.map(c => tabButtonHtml(c.key, c.label, "card"));
+  mount.innerHTML = tableTabs.concat(cardTabs).join("");
+}
+function tabButtonHtml(key, label, type) {
+  const active = type === hub.activeType && key === hub.activeKey;
+  return `
+    <button class="table-tab${active ? ' active' : ''}" data-key="${key}" data-type="${type}" onclick="selectTab('${key}', '${type}')">
+      ${label}
     </button>
-  `).join("");
+  `;
 }
 
-function selectTableTab(key) {
+function selectTab(key, type) {
   hub.activeKey = key;
+  hub.activeType = type;
   document.querySelectorAll(".table-tab").forEach(el =>
-    el.classList.toggle("active", el.dataset.key === key));
-  refreshActiveTable();
+    el.classList.toggle("active", el.dataset.key === key && el.dataset.type === type));
+  if (type === "card") {
+    refreshActiveCard();
+  } else {
+    refreshActiveTable();
+  }
 }
 
 /* ---------- Live preview + embed code ---------- */
 
 function buildEmbedUrl() {
+  if (hub.activeType === "card") {
+    const card = activeCard();
+    return card.embedHref; // no style params yet — cards have no customization
+  }
   const table = activeTable();
   const params = new URLSearchParams();
   if (hub.style.titleColor) params.set("titleColor", hub.style.titleColor);
@@ -438,6 +467,7 @@ function applyExportThemeAttributes() {
 }
 
 function renderExportSurface() {
+  if (hub.activeType !== "table") return; // export machinery (renderTableShell/renderRows) is table-only
   const table = activeTable();
   if (!table) return;
 
@@ -528,9 +558,62 @@ function downloadPng() {
   });
 }
 
-/* ---------- Switching / loading the active table ---------- */
+/* ---------- Switching / loading the active table or card ----------
+ * Cards have none of the table engine's customization (no columns,
+ * no flags/logos, no colour pickers, no row limits, no PDF/PNG
+ * export — that export path is built on renderTableShell/renderRows,
+ * which cards don't use). Rather than growing every table-only
+ * control to also understand cards, the Style & Theme panel's
+ * controls and the Download buttons simply hide while a card tab is
+ * active, restored when switching back to a table tab. Get embed
+ * code / Copy still work for cards — buildEmbedUrl() already
+ * branches for that. */
+
+function refreshStyleThemePanelForType() {
+  const mount = document.getElementById("style-theme-panel");
+  if (!mount) return;
+  const isCard = hub.activeType === "card";
+  mount.querySelectorAll(".size-section, .colour-section, .controls-section").forEach(el => {
+    el.style.display = isCard ? "none" : "";
+  });
+  let note = mount.querySelector(".card-style-note");
+  if (isCard) {
+    if (!note) {
+      note = document.createElement("p");
+      note.className = "card-style-note";
+      note.style.color = "var(--dt-text-secondary)";
+      note.textContent = "This card has no style options yet — it always renders with the shared card theme.";
+      mount.appendChild(note);
+    }
+  } else if (note) {
+    note.remove();
+  }
+}
+
+function refreshExportButtonsForType() {
+  const isCard = hub.activeType === "card";
+  const dl = document.getElementById("download-btn");
+  const dlPng = document.getElementById("download-png-btn");
+  if (dl) dl.style.display = isCard ? "none" : "";
+  if (dlPng) dlPng.style.display = isCard ? "none" : "";
+}
+
+function refreshActiveCard() {
+  const card = activeCard();
+  const heroLogo = card.sportLogo ? `<img class="hero-logo" src="${card.sportLogo}" alt="">` : '';
+  document.getElementById("page-title").innerHTML = `${heroLogo}<span class="hero-title-text">${card.tableLabel || card.title}</span>`;
+  document.title = `${card.title} — Live sports data cards`;
+
+  refreshStyleThemePanelForType();
+  refreshExportButtonsForType();
+  updateStylePreview();
+  document.getElementById("print-surface").innerHTML = "";
+}
 
 function refreshActiveTable() {
+  refreshStyleThemePanelForType();
+  refreshExportButtonsForType();
+
   const table = activeTable();
   const heroLogo = table.sportLogo ? `<img class="hero-logo" src="${table.sportLogo}" alt="">` : '';
   document.getElementById("page-title").innerHTML = `${heroLogo}<span class="hero-title-text">${table.tableLabel || table.title}</span>`;
@@ -556,8 +639,18 @@ function refreshActiveTable() {
 }
 
 function initSportHub(config) {
-  hub.tables = config.tables;
-  hub.activeKey = config.tables[0].key;
+  hub.tables = config.tables || [];
+  hub.cards = config.cards || [];
+
+  const firstTable = hub.tables[0];
+  const firstCard = hub.cards[0];
+  if (firstTable) {
+    hub.activeKey = firstTable.key;
+    hub.activeType = "table";
+  } else if (firstCard) {
+    hub.activeKey = firstCard.key;
+    hub.activeType = "card";
+  }
 
   renderStyleThemePanel();
   renderLivePreviewPanel();
@@ -567,7 +660,12 @@ function initSportHub(config) {
   renderPosPointsColourButtons();
   renderPreviewSizeControls();
   renderRowLimitControls();
-  refreshActiveTable();
+
+  if (hub.activeType === "card") {
+    refreshActiveCard();
+  } else {
+    refreshActiveTable();
+  }
 
   const controlFlags = document.getElementById("control-flags");
   if (controlFlags) controlFlags.addEventListener("change", toggleFlags);
