@@ -38,7 +38,8 @@
  *     ],
  *     // Optional — cards get their own tab too. See the block near
  *     // refreshActiveCard() below for why they're deliberately kept
- *     // simpler than tables (no style controls, no PDF/PNG export).
+ *     // simpler than tables (no colour/row controls, no PDF/PNG
+ *     // export) but DO share the same Size system (see cards.css).
  *     cards: [
  *       { key: "next-fixture", label: "Next Fixture", title: "EPL Next Fixture",
  *         tableLabel: "Next Fixture", sportLogo: "...",
@@ -598,14 +599,6 @@ function refreshStyleThemePanelForType() {
   } else if (note) {
     note.remove();
   }
-}
-
-function refreshExportButtonsForType() {
-  const isCard = hub.activeType === "card";
-  const dl = document.getElementById("download-btn");
-  const dlPng = document.getElementById("download-png-btn");
-  if (dl) dl.style.display = isCard ? "none" : "";
-  if (dlPng) dlPng.style.display = isCard ? "none" : "";
 }
 
 function refreshExportButtonsForType() {
