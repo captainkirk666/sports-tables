@@ -14,7 +14,7 @@
   --card-text-secondary: #666;
   --card-border: #e2e2e2;
   --card-accent: #e10600;
-  --card-radius: 8px;
+  --card-radius: 8px; /* matches --dt-radius in tables.css */
   --card-font: 'Roboto Condensed', sans-serif;
 }
 
@@ -76,6 +76,54 @@ html, body { margin: 0; padding: 0; }
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--card-text);
+}
+
+/* ---------- Fixture variant (two-team matchup preview, e.g. EPL) ----------
+   Distinct from the Preview variant above: Preview is single-event
+   content (F1's next race — one headline, small optional side icons).
+   Fixture is specifically a two-team matchup — big circular crests
+   flanking a centered team-name stack, matching the card mockup this
+   was built from. Kept as its own variant/render function rather than
+   branching inside renderPreviewCard, so F1's already-working next-race
+   card is untouched when it's retrofitted onto this engine later. */
+.card-fixture {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+.card-crest {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--card-header-bg, #f7f7f8);
+}
+.card-fixture-teams {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+}
+.card-fixture-team-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+}
+.card-vs {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--card-text-secondary);
+  margin: 0.1rem 0;
+}
+.card-venue {
+  font-size: 0.85rem;
+  color: var(--card-text-secondary);
 }
 
 /* ---------- Result variant (final score) ---------- */
