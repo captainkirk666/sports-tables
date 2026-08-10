@@ -8,7 +8,7 @@
  *
  * config = {
  *   containerSelector: "#dt-app",
- *   variant: "preview" | "result",
+ *   variant: "preview" | "fixture" | "result",
  *   eyebrow: "Next Race",           // small label above the content
  *   sourceUrl: "https://...",
  *   adapter: {
@@ -31,6 +31,14 @@
  *   { leftName, rightName, leftScore, rightScore, leftLogo?, rightLogo?, detail? }
  */
 
+/**
+ * Fixture variant expects extract() to return:
+ *   { eyebrow?, homeName, awayName, homeCrest?, awayCrest?, date, venue? }
+ * Distinct from the Preview variant's single-headline shape — see
+ * cards.css's comment on .card-fixture for why this is a separate
+ * variant rather than a branch inside renderPreviewCard.
+ */
+
 function renderPreviewCard(root, data, config) {
   root.innerHTML = `
     <div class="card-widget card-preview">
@@ -45,6 +53,26 @@ function renderPreviewCard(root, data, config) {
         <span>${data.location}</span>
       </div>
       <div class="card-datetime">${data.date} · ${data.time}</div>
+      <div class="card-footer">Source: KIKA MEDIA</div>
+    </div>
+  `;
+}
+
+function renderFixtureCard(root, data, config) {
+  root.innerHTML = `
+    <div class="card-widget card-fixture-widget">
+      <div class="card-eyebrow">${config.eyebrow || ''}</div>
+      <div class="card-fixture">
+        ${data.homeCrest ? `<img class="card-crest" src="${data.homeCrest}" alt="">` : ''}
+        <div class="card-fixture-teams">
+          <div class="card-fixture-team-name">${data.homeName}</div>
+          <div class="card-vs">vs</div>
+          <div class="card-fixture-team-name">${data.awayName}</div>
+        </div>
+        ${data.awayCrest ? `<img class="card-crest" src="${data.awayCrest}" alt="">` : ''}
+      </div>
+      <div class="card-datetime">${data.date}</div>
+      ${data.venue ? `<div class="card-venue">${data.venue}</div>` : ''}
       <div class="card-footer">Source: KIKA MEDIA</div>
     </div>
   `;
@@ -91,6 +119,8 @@ function initCard(config) {
         }
         if (config.variant === 'result') {
           renderResultCard(root, data, config);
+        } else if (config.variant === 'fixture') {
+          renderFixtureCard(root, data, config);
         } else {
           renderPreviewCard(root, data, config);
         }
