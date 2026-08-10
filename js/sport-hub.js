@@ -244,7 +244,12 @@ function selectTab(key, type) {
 function buildEmbedUrl() {
   if (hub.activeType === "card") {
     const card = activeCard();
-    return card.embedHref; // no style params yet — cards have no customization
+    const params = new URLSearchParams();
+    if (hub.previewSize === "compact" || hub.previewSize === "standard") {
+      params.set("size", hub.previewSize);
+    }
+    const qs = params.toString();
+    return qs ? `${card.embedHref}?${qs}` : card.embedHref;
   }
   const table = activeTable();
   const params = new URLSearchParams();
@@ -559,13 +564,12 @@ function downloadPng() {
 }
 
 /* ---------- Switching / loading the active table or card ----------
- * Cards have none of the table engine's customization (no columns,
- * no flags/logos, no colour pickers, no row limits, no PDF/PNG
- * export — that export path is built on renderTableShell/renderRows,
- * which cards don't use). Rather than growing every table-only
- * control to also understand cards, the Style & Theme panel's
- * controls and the Download buttons simply hide while a card tab is
- * active, restored when switching back to a table tab. Get embed
+ * Cards share the table engine's Size system (Full/Standard/Compact
+ * — see cards.css/cards.js for how ?size= drives three distinct
+ * layouts there), so that control stays visible for card tabs. Rows,
+ * the colour pickers, and the flags/logos/rowbg/podium/rule controls
+ * are still table-only and hide, as does PDF/PNG export (still built
+ * on renderTableShell/renderRows, which cards don't use). Get embed
  * code / Copy still work for cards — buildEmbedUrl() already
  * branches for that. */
 
@@ -573,21 +577,35 @@ function refreshStyleThemePanelForType() {
   const mount = document.getElementById("style-theme-panel");
   if (!mount) return;
   const isCard = hub.activeType === "card";
-  mount.querySelectorAll(".size-section, .colour-section, .controls-section").forEach(el => {
+
+  const rowsSection = document.getElementById("row-limit-controls");
+  const rowsSectionWrap = rowsSection && rowsSection.closest(".size-section");
+  if (rowsSectionWrap) rowsSectionWrap.style.display = isCard ? "none" : "";
+
+  mount.querySelectorAll(".colour-section, .controls-section").forEach(el => {
     el.style.display = isCard ? "none" : "";
   });
+
   let note = mount.querySelector(".card-style-note");
   if (isCard) {
     if (!note) {
       note = document.createElement("p");
       note.className = "card-style-note";
       note.style.color = "var(--dt-text-secondary)";
-      note.textContent = "This card has no style options yet — it always renders with the shared card theme.";
+      note.textContent = "This card only supports the Size options above — no colour or row controls yet.";
       mount.appendChild(note);
     }
   } else if (note) {
     note.remove();
   }
+}
+
+function refreshExportButtonsForType() {
+  const isCard = hub.activeType === "card";
+  const dl = document.getElementById("download-btn");
+  const dlPng = document.getElementById("download-png-btn");
+  if (dl) dl.style.display = isCard ? "none" : "";
+  if (dlPng) dlPng.style.display = isCard ? "none" : "";
 }
 
 function refreshExportButtonsForType() {
