@@ -1,465 +1,291 @@
-/* ===========================================
-   Shared embeddable CARD theme — v1
-   For "look-ahead" content (next event, upcoming
-   fixture) and final-score results — a different
-   shape of content from the ranked standings
-   tables in tables.css, kept as its own file
-   rather than bolted onto that engine.
-   =========================================== */
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;600;700&display=swap');
+/**
+ * EPL adapter — Premier League table, via ESPN's free undocumented
+ * standings endpoint (no key required):
+ *   https://site.api.espn.com/apis/v2/sports/soccer/eng.1/standings
+ * (must be /apis/v2/, not /apis/site/v2/ — the latter returns an
+ * empty object for this endpoint).
+ *
+ * Unlike F1's Jolpica API, ESPN DOES provide team crest URLs
+ * directly (team.logos[0].href, hosted on ESPN's own CDN) — no
+ * self-hosted logo files needed here, same pattern as flagcdn.com
+ * for nationality flags elsewhere on this site: hotlinked directly,
+ * not downloaded/stored locally.
+ */
 
-:root {
-  --card-bg: #fff;
-  --card-text: #111;
-  --card-text-secondary: #666;
-  --card-border: #e2e2e2;
-  --card-accent: #e10600;
-  --card-radius: 8px; /* matches --dt-radius in tables.css */
-  --card-font: 'Roboto Condensed', sans-serif;
-  /* Overridable via ?titleColor=/?secondaryColor= — see
-     applyCardStyleFromQueryParams() in cards.js. Fall back to the
-     plain text colour / accent red respectively when unset. */
-  --card-title-color: var(--card-text);
-  --card-secondary-color: var(--card-accent);
+/**
+ * ESPN returns each team's stats as an array of { name, value,
+ * displayValue, ... } objects rather than a flat object — these
+ * pull a specific stat out by its `name`. displayValue is used for
+ * pointDifferential specifically since ESPN already formats it with
+ * a +/- sign ("+44", "-37"), which value (a plain number) doesn't.
+ */
+function eplStat(entry, name) {
+  const stat = entry.stats.find(s => s.name === name);
+  return stat ? stat.value : null;
 }
-
-* { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; }
-
-.card-widget {
-  font-family: var(--card-font);
-  background: var(--card-bg);
-  color: var(--card-text);
-  border: 1px solid var(--card-border);
-  border-radius: var(--card-radius);
-  padding: 1.25rem 1.5rem;
-  text-align: center;
+function eplStatDisplay(entry, name) {
+  const stat = entry.stats.find(s => s.name === name);
+  return stat ? stat.displayValue : null;
+}
+function eplCrest(entry) {
+  return (entry.team.logos && entry.team.logos[0]) ? entry.team.logos[0].href : null;
 }
 
-.card-eyebrow {
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--card-secondary-color);
-  margin-bottom: 0.5rem;
+/**
+ * Whole-league "next kickoff" card — deliberately NOT scoped to any
+ * one team. ESPN's scoreboard endpoint, called with no ?dates= param
+ * at all, auto-advances to the next matchday that actually has
+ * scheduled games (verified directly against the live endpoint —
+ * during pre-season it returned the season's opening weekend rather
+ * than an empty "today"). That self-advancing behaviour is exactly
+ * what a single-fetch "next kickoff, any two teams" card needs, so
+ * this reuses the bare scoreboard URL with no date filtering.
+ *
+ * A per-team version of this card (e.g. "Arsenal's next match")
+ * would need the /teams/{id}/schedule endpoint instead — deliberately
+ * not used here, since multiple reports elsewhere show that endpoint
+ * going dead/changing shape without notice. Worth revisiting if a
+ * team-scoped card is wanted later, but re-verify it's alive first.
+ */
+function eplFindNextFixture(data) {
+  const events = data.events || [];
+  return events.find(e => {
+    const comp = e.competitions && e.competitions[0];
+    return !!(comp && comp.status && comp.status.type && comp.status.type.state === "pre");
+  }) || null;
+}
+function eplCompetitor(comp, homeAway) {
+  return (comp.competitors || []).find(c => c.homeAway === homeAway) || null;
+}
+/**
+ * Fixture card date format: "Saturday 6 August, 2026" — day-of-week
+ * plus ordinal day plus full month, no time (the fixture card design
+ * doesn't show kickoff time, only the date and venue). Mixed case
+ * here deliberately, same convention as dt-title elsewhere on the
+ * site — cards.css applies text-transform via CSS, not baked into
+ * the string, so this stays reusable if a future context wants
+ * normal case.
+ */
+function eplOrdinal(n) {
+  const s = ["th", "st", "nd", "rd"], v = n % 100;
+  return s[(v - 20) % 10] || s[v] || s[0];
+}
+function eplFormatFixtureDate(iso) {
+  if (!iso) return "Date TBC";
+  const d = new Date(iso);
+  const weekday = d.toLocaleDateString('en-GB', { weekday: 'long' });
+  const month = d.toLocaleDateString('en-GB', { month: 'long' });
+  const day = d.getDate();
+  return `${weekday} ${day}${eplOrdinal(day)} ${month}, ${d.getFullYear()}`;
+}
+/**
+ * Short form for the Compact card size only — "Sat, 22nd Aug", no
+ * year. Full/Standard keep the long form above (renderFixtureCard()
+ * in cards.js picks between the two based on the current
+ * [data-dt-size]).
+ */
+function eplFormatFixtureDateShort(iso) {
+  if (!iso) return "TBC";
+  const d = new Date(iso);
+  const weekday = d.toLocaleDateString('en-GB', { weekday: 'short' });
+  const month = d.toLocaleDateString('en-GB', { month: 'short' });
+  const day = d.getDate();
+  return `${weekday}, ${day}${eplOrdinal(day)} ${month}`;
 }
 
-/* ---------- Preview variant (Next Race, upcoming fixtures) ---------- */
-.card-headline {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  font-size: 1.4rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--card-title-color);
-  margin-bottom: 0.6rem;
+/**
+ * ---------- Weekend fixture list — back on ESPN ----------
+ *
+ * Was briefly built on football-data.org for its genuine `matchday`
+ * grouping — reverted after discovering its free tier restricts
+ * direct-browser CORS to localhost only, which a static site with no
+ * backend can't work around without a paid plan. Back on ESPN,
+ * which has proven reliably CORS-open all session, at the cost of
+ * the correctness tradeoff already discussed at length: no round/
+ * matchday field, so "this weekend's games" means a date-window
+ * heuristic rather than an authoritative boundary. Also means no
+ * "EPL RD XX" round label — same reason nextFixtureCard's eyebrow
+ * above is just "EPL", no number.
+ *
+ * Approach: fetch the bare scoreboard (no ?dates=) to find the next
+ * unplayed fixture, same trick eplFindNextFixture() above already
+ * uses — its date anchors a Friday–Monday window. Each of those 4
+ * dates gets its own ?dates=YYYYMMDD fetch (the single-date query is
+ * the one part of ESPN's date handling that's been reliable all
+ * session), results merged and deduped by event id. 5 fetches total
+ * per page load — more than football-data.org's 2, but ESPN has no
+ * personal account quota to protect, so that's a non-issue here.
+ *
+ * Known residual risk, unchanged from the original discussion: a
+ * rearranged fixture sitting outside Fri–Mon (a Tuesday cup-clash
+ * reschedule, say) can still be missed, or — if IT happens to be the
+ * chronologically-next unplayed fixture — can skew the anchor and
+ * pull in the wrong week's window. Accepted, not solved.
+ *
+ * weekOffset (0 = this weekend, 1 = next, -1 = last, etc.) is wired
+ * through now even though no UI drives it yet, same "future nav
+ * costs one param, not a rewrite" reasoning as before — just shifted
+ * from a matchday number to a week offset, since ESPN has no round
+ * number to offset instead.
+ */
+function eplFormatDateParam(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}${m}${day}`;
 }
-.card-logo-left,
-.card-logo-right {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
+function eplWeekendWindowDates(anchorDate) {
+  const day = anchorDate.getDay(); // 0=Sun..6=Sat
+  const daysSinceFriday = (day + 2) % 7;
+  const friday = new Date(anchorDate);
+  friday.setDate(anchorDate.getDate() - daysSinceFriday);
+  const dates = [];
+  for (let i = 0; i < 4; i++) {
+    const d = new Date(friday);
+    d.setDate(friday.getDate() + i);
+    dates.push(eplFormatDateParam(d));
+  }
+  return dates;
 }
-.card-location {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  font-size: 0.95rem;
-  color: var(--card-text-secondary);
-  margin-bottom: 0.25rem;
+/**
+ * Weekday + time, e.g. "Sat 15:00" — was time-only before, which is
+ * ambiguous once a list spans several different days (Fri through
+ * Mon). Compact enough to still fit the row's sub-line slot.
+ */
+function eplFormatKickoffDateTime(iso) {
+  if (!iso) return "TBC";
+  const d = new Date(iso);
+  const weekday = d.toLocaleDateString('en-GB', { weekday: 'short' });
+  const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  return `${weekday} ${time}`;
 }
-.card-flag {
-  width: 20px;
-  height: 14px;
-  object-fit: cover;
-  border-radius: 2px;
-}
-.card-datetime {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--card-text);
-}
-
-/* ---------- Fixture variant (two-team matchup preview, e.g. EPL) ----------
-   Distinct from the Preview variant above: Preview is single-event
-   content (F1's next race — one headline, small optional side icons).
-   Fixture is specifically a two-team matchup. Kept as its own
-   variant/render function rather than branching inside
-   renderPreviewCard, so F1's already-working next-race card is
-   untouched when it's retrofitted onto this engine later.
-
-   SIZE SYSTEM: reuses the exact same [data-dt-size="compact"|
-   "standard"|"full"] attribute and ?size= query param that tables.js
-   already establishes (see applyThemeFromQueryParams() there,
-   mirrored by applyCardSizeFromQueryParams() in cards.js) — same
-   convention, same three sizes, same sport-hub.js Size buttons drive
-   both engines' embeds. Default (no attribute set) = "full".
-
-   COLOUR + CONTROLS: driven by applyCardStyleFromQueryParams() in
-   cards.js — [data-card-logos="off"], [data-card-rowbg="on"],
-   [data-card-rule="on"], plus --card-title-color/--card-secondary-
-   color. Two of the three default OFF (rowbg, rule) rather than
-   mirroring tables' default-ON, specifically to preserve the card's
-   original plain-white look now that these are opt-in additions
-   rather than having been part of the initial design.
-
-   ONE markup, THREE layouts: rather than three separate render
-   functions, this is CSS Grid with named areas, redefined per size —
-   renderFixtureCard() always emits the same elements (crests wrapper,
-   a topline wrapper holding eyebrow+meta, teams); only which
-   grid-template-areas arrangement is active changes, plus which of
-   the two wrapper elements (crests, topline) are display:contents
-   (children become independent grid items) vs a real flex box
-   (children merge into one paired/grouped grid item). No footer on
-   any size — removed per request, this card no longer carries a
-   source credit line. */
-.card-fixture-widget {
-  display: grid;
-  column-gap: 0.75rem;
-  row-gap: 0.4rem;
-  align-items: center;
-}
-
-.card-fixture-crests {
-  display: contents; /* default: children are independent grid items — see compact override below */
-}
-.card-crest {
-  width: clamp(3.75rem, 22vw, 6.9rem);
-  height: clamp(3.75rem, 22vw, 6.9rem);
-  object-fit: contain;
-  flex-shrink: 0;
-}
-.card-crest-left  { grid-area: crest-left; justify-self: end; }
-.card-crest-right { grid-area: crest-right; justify-self: start; }
-[data-card-logos="off"] .card-crest { display: none; }
-
-.card-fixture-topline {
-  display: contents; /* default: eyebrow + meta are independent grid items — see full override below, which merges them onto one line */
-}
-.card-fixture-widget .card-eyebrow { grid-area: eyebrow; margin-bottom: 0; }
-
-.card-fixture-teams {
-  grid-area: teams;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center; /* was missing — the actual cause of Full's team-name line rendering left-aligned instead of centered */
-  gap: 0.05rem; /* tightened per request; was 0.15rem */
-}
-.card-fixture-team-name {
-  font-size: 1.3rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.01em;
-  line-height: 1.15;
-  color: var(--card-title-color);
-}
-.card-vs {
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--card-text-secondary);
-  margin: 0.05rem 0; /* tightened per request; was 0.1rem */
-}
-/* Grey rule — opt-in divider under the team names/vs block, default
-   off (see file-header note above on why cards invert tables' rule
-   default). */
-[data-card-rule="on"] .card-fixture-teams {
-  border-bottom: 1px solid #d0d0d0; /* matches tables.css's rule colour exactly */
-  padding-bottom: 0.35rem;
+function eplFetchWeekendEvents(weekOffset) {
+  const base = "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard";
+  return fetch(base)
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    })
+    .then(anchorData => {
+      const anchorEvent = eplFindNextFixture(anchorData);
+      const anchor = anchorEvent ? new Date(anchorEvent.date) : new Date();
+      if (weekOffset) anchor.setDate(anchor.getDate() + weekOffset * 7);
+      const dates = eplWeekendWindowDates(anchor);
+      return Promise.all(dates.map(d =>
+        fetch(`${base}?dates=${d}`).then(res => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.json();
+        })
+      ));
+    })
+    .then(responses => {
+      const seen = new Set();
+      const events = [];
+      responses.forEach(data => {
+        (data.events || []).forEach(e => {
+          if (!seen.has(e.id)) {
+            seen.add(e.id);
+            events.push(e);
+          }
+        });
+      });
+      events.sort((a, b) => new Date(a.date) - new Date(b.date));
+      return events;
+    });
 }
 
-.card-fixture-meta {
-  grid-area: meta;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.1rem;
-}
-.card-venue {
-  font-size: 0.85rem;
-  color: var(--card-text-secondary);
-}
+const EPL_ADAPTERS = {
+  table: {
+    sourceUrl: "https://site.api.espn.com/apis/v2/sports/soccer/eng.1/standings",
+    extract: data => {
+      const group = data.children && data.children[0];
+      return (group && group.standings && group.standings.entries) || [];
+    },
+    columns: [
+      { key: "pos",     label: "Pos", compactLabel: "#", get: e => eplStat(e, "rank"), emphasis: true },
+      { key: "team",    label: "Team", get: e => e.team.displayName, compactGet: e => e.team.shortDisplayName, shortenAt: ["compact", "standard"], logo: e => eplCrest(e) },
+      { key: "played",  label: "P",   get: e => eplStat(e, "gamesPlayed"), numeric: true },
+      { key: "won",     label: "W",   get: e => eplStat(e, "wins"), numeric: true },
+      { key: "drawn",   label: "D",   get: e => eplStat(e, "ties"), numeric: true },
+      { key: "lost",    label: "L",   get: e => eplStat(e, "losses"), numeric: true },
+      { key: "for",     label: "F",   get: e => eplStat(e, "pointsFor"), numeric: true },
+      { key: "against", label: "A",   get: e => eplStat(e, "pointsAgainst"), numeric: true },
+      { key: "gd",      label: "GD",  get: e => eplStatDisplay(e, "pointDifferential"), numeric: true },
+      { key: "points",  label: "Pts", get: e => eplStat(e, "points"), numeric: true },
+    ],
+  },
 
-/* Row background — opt-in grey fill, default off (see file-header
-   note). Matches tables.css's --dt-row-bg (#f0f0f0) exactly. Applied
-   to .card-widget broadly (not fixture-scoped) — safe to generalize
-   across variants, unlike the logos/rule bindings below which are
-   Fixture-specific until Preview/Result have live embeds to design
-   against. */
-[data-card-rowbg="on"] .card-widget { background: #f0f0f0; }
+  /* Card-shaped version — a single object, used by
+     embed/epl/next-fixture-card.html via cards.js/initCard()'s
+     "fixture" variant. Whole-league scope: whichever two teams kick
+     off next, not any one team's fixture — see eplFindNextFixture()
+     above for why. No round/matchweek number — ESPN's hidden API
+     doesn't expose one for soccer (confirmed against the live
+     endpoint and corroborated by other API consumers hitting the
+     same gap), so the card's eyebrow is just the static "EPL" label,
+     set in the embed page rather than computed here.
 
-/* STANDARD — eyebrow on its own row, big crests flanking a stacked
-   team-name block, meta full-width below. Padding pared right down
-   per request — the card's own border already reads as its edge,
-   so there's little value in extra inset. */
-[data-dt-size="standard"] .card-fixture-widget {
-  grid-template-columns: auto 1fr auto;
-  grid-template-areas:
-    "eyebrow    eyebrow eyebrow"
-    "crest-left teams   crest-right"
-    "meta       meta    meta";
-  padding: 2px;
-  row-gap: 0.3rem; /* tightened from the shared 0.4rem base, contributing to the requested depth reduction */
-}
+     dateShort/venueShort are ONLY used at Compact size (see
+     renderFixtureCard() in cards.js) — Full/Standard use date/venue,
+     the fuller forms. */
+  nextFixtureCard: {
+    sourceUrl: "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard",
+    extract: data => {
+      const event = eplFindNextFixture(data);
+      if (!event) return null;
+      const comp = event.competitions[0];
+      const home = eplCompetitor(comp, "home");
+      const away = eplCompetitor(comp, "away");
+      if (!home || !away) return null;
+      const venue = comp.venue || {};
+      const city = venue.address && venue.address.city;
+      return {
+        homeName: home.team.shortDisplayName,
+        awayName: away.team.shortDisplayName,
+        homeCrest: home.team.logo || null,
+        awayCrest: away.team.logo || null,
+        date: eplFormatFixtureDate(event.date),
+        dateShort: eplFormatFixtureDateShort(event.date),
+        venue: city ? `${venue.fullName}, ${city}` : (venue.fullName || null),
+        venueShort: venue.fullName || null,
+      };
+    },
+  },
 
-/* FULL (also the unset/default case — the hub's Full-width button
-   sends NO ?size= param at all, same convention as tables.js, so
-   this must cover both "no attribute set" and an explicit "full").
-   Using html:not([data-dt-size]) rather than a second bare selector
-   here deliberately — a bare .card-fixture-widget would have the
-   exact same specificity as the base rules below and only win via
-   source-order coincidence, which would silently break if this file
-   is ever reordered. :not() sidesteps that.
-
-   Wide single-row banner, minimum depth: eyebrow + date + venue all
-   merged onto ONE line (the topline wrapper switches from
-   display:contents to display:flex here, same trick the crests
-   wrapper already uses at Compact), team names on the line below
-   that. No meta row, no footer — two lines of content total,
-   flanked by small crests. */
-html:not([data-dt-size]) .card-fixture-widget,
-[data-dt-size="full"] .card-fixture-widget {
-  grid-template-columns: auto 1fr auto;
-  grid-template-areas:
-    "crest-left top   crest-right"
-    "crest-left teams crest-right";
-  padding: 4px 12px; /* was inheriting .card-widget's 1.25rem/1.5rem — this plus the tighter row-gap below is most of the ~50% height reduction */
-  row-gap: 0.1rem;
-}
-html:not([data-dt-size]) .card-fixture-topline,
-[data-dt-size="full"] .card-fixture-topline {
-  display: flex;
-  grid-area: top;
-  align-items: baseline;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-.card-fixture-widget .card-eyebrow { margin-bottom: 0; }
-html:not([data-dt-size]) .card-fixture-meta,
-[data-dt-size="full"] .card-fixture-meta { flex-direction: row; gap: 0.5rem; }
-html:not([data-dt-size]) .card-fixture-widget .card-datetime,
-html:not([data-dt-size]) .card-fixture-widget .card-venue,
-[data-dt-size="full"] .card-fixture-widget .card-datetime,
-[data-dt-size="full"] .card-fixture-widget .card-venue { font-size: 0.75rem; }
-/* Logo height ≈ card height, via a fixed size rather than a
-   self-referencing percentage: TWO attempts at "stretch to fill the
-   grid area automatically" (align-self:stretch with height:auto,
-   then height:100%) both produced a circular blow-up in practice —
-   whatever CSS Grid's actual percentage-resolution behaviour is
-   here, it isn't excluding the image from the row's own auto-sizing
-   the way the spec's "definite vs indefinite size" rules suggested
-   it should. Rather than keep chasing that, this is a plain fixed
-   clamp — the same deterministic technique every other crest size in
-   this file already uses successfully — calibrated to roughly match
-   the compressed Full card's own ~2-line content height. Width stays
-   auto, so the browser derives it from the image's own aspect ratio
-   rather than distorting it. */
-html:not([data-dt-size]) .card-crest,
-[data-dt-size="full"] .card-crest { width: auto; height: clamp(2.25rem, 11vw, 3rem); }
-html:not([data-dt-size]) .card-fixture-teams,
-[data-dt-size="full"] .card-fixture-teams { flex-direction: row; gap: 0.4rem; }
-html:not([data-dt-size]) .card-fixture-team-name,
-[data-dt-size="full"] .card-fixture-team-name { font-size: 1.1rem; }
-
-/* COMPACT — narrow column: both crests paired together above the
-   eyebrow, rather than flanking the team block (there isn't width
-   for that at this size). The crests wrapper switches from
-   display:contents to a real flex box here, becoming one grid item
-   ("crests") instead of two independent ones. Date/venue use the
-   short forms (see eplFormatFixtureDateShort()/venueShort in
-   epl.js) — "Sat, 22nd Aug" and stadium name only, no city. Padding
-   pared down to match Standard. */
-[data-dt-size="compact"] .card-fixture-widget {
-  grid-template-columns: 1fr;
-  grid-template-areas:
-    "crests"
-    "eyebrow"
-    "teams"
-    "meta";
-  padding: 2px;
-}
-[data-dt-size="compact"] .card-fixture-crests {
-  display: flex;
-  grid-area: crests;
-  justify-content: center;
-  gap: 0.6rem;
-}
-[data-dt-size="compact"] .card-crest { width: clamp(3.4rem, 30vw, 5.4rem); height: clamp(3.4rem, 30vw, 5.4rem); }
-[data-dt-size="compact"] .card-fixture-team-name { font-size: 1.1rem; }
-
-/* ---------- Result variant (final score) ---------- */
-.card-scoreline {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
-}
-.card-team {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-.card-team-right {
-  flex-direction: row-reverse;
-}
-.card-logo {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-}
-.card-score {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 2rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-.card-score-sep {
-  color: var(--card-text-secondary);
-  font-weight: 400;
-}
-.card-detail {
-  font-size: 0.85rem;
-  color: var(--card-text-secondary);
-}
-
-.card-footer {
-  margin-top: 0.75rem;
-  font-size: 0.7rem;
-  color: var(--card-text-secondary);
-  text-align: right;
-}
-
-/* ---------- Fixture-list variant (weekend digest, e.g. EPL) ----------
-   Full width only — deliberately no [data-dt-size] handling here at
-   all, since the mirrored-column row layout below has nowhere
-   sensible to go at Standard/Compact widths (see sport-hub.js for
-   where those size buttons get hidden for this specific card tab).
-
-   Each row is its OWN grid, not one shared grid across all rows —
-   but this still guarantees pixel-identical column alignment down
-   every row without needing a shared container, because every
-   column is either a fixed width (crests, center) or an evenly-
-   split 1fr (the two name columns) — with identical total row width
-   across every row, 1fr always resolves to the same absolute pixel
-   split regardless of that row's own text length. The center
-   column specifically must stay a FIXED length (not auto) — auto
-   would size to that row's own "vs"/score text and drift a few
-   pixels row to row, which is exactly the misalignment a column
-   layout like this exists to avoid. */
-.card-fixture-list-widget {
-  text-align: left;
-}
-.card-fixture-list-widget .card-eyebrow {
-  text-align: center;
-}
-.card-list-rows {
-  display: flex;
-  flex-direction: column;
-  /* Bleeds past .card-widget's own 1.5rem horizontal padding, so the
-     Grey Rule divider (and the Row background fill, when both are
-     on) can run genuinely edge-to-edge against the card's true
-     border rather than stopping at the inner content width. Each
-     row restores that 1.5rem as its own padding below, so the
-     crest/name content still lines up with the eyebrow above. */
-  margin: 0 -1.5rem;
-}
-.card-list-row {
-  display: grid;
-  grid-template-columns: auto 1fr 4rem 1fr auto;
-  align-items: center;
-  column-gap: 0.6rem;
-  padding: 0.5rem 1.5rem;
-}
-[data-card-rowbg="on"] .card-list-rows {
-  gap: 0.4rem; /* visible white space between each row once they have a background to contrast against */
-}
-[data-card-rowbg="on"] .card-list-row {
-  background: #f0f0f0; /* matches tables.css's --dt-row-bg exactly */
-}
-/* Grey rule sits directly on the same element as the row background
-   above (not a separately-positioned line), so a border-bottom is
-   automatically flush against that background with no gap — "hard
-   up against the grey" falls out of the box model rather than
-   needing separate positioning. */
-[data-card-rule="on"] .card-list-row {
-  border-bottom: 1px solid #d0d0d0; /* matches tables.css's rule colour exactly */
-}
-.card-list-crest {
-  width: clamp(1.4rem, 4vw, 2.1rem);
-  height: clamp(1.4rem, 4vw, 2.1rem);
-  object-fit: contain;
-}
-.card-list-home,
-.card-list-away {
-  display: flex;
-  flex-direction: column;
-  min-width: 0; /* allow long team names to ellipsis rather than force the grid wider */
-}
-.card-list-home {
-  align-items: flex-end;
-  text-align: right;
-}
-.card-list-away {
-  align-items: flex-start;
-  text-align: left;
-}
-.card-list-team-name {
-  font-size: 1rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--card-title-color);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-.card-list-sub {
-  font-size: 0.7rem;
-  color: var(--card-text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-.card-list-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.1rem;
-}
-.card-list-vs {
-  font-size: 1.7rem; /* doubled per request, was 0.85rem */
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--card-secondary-color);
-}
-.card-list-score {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--card-secondary-color);
-  font-variant-numeric: tabular-nums;
-}
-.card-list-live {
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: #fff;
-  background: var(--card-accent);
-  border-radius: 3px;
-  padding: 0.05rem 0.3rem;
-}
-.card-list-row-live .card-list-score {
-  color: var(--card-accent); /* live scores stay the fixed accent red regardless of the Secondary colour choice — a deliberate signal distinct from the customizable brand colour, same logic as why LIVE badges are usually a fixed red everywhere */
-}
+  /* Full-width-only weekend fixture list — see the big comment block
+     above for the ESPN day-window approach and its known limits.
+     Uses the fetch() escape hatch (see cards.js/sport-hub.js) since
+     this needs 5 sequential calls, not one plain GET. weekOffset:
+     0 = this weekend (default), 1 = next, -1 = last, etc. — not
+     wired to any UI control yet, see the comment above for why it's
+     here anyway. */
+  weekendFixtures(weekOffset) {
+    return {
+      fetch: () => eplFetchWeekendEvents(weekOffset),
+      extract: events => {
+        if (!events.length) return null;
+        return {
+          rows: events.map(e => {
+            const comp = e.competitions[0];
+            const home = eplCompetitor(comp, "home");
+            const away = eplCompetitor(comp, "away");
+            const state = comp.status.type.state; // "pre" | "in" | "post"
+            const finished = state === "post";
+            const live = state === "in";
+            return {
+              homeName: home.team.displayName,
+              awayName: away.team.displayName,
+              homeCrest: home.team.logo || null,
+              awayCrest: away.team.logo || null,
+              finished, live,
+              homeScore: finished || live ? home.score : null,
+              awayScore: finished || live ? away.score : null,
+              kickoff: eplFormatKickoffDateTime(e.date),
+              venue: (comp.venue && comp.venue.fullName) || null,
+            };
+          }),
+        };
+      },
+    };
+  },
+};
