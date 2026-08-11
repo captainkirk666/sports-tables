@@ -361,12 +361,32 @@ html:not([data-dt-size]) .card-fixture-team-name,
 .card-fixture-list-widget {
   text-align: left;
 }
+/* Adopts tables.css's .dt-title treatment exactly (left-aligned,
+   bold uppercase, 4px accent-coloured left border) rather than the
+   small centered .card-eyebrow style every other card variant uses —
+   scoped to this card specifically, not a change to the shared base
+   rule, so Next Fixture/Preview/Result are untouched. Uses
+   --card-secondary-color rather than tables.css's --dt-title-color/
+   --dt-accent, since cards have their own colour-variable namespace,
+   but it's the same underlying idea: falls back to the accent red
+   unless Secondary colour has been explicitly picked. */
 .card-fixture-list-widget .card-eyebrow {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  text-align: left;
+  font-size: 1.19rem;
+  letter-spacing: 0.02em;
+  border-left: 4px solid var(--card-secondary-color);
+  padding-left: 8px;
+  margin-bottom: 0.6rem;
 }
 .card-list-rows {
   display: flex;
   flex-direction: column;
+  /* Fixed 3px gap between every row — unconditional, not tied to
+     the Row background toggle (each row is "a row in a table" first,
+     background fill is a separate, independent concern). */
+  gap: 3px;
   /* Bleeds past .card-widget's own 1.5rem horizontal padding, so the
      Grey Rule divider (and the Row background fill, when both are
      on) can run genuinely edge-to-edge against the card's true
@@ -381,9 +401,6 @@ html:not([data-dt-size]) .card-fixture-team-name,
   align-items: center;
   column-gap: 0.6rem;
   padding: 0.5rem 1.5rem;
-}
-[data-card-rowbg="on"] .card-list-rows {
-  gap: 0.4rem; /* visible white space between each row once they have a background to contrast against */
 }
 [data-card-rowbg="on"] .card-list-row {
   background: #f0f0f0; /* matches tables.css's --dt-row-bg exactly */
