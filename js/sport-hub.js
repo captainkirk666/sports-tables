@@ -108,6 +108,7 @@ let hub = {
   printSize: "full",
   rowLimit: null,
   rows: [],
+  cardData: null, // this tab's fetched+extracted card object — the card equivalent of hub.rows, needed now that PDF/PNG export renders cards on the hub page itself (see renderCardExportSurface())
   lastUpdated: null,
 };
 
@@ -205,7 +206,7 @@ function renderLivePreviewPanel() {
   if (!mount) return;
   mount.innerHTML = `
     <div class="preview-header">
-      <h2>Live preview</h2>
+      <h2 id="live-preview-title">Live preview</h2>
       <div class="action-buttons">
         <button id="toggle-code-btn" class="action-btn">Get embed code</button>
         <button id="download-btn" class="action-btn">Download PDF</button>
@@ -313,7 +314,7 @@ function applyTitleColour(key) {
   document.querySelectorAll(".title-colour-option").forEach(el =>
     el.classList.toggle("selected", el.dataset.key === key));
   updateStylePreview();
-  renderExportSurface();
+  refreshExportSurfaceForType();
 }
 
 function applyPosPointsColour(key) {
@@ -325,7 +326,7 @@ function applyPosPointsColour(key) {
   document.querySelectorAll(".pospoints-colour-option").forEach(el =>
     el.classList.toggle("selected", el.dataset.key === key));
   updateStylePreview();
-  renderExportSurface();
+  refreshExportSurfaceForType();
 }
 
 function STYLE_PRESETS_LOOKUP(key) {
@@ -353,31 +354,31 @@ function renderPosPointsColourButtons() {
 function toggleFlags() {
   currentControls().flags = document.getElementById("control-flags").checked;
   updateStylePreview();
-  renderExportSurface();
+  refreshExportSurfaceForType();
 }
 
 function toggleLogos() {
   currentControls().logos = document.getElementById("control-logos").checked;
   updateStylePreview();
-  renderExportSurface();
+  refreshExportSurfaceForType();
 }
 
 function toggleRowBg() {
   currentControls().rowBg = document.getElementById("control-rowbg").checked;
   updateStylePreview();
-  renderExportSurface();
+  refreshExportSurfaceForType();
 }
 
 function togglePodium() {
   currentControls().podium = document.getElementById("control-podium").checked;
   updateStylePreview();
-  renderExportSurface();
+  refreshExportSurfaceForType();
 }
 
 function toggleRule() {
   currentControls().rule = document.getElementById("control-rule").checked;
   updateStylePreview();
-  renderExportSurface();
+  refreshExportSurfaceForType();
 }
 
 /* Rows — independent of Size. Limits how many rows render, from
@@ -397,7 +398,7 @@ function selectRowLimit(key) {
   document.querySelectorAll(".row-limit-option").forEach(el =>
     el.classList.toggle("selected", el.dataset.key === key));
   updateStylePreview();
-  renderExportSurface();
+  refreshExportSurfaceForType();
 }
 
 function renderRowLimitControls() {
@@ -449,7 +450,7 @@ function selectPreviewSize(key) {
   }
 
   updateStylePreview();
-  renderExportSurface();
+  refreshExportSurfaceForType();
 }
 
 function renderPreviewSizeControls() {
@@ -555,12 +556,137 @@ function renderExportSurface() {
   surface.style.width = '';
 }
 
+/* Card equivalent of applyExportThemeAttributes() above — sets the
+   SAME attributes/vars that applyCardStyleFromQueryParams() in
+   cards.js sets from URL params, just sourced from hub.cardStyle/
+   hub.cardControls (JS state) instead of the query string, mirroring
+   exactly how applyExportThemeAttributes() relates to
+   applyThemeFromQueryParams(). data-dt-size is shared with the table
+   engine deliberately — both should reflect the same selected Size. */
+function applyCardExportThemeAttributes() {
+  const el = document.documentElement;
+  el.setAttribute('data-dt-size', hub.printSize);
+
+  if (hub.cardStyle.titleColor) el.style.setProperty('--card-title-color', `#${hub.cardStyle.titleColor}`);
+  else el.style.removeProperty('--card-title-color');
+  if (hub.cardStyle.posColor) el.style.setProperty('--card-secondary-color', `#${hub.cardStyle.posColor}`);
+  else el.style.removeProperty('--card-secondary-color');
+
+  if (!hub.cardControls.logos) el.setAttribute('data-card-logos', 'off'); else el.removeAttribute('data-card-logos');
+  if (hub.cardControls.rowBg) el.setAttribute('data-card-rowbg', 'on'); else el.removeAttribute('data-card-rowbg');
+  if (hub.cardControls.rule) el.setAttribute('data-card-rule', 'on'); else el.removeAttribute('data-card-rule');
+}
+
+/* Card equivalent of renderExportSurface() — reuses cards.js's own
+   renderPreviewCard()/renderFixtureCard()/renderResultCard()
+   directly (available here because table/epl.html now also loads
+   card-loader.js), same principle as the table engine reusing
+   renderTableShell()/renderRows() for its export path: one shared
+   render function, so PDF/PNG can never drift from what the live
+   embed actually shows. Needs hub.cardData already fetched — see
+   refreshActiveCard(), which now fetches it itself (previously only
+   the embed iframe fetched its own copy; the hub page had no reason
+   to know the data until export needed it too). */
+function renderCardExportSurface() {
+  if (hub.activeType !== "card") return;
+  const card = activeCard();
+  if (!card || !hub.cardData) return;
+
+  applyCardExportThemeAttributes();
+
+  const surface = document.getElementById("print-surface");
+  const config = { eyebrow: card.eyebrow || '' };
+  if (card.variant === 'result') {
+    renderResultCard(surface, hub.cardData, config);
+  } else if (card.variant === 'fixture') {
+    renderFixtureCard(surface, hub.cardData, config);
+  } else {
+    renderPreviewCard(surface, hub.cardData, config);
+  }
+
+  const preset = SIZE_PRESETS[hub.printSize];
+  let pageStyle = document.getElementById('page-size-style');
+  if (!pageStyle) {
+    pageStyle = document.createElement('style');
+    pageStyle.id = 'page-size-style';
+    document.head.appendChild(pageStyle);
+  }
+
+  // Same off-screen-measure trick as renderExportSurface() — see the
+  // comment there for why.
+  surface.style.display = 'block';
+  surface.style.position = 'fixed';
+  surface.style.left = '-9999px';
+  surface.style.top = '0';
+  surface.style.width = `${preset.widthCm}cm`;
+
+  const contentHeightCm = (surface.scrollHeight / 96 * 2.54) + 1;
+  pageStyle.textContent = `@page { size: ${preset.widthCm}cm ${contentHeightCm}cm; margin: 0; }`;
+
+  surface.style.display = '';
+  surface.style.position = '';
+  surface.style.left = '';
+  surface.style.top = '';
+  surface.style.width = '';
+}
+
+/* Dispatcher used by the toggle/colour handlers above (and
+   selectPreviewSize()/selectRowLimit() below) so a single call site
+   refreshes whichever export surface — table's or card's — is
+   actually relevant to the active tab. */
+function refreshExportSurfaceForType() {
+  if (hub.activeType === "card") {
+    renderCardExportSurface();
+  } else {
+    renderExportSurface();
+  }
+}
+
 function downloadPdf() {
-  renderExportSurface();
+  if (hub.activeType === "card") {
+    renderCardExportSurface();
+  } else {
+    renderExportSurface();
+  }
   window.print();
 }
 
 function downloadPng() {
+  if (hub.activeType === "card") {
+    const card = activeCard();
+    if (!card || typeof html2canvas === 'undefined') return;
+
+    renderCardExportSurface();
+    const surface = document.getElementById("print-surface");
+    const widthPx = hub.printSize === 'full' ? '1100px'
+      : hub.printSize === 'standard' ? '378px' : '189px';
+    surface.style.width = widthPx;
+    surface.style.display = 'block';
+    surface.style.position = 'fixed';
+    surface.style.left = '-9999px';
+    surface.style.top = '0';
+
+    html2canvas(surface, { backgroundColor: '#ffffff', scale: 2 }).then(canvas => {
+      surface.style.display = 'none';
+      surface.style.position = '';
+      surface.style.left = '';
+      surface.style.top = '';
+      surface.style.width = '';
+
+      canvas.toBlob(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${card.key}-${hub.printSize}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 'image/png');
+    });
+    return;
+  }
+
   const table = activeTable();
   if (!table || typeof html2canvas === 'undefined') return;
 
@@ -600,12 +726,11 @@ function downloadPng() {
 /* ---------- Switching / loading the active table or card ----------
  * Cards share the table engine's Size system (Full/Standard/Compact
  * — see cards.css/cards.js for how ?size= drives three distinct
- * layouts there), so that control stays visible for card tabs. Rows,
- * the colour pickers, and the flags/logos/rowbg/podium/rule controls
- * are still table-only and hide, as does PDF/PNG export (still built
- * on renderTableShell/renderRows, which cards don't use). Get embed
- * code / Copy still work for cards — buildEmbedUrl() already
- * branches for that. */
+ * layouts there), so that control stays visible for card tabs, as do
+ * Colour + Controls and — now — PDF/PNG export (see
+ * renderCardExportSurface() above, which reuses cards.js's own
+ * render functions the same way the table engine reuses
+ * renderTableShell/renderRows). Only Rows stays table-only. */
 
 /* Colour + Controls now apply to cards too (see hub.cardStyle/
  * hub.cardControls above), so they're no longer hidden for card
@@ -657,12 +782,15 @@ function syncControlsUI() {
   });
 }
 
-function refreshExportButtonsForType() {
-  const isCard = hub.activeType === "card";
-  const dl = document.getElementById("download-btn");
-  const dlPng = document.getElementById("download-png-btn");
-  if (dl) dl.style.display = isCard ? "none" : "";
-  if (dlPng) dlPng.style.display = isCard ? "none" : "";
+/* Live Preview panel's heading — "Live preview" for tables, but the
+ * card panel got a more specific name per request. If more card
+ * types are added later with meaningfully different content (e.g. a
+ * live/result scorecard), this may want to become per-card rather
+ * than a single fixed string — worth revisiting then. */
+function refreshLivePreviewTitle() {
+  const el = document.getElementById("live-preview-title");
+  if (!el) return;
+  el.textContent = hub.activeType === "card" ? "Upcoming Matches" : "Live preview";
 }
 
 function refreshActiveCard() {
@@ -672,14 +800,36 @@ function refreshActiveCard() {
   document.title = `${card.title} — Live sports data cards`;
 
   refreshStyleThemePanelForType();
-  refreshExportButtonsForType();
+  refreshLivePreviewTitle();
   updateStylePreview();
-  document.getElementById("print-surface").innerHTML = "";
+
+  // The hub page now fetches the card's data itself too, not just the
+  // live-preview iframe — needed so Download PDF/PNG has something to
+  // render (see renderCardExportSurface()).
+  hub.cardData = null;
+  document.getElementById("print-surface").innerHTML = `<p style="padding:1rem;">Loading…</p>`;
+
+  fetch(card.sourceUrl)
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    })
+    .then(raw => {
+      hub.cardData = card.adapter.extract(raw);
+      if (!hub.cardData) {
+        document.getElementById("print-surface").innerHTML = `<p style="padding:1rem;">No data available.</p>`;
+        return;
+      }
+      renderCardExportSurface();
+    })
+    .catch(err => {
+      document.getElementById("print-surface").innerHTML = `<p style="padding:1rem;">Failed to load: ${err.message}</p>`;
+    });
 }
 
 function refreshActiveTable() {
   refreshStyleThemePanelForType();
-  refreshExportButtonsForType();
+  refreshLivePreviewTitle();
 
   const table = activeTable();
   const heroLogo = table.sportLogo ? `<img class="hero-logo" src="${table.sportLogo}" alt="">` : '';
