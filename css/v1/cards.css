@@ -16,6 +16,11 @@
   --card-accent: #e10600;
   --card-radius: 8px; /* matches --dt-radius in tables.css */
   --card-font: 'Roboto Condensed', sans-serif;
+  /* Overridable via ?titleColor=/?secondaryColor= — see
+     applyCardStyleFromQueryParams() in cards.js. Fall back to the
+     plain text colour / accent red respectively when unset. */
+  --card-title-color: var(--card-text);
+  --card-secondary-color: var(--card-accent);
 }
 
 * { box-sizing: border-box; }
@@ -36,7 +41,7 @@ html, body { margin: 0; padding: 0; }
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--card-accent);
+  color: var(--card-secondary-color);
   margin-bottom: 0.5rem;
 }
 
@@ -49,6 +54,7 @@ html, body { margin: 0; padding: 0; }
   font-size: 1.4rem;
   font-weight: 700;
   text-transform: uppercase;
+  color: var(--card-title-color);
   margin-bottom: 0.6rem;
 }
 .card-logo-left,
@@ -93,15 +99,24 @@ html, body { margin: 0; padding: 0; }
    convention, same three sizes, same sport-hub.js Size buttons drive
    both engines' embeds. Default (no attribute set) = "full".
 
+   COLOUR + CONTROLS: driven by applyCardStyleFromQueryParams() in
+   cards.js — [data-card-logos="off"], [data-card-rowbg="on"],
+   [data-card-rule="on"], plus --card-title-color/--card-secondary-
+   color. Two of the three default OFF (rowbg, rule) rather than
+   mirroring tables' default-ON, specifically to preserve the card's
+   original plain-white look now that these are opt-in additions
+   rather than having been part of the initial design.
+
    ONE markup, THREE layouts: rather than three separate render
    functions, this is CSS Grid with named areas, redefined per size —
    renderFixtureCard() always emits the same elements (crests wrapper,
-   eyebrow, teams, meta, footer); only which grid-template-areas
-   arrangement is active changes. The crests wrapper additionally
-   toggles between display:contents (crest-left/crest-right become
-   independent grid items — full/standard, where they flank other
-   content) and display:flex (crests become one paired grid item —
-   compact, where they sit together above everything else). */
+   a topline wrapper holding eyebrow+meta, teams); only which
+   grid-template-areas arrangement is active changes, plus which of
+   the two wrapper elements (crests, topline) are display:contents
+   (children become independent grid items) vs a real flex box
+   (children merge into one paired/grouped grid item). No footer on
+   any size — removed per request, this card no longer carries a
+   source credit line. */
 .card-fixture-widget {
   display: grid;
   column-gap: 0.75rem;
@@ -113,8 +128,8 @@ html, body { margin: 0; padding: 0; }
   display: contents; /* default: children are independent grid items — see compact override below */
 }
 .card-crest {
-  width: clamp(2.5rem, 14vw, 4.5rem);
-  height: clamp(2.5rem, 14vw, 4.5rem);
+  width: clamp(3rem, 18vw, 5.5rem);
+  height: clamp(3rem, 18vw, 5.5rem);
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
@@ -122,7 +137,11 @@ html, body { margin: 0; padding: 0; }
 }
 .card-crest-left  { grid-area: crest-left; justify-self: end; }
 .card-crest-right { grid-area: crest-right; justify-self: start; }
+[data-card-logos="off"] .card-crest { display: none; }
 
+.card-fixture-topline {
+  display: contents; /* default: eyebrow + meta are independent grid items — see full override below, which merges them onto one line */
+}
 .card-fixture-widget .card-eyebrow { grid-area: eyebrow; margin-bottom: 0; }
 
 .card-fixture-teams {
@@ -138,6 +157,7 @@ html, body { margin: 0; padding: 0; }
   text-transform: uppercase;
   letter-spacing: 0.01em;
   line-height: 1.15;
+  color: var(--card-title-color);
 }
 .card-vs {
   font-size: 0.85rem;
@@ -145,6 +165,13 @@ html, body { margin: 0; padding: 0; }
   text-transform: uppercase;
   color: var(--card-text-secondary);
   margin: 0.1rem 0;
+}
+/* Grey rule — opt-in divider under the team names/vs block, default
+   off (see file-header note above on why cards invert tables' rule
+   default). */
+[data-card-rule="on"] .card-fixture-teams {
+  border-bottom: 1px solid #d0d0d0; /* matches tables.css's rule colour exactly */
+  padding-bottom: 0.35rem;
 }
 
 .card-fixture-meta {
@@ -159,49 +186,88 @@ html, body { margin: 0; padding: 0; }
   color: var(--card-text-secondary);
 }
 
-.card-fixture-widget .card-footer { grid-area: footer; margin-top: 0.25rem; }
+/* Row background — opt-in grey fill, default off (see file-header
+   note). Matches tables.css's --dt-row-bg (#f0f0f0) exactly. Applied
+   to .card-widget broadly (not fixture-scoped) — safe to generalize
+   across variants, unlike the logos/rule bindings below which are
+   Fixture-specific until Preview/Result have live embeds to design
+   against. */
+[data-card-rowbg="on"] .card-widget { background: #f0f0f0; }
 
-/* STANDARD (also the unset/default case) — matches the original
-   mockup: eyebrow on its own row, big crests flanking a stacked
-   team-name block, meta full-width below. */
-.card-fixture-widget,
+/* STANDARD — eyebrow on its own row, big crests flanking a stacked
+   team-name block, meta full-width below. Padding pared right down
+   per request — the card's own border already reads as its edge,
+   so there's little value in extra inset. */
 [data-dt-size="standard"] .card-fixture-widget {
   grid-template-columns: auto 1fr auto;
   grid-template-areas:
     "eyebrow    eyebrow eyebrow"
     "crest-left teams   crest-right"
-    "meta       meta    meta"
-    "footer     footer  footer";
+    "meta       meta    meta";
+  padding: 2px;
 }
 
-/* FULL — wide single-row banner: no eyebrow, small crests flanking a
-   two-line block (team names on one line, date+venue on the next). */
+/* FULL (also the unset/default case — the hub's Full-width button
+   sends NO ?size= param at all, same convention as tables.js, so
+   this must cover both "no attribute set" and an explicit "full").
+   Using html:not([data-dt-size]) rather than a second bare selector
+   here deliberately — a bare .card-fixture-widget would have the
+   exact same specificity as the base rules below and only win via
+   source-order coincidence, which would silently break if this file
+   is ever reordered. :not() sidesteps that.
+
+   Wide single-row banner, minimum depth: eyebrow + date + venue all
+   merged onto ONE line (the topline wrapper switches from
+   display:contents to display:flex here, same trick the crests
+   wrapper already uses at Compact), team names on the line below
+   that. No meta row, no footer — two lines of content total,
+   flanked by small crests. */
+html:not([data-dt-size]) .card-fixture-widget,
 [data-dt-size="full"] .card-fixture-widget {
   grid-template-columns: auto 1fr auto;
   grid-template-areas:
-    "crest-left teams  crest-right"
-    "crest-left meta   crest-right"
-    "footer     footer footer";
+    "crest-left top   crest-right"
+    "crest-left teams crest-right";
 }
+html:not([data-dt-size]) .card-fixture-topline,
+[data-dt-size="full"] .card-fixture-topline {
+  display: flex;
+  grid-area: top;
+  align-items: baseline;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.card-fixture-widget .card-eyebrow { margin-bottom: 0; }
+html:not([data-dt-size]) .card-fixture-meta,
+[data-dt-size="full"] .card-fixture-meta { flex-direction: row; gap: 0.5rem; }
+html:not([data-dt-size]) .card-fixture-widget .card-datetime,
+html:not([data-dt-size]) .card-fixture-widget .card-venue,
+[data-dt-size="full"] .card-fixture-widget .card-datetime,
+[data-dt-size="full"] .card-fixture-widget .card-venue { font-size: 0.75rem; }
+html:not([data-dt-size]) .card-crest,
 [data-dt-size="full"] .card-crest { width: clamp(1.75rem, 9vw, 3rem); height: clamp(1.75rem, 9vw, 3rem); }
+html:not([data-dt-size]) .card-fixture-teams,
 [data-dt-size="full"] .card-fixture-teams { flex-direction: row; gap: 0.4rem; }
+html:not([data-dt-size]) .card-fixture-team-name,
 [data-dt-size="full"] .card-fixture-team-name { font-size: 1.1rem; }
-[data-dt-size="full"] .card-fixture-meta { flex-direction: row; gap: 0.6rem; }
-[data-dt-size="full"] .card-eyebrow { display: none; }
 
 /* COMPACT — narrow column: both crests paired together above the
    eyebrow, rather than flanking the team block (there isn't width
    for that at this size). The crests wrapper switches from
    display:contents to a real flex box here, becoming one grid item
-   ("crests") instead of two independent ones. */
+   ("crests") instead of two independent ones. Date/venue use the
+   short forms (see eplFormatFixtureDateShort()/venueShort in
+   epl.js) — "Sat, 22nd Aug" and stadium name only, no city. Padding
+   pared down to match Standard. */
 [data-dt-size="compact"] .card-fixture-widget {
   grid-template-columns: 1fr;
   grid-template-areas:
     "crests"
     "eyebrow"
     "teams"
-    "meta"
-    "footer";
+    "meta";
+  padding: 2px;
 }
 [data-dt-size="compact"] .card-fixture-crests {
   display: flex;
@@ -209,7 +275,7 @@ html, body { margin: 0; padding: 0; }
   justify-content: center;
   gap: 0.6rem;
 }
-[data-dt-size="compact"] .card-crest { width: clamp(2rem, 16vw, 3.25rem); height: clamp(2rem, 16vw, 3.25rem); }
+[data-dt-size="compact"] .card-crest { width: clamp(2.5rem, 22vw, 4rem); height: clamp(2.5rem, 22vw, 4rem); }
 [data-dt-size="compact"] .card-fixture-team-name { font-size: 1.1rem; }
 
 /* ---------- Result variant (final score) ---------- */
