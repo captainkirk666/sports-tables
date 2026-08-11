@@ -367,17 +367,32 @@ html:not([data-dt-size]) .card-fixture-team-name,
 .card-list-rows {
   display: flex;
   flex-direction: column;
+  /* Bleeds past .card-widget's own 1.5rem horizontal padding, so the
+     Grey Rule divider (and the Row background fill, when both are
+     on) can run genuinely edge-to-edge against the card's true
+     border rather than stopping at the inner content width. Each
+     row restores that 1.5rem as its own padding below, so the
+     crest/name content still lines up with the eyebrow above. */
+  margin: 0 -1.5rem;
 }
 .card-list-row {
   display: grid;
   grid-template-columns: auto 1fr 4rem 1fr auto;
   align-items: center;
   column-gap: 0.6rem;
-  padding: 0.5rem 0;
+  padding: 0.5rem 1.5rem;
 }
-[data-card-rowbg="on"] .card-list-row:nth-child(even) {
+[data-card-rowbg="on"] .card-list-rows {
+  gap: 0.4rem; /* visible white space between each row once they have a background to contrast against */
+}
+[data-card-rowbg="on"] .card-list-row {
   background: #f0f0f0; /* matches tables.css's --dt-row-bg exactly */
 }
+/* Grey rule sits directly on the same element as the row background
+   above (not a separately-positioned line), so a border-bottom is
+   automatically flush against that background with no gap — "hard
+   up against the grey" falls out of the box model rather than
+   needing separate positioning. */
 [data-card-rule="on"] .card-list-row {
   border-bottom: 1px solid #d0d0d0; /* matches tables.css's rule colour exactly */
 }
@@ -425,7 +440,7 @@ html:not([data-dt-size]) .card-fixture-team-name,
   gap: 0.1rem;
 }
 .card-list-vs {
-  font-size: 0.85rem;
+  font-size: 1.7rem; /* doubled per request, was 0.85rem */
   font-weight: 700;
   text-transform: uppercase;
   color: var(--card-secondary-color);
