@@ -340,3 +340,111 @@ html:not([data-dt-size]) .card-fixture-team-name,
   color: var(--card-text-secondary);
   text-align: right;
 }
+
+/* ---------- Fixture-list variant (weekend digest, e.g. EPL) ----------
+   Full width only — deliberately no [data-dt-size] handling here at
+   all, since the mirrored-column row layout below has nowhere
+   sensible to go at Standard/Compact widths (see sport-hub.js for
+   where those size buttons get hidden for this specific card tab).
+
+   Each row is its OWN grid, not one shared grid across all rows —
+   but this still guarantees pixel-identical column alignment down
+   every row without needing a shared container, because every
+   column is either a fixed width (crests, center) or an evenly-
+   split 1fr (the two name columns) — with identical total row width
+   across every row, 1fr always resolves to the same absolute pixel
+   split regardless of that row's own text length. The center
+   column specifically must stay a FIXED length (not auto) — auto
+   would size to that row's own "vs"/score text and drift a few
+   pixels row to row, which is exactly the misalignment a column
+   layout like this exists to avoid. */
+.card-fixture-list-widget {
+  text-align: left;
+}
+.card-fixture-list-widget .card-eyebrow {
+  text-align: center;
+}
+.card-list-rows {
+  display: flex;
+  flex-direction: column;
+}
+.card-list-row {
+  display: grid;
+  grid-template-columns: auto 1fr 4rem 1fr auto;
+  align-items: center;
+  column-gap: 0.6rem;
+  padding: 0.5rem 0;
+}
+[data-card-rowbg="on"] .card-list-row:nth-child(even) {
+  background: #f0f0f0; /* matches tables.css's --dt-row-bg exactly */
+}
+[data-card-rule="on"] .card-list-row {
+  border-bottom: 1px solid #d0d0d0; /* matches tables.css's rule colour exactly */
+}
+.card-list-crest {
+  width: clamp(1.4rem, 4vw, 2.1rem);
+  height: clamp(1.4rem, 4vw, 2.1rem);
+  object-fit: contain;
+}
+.card-list-home,
+.card-list-away {
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* allow long team names to ellipsis rather than force the grid wider */
+}
+.card-list-home {
+  align-items: flex-end;
+  text-align: right;
+}
+.card-list-away {
+  align-items: flex-start;
+  text-align: left;
+}
+.card-list-team-name {
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--card-title-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.card-list-sub {
+  font-size: 0.7rem;
+  color: var(--card-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.card-list-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+}
+.card-list-vs {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--card-secondary-color);
+}
+.card-list-score {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--card-secondary-color);
+  font-variant-numeric: tabular-nums;
+}
+.card-list-live {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #fff;
+  background: var(--card-accent);
+  border-radius: 3px;
+  padding: 0.05rem 0.3rem;
+}
+.card-list-row-live .card-list-score {
+  color: var(--card-accent); /* live scores stay the fixed accent red regardless of the Secondary colour choice — a deliberate signal distinct from the customizable brand colour, same logic as why LIVE badges are usually a fixed red everywhere */
+}
