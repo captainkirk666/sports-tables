@@ -30,7 +30,7 @@
  * Cache and Hard Reload.
  */
 (function () {
-  var ENGINE_VERSION = "6"; // <-- bump ONLY this number when tables.css/flags.js/tables.js/sport-hub.js changes
+  var ENGINE_VERSION = "7"; // <-- bump ONLY this number when tables.css/flags.js/tables.js/sport-hub.js changes
   var BASE = "https://captainkirk666.github.io/sports-tables";
 
   document.write('<link rel="stylesheet" href="' + BASE + '/css/v1/tables.css?v=' + ENGINE_VERSION + '">');
