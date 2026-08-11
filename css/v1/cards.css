@@ -348,10 +348,11 @@ html:not([data-dt-size]) .card-fixture-team-name,
 }
 
 /* ---------- Fixture-list variant (weekend digest, e.g. EPL) ----------
-   Full width only — deliberately no [data-dt-size] handling here at
-   all, since the mirrored-column row layout below has nowhere
-   sensible to go at Standard/Compact widths (see sport-hub.js for
-   where those size buttons get hidden for this specific card tab).
+   Full and Standard sizes — Compact isn't built (see sport-hub.js's
+   sizeRestricted on this card; the mirrored-column row layout has
+   nowhere sensible to go at that width). Base rules below are Full
+   width's; Standard's scaled-down overrides are further down this
+   file.
 
    Each row is its OWN grid, not one shared grid across all rows —
    but this still guarantees pixel-identical column alignment down
@@ -483,4 +484,55 @@ html:not([data-dt-size]) .card-fixture-team-name,
 }
 .card-list-row-live .card-list-score {
   color: var(--card-accent); /* live scores stay the fixed accent red regardless of the Secondary colour choice — a deliberate signal distinct from the customizable brand colour, same logic as why LIVE badges are usually a fixed red everywhere */
+}
+
+/* ---------- Standard size (378px, matching tables.css's own Standard
+   width exactly) ----------
+   Full width's spacing/sizing is generous because it has however much
+   horizontal room the embed container gives it. Standard is a fixed,
+   much narrower box, so everything here scales down together: crests,
+   fonts, the center column, and the row's own horizontal padding (the
+   bleed-cancel pairing between .card-list-rows' margin and
+   .card-list-row's padding has to move together, or the "run edge to
+   edge" bleed trick misaligns against the outer widget's own
+   padding). Team names still use the same full, unabbreviated
+   displayName from the adapter — no separate short-name data for this
+   card yet — so the existing ellipsis truncation on
+   .card-list-team-name does more work here than at Full width. Not a
+   layout bug if a long name (Brighton & Hove Albion, say) truncates
+   at this width; that's the intended fallback. Compact isn't built —
+   see sport-hub.js's sizeRestricted on this card. */
+[data-dt-size="standard"] .card-fixture-list-widget {
+  padding: 1.25rem 0.75rem;
+}
+[data-dt-size="standard"] .card-list-rows {
+  margin: 0 -0.75rem;
+}
+[data-dt-size="standard"] .card-list-row {
+  grid-template-columns: auto 1fr 2.75rem 1fr auto;
+  column-gap: 0.35rem;
+  padding: 2px 0.75rem;
+}
+[data-dt-size="standard"] .card-list-crest {
+  width: clamp(1.1rem, 5vw, 1.5rem);
+  height: clamp(1.1rem, 5vw, 1.5rem);
+}
+[data-dt-size="standard"] .card-list-team-name {
+  font-size: 0.75rem;
+}
+[data-dt-size="standard"] .card-list-sub {
+  font-size: 0.6rem;
+}
+[data-dt-size="standard"] .card-list-vs {
+  font-size: 1.1rem;
+}
+[data-dt-size="standard"] .card-list-score {
+  font-size: 0.9rem;
+}
+[data-dt-size="standard"] .card-list-live {
+  font-size: 0.5rem;
+  padding: 0.03rem 0.2rem;
+}
+[data-dt-size="standard"] .card-fixture-list-widget .card-eyebrow {
+  font-size: 1rem;
 }
