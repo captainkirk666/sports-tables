@@ -128,12 +128,10 @@ html, body { margin: 0; padding: 0; }
   display: contents; /* default: children are independent grid items — see compact override below */
 }
 .card-crest {
-  width: clamp(3rem, 18vw, 5.5rem);
-  height: clamp(3rem, 18vw, 5.5rem);
-  border-radius: 50%;
-  object-fit: cover;
+  width: clamp(3.75rem, 22vw, 6.9rem);
+  height: clamp(3.75rem, 22vw, 6.9rem);
+  object-fit: contain;
   flex-shrink: 0;
-  background: var(--card-header-bg, #f7f7f8);
 }
 .card-crest-left  { grid-area: crest-left; justify-self: end; }
 .card-crest-right { grid-area: crest-right; justify-self: start; }
@@ -149,7 +147,8 @@ html, body { margin: 0; padding: 0; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.15rem;
+  justify-content: center; /* was missing — the actual cause of Full's team-name line rendering left-aligned instead of centered */
+  gap: 0.05rem; /* tightened per request; was 0.15rem */
 }
 .card-fixture-team-name {
   font-size: 1.3rem;
@@ -164,7 +163,7 @@ html, body { margin: 0; padding: 0; }
   font-weight: 700;
   text-transform: uppercase;
   color: var(--card-text-secondary);
-  margin: 0.1rem 0;
+  margin: 0.05rem 0; /* tightened per request; was 0.1rem */
 }
 /* Grey rule — opt-in divider under the team names/vs block, default
    off (see file-header note above on why cards invert tables' rule
@@ -205,6 +204,7 @@ html, body { margin: 0; padding: 0; }
     "crest-left teams   crest-right"
     "meta       meta    meta";
   padding: 2px;
+  row-gap: 0.3rem; /* tightened from the shared 0.4rem base, contributing to the requested depth reduction */
 }
 
 /* FULL (also the unset/default case — the hub's Full-width button
@@ -228,6 +228,8 @@ html:not([data-dt-size]) .card-fixture-widget,
   grid-template-areas:
     "crest-left top   crest-right"
     "crest-left teams crest-right";
+  padding: 4px 12px; /* was inheriting .card-widget's 1.25rem/1.5rem — this plus the tighter row-gap below is most of the ~50% height reduction */
+  row-gap: 0.1rem;
 }
 html:not([data-dt-size]) .card-fixture-topline,
 [data-dt-size="full"] .card-fixture-topline {
@@ -245,8 +247,17 @@ html:not([data-dt-size]) .card-fixture-widget .card-datetime,
 html:not([data-dt-size]) .card-fixture-widget .card-venue,
 [data-dt-size="full"] .card-fixture-widget .card-datetime,
 [data-dt-size="full"] .card-fixture-widget .card-venue { font-size: 0.75rem; }
+/* Logo height = card height: crest-left/crest-right each already span
+   BOTH content rows ("top" and "teams") via the grid-template-areas
+   above, so leaving height as the CSS Grid default (align-self:
+   stretch, which only takes effect when height is auto rather than a
+   fixed value) makes the crest fill that full two-row span edge to
+   edge automatically — no fixed number needed, and it naturally
+   tracks however tall the card ends up being. Width stays auto too,
+   so the browser derives it from the image's own aspect ratio rather
+   than distorting it. */
 html:not([data-dt-size]) .card-crest,
-[data-dt-size="full"] .card-crest { width: clamp(1.75rem, 9vw, 3rem); height: clamp(1.75rem, 9vw, 3rem); }
+[data-dt-size="full"] .card-crest { width: auto; height: auto; align-self: stretch; }
 html:not([data-dt-size]) .card-fixture-teams,
 [data-dt-size="full"] .card-fixture-teams { flex-direction: row; gap: 0.4rem; }
 html:not([data-dt-size]) .card-fixture-team-name,
@@ -275,7 +286,7 @@ html:not([data-dt-size]) .card-fixture-team-name,
   justify-content: center;
   gap: 0.6rem;
 }
-[data-dt-size="compact"] .card-crest { width: clamp(2.5rem, 22vw, 4rem); height: clamp(2.5rem, 22vw, 4rem); }
+[data-dt-size="compact"] .card-crest { width: clamp(3.4rem, 30vw, 5.4rem); height: clamp(3.4rem, 30vw, 5.4rem); }
 [data-dt-size="compact"] .card-fixture-team-name { font-size: 1.1rem; }
 
 /* ---------- Result variant (final score) ---------- */
