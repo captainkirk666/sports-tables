@@ -249,15 +249,19 @@ html:not([data-dt-size]) .card-fixture-widget .card-venue,
 [data-dt-size="full"] .card-fixture-widget .card-venue { font-size: 0.75rem; }
 /* Logo height = card height: crest-left/crest-right each already span
    BOTH content rows ("top" and "teams") via the grid-template-areas
-   above, so leaving height as the CSS Grid default (align-self:
-   stretch, which only takes effect when height is auto rather than a
-   fixed value) makes the crest fill that full two-row span edge to
-   edge automatically — no fixed number needed, and it naturally
-   tracks however tall the card ends up being. Width stays auto too,
-   so the browser derives it from the image's own aspect ratio rather
-   than distorting it. */
+   above. height:100% (not auto) deliberately here — auto caused a
+   real bug: an auto-sized grid row's height is partly determined by
+   the max-content size of items inside it, and an <img> with
+   height:auto contributes its own INTRINSIC pixel size to that
+   calculation (ESPN's crests are ~500x500px), which inflated the row
+   to match the image, which then stretched to fill that now-massive
+   row — a circular feedback loop. Percentage heights are excluded
+   from that auto-sizing pass, so the row gets sized by the text
+   content only, and height:100% then resolves against that final,
+   correct size. Width stays auto, so the browser derives it from the
+   image's own aspect ratio rather than distorting it. */
 html:not([data-dt-size]) .card-crest,
-[data-dt-size="full"] .card-crest { width: auto; height: auto; align-self: stretch; }
+[data-dt-size="full"] .card-crest { width: auto; height: 100%; }
 html:not([data-dt-size]) .card-fixture-teams,
 [data-dt-size="full"] .card-fixture-teams { flex-direction: row; gap: 0.4rem; }
 html:not([data-dt-size]) .card-fixture-team-name,
