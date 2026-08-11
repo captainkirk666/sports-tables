@@ -109,6 +109,14 @@ let hub = {
      nothing on cards — see cards.css, "in but unusable for now". */
   cardStyle: { titleColor: null, posColor: null, pointsColor: null },
   cardControls: { flags: false, logos: true, rowBg: false, podium: false, rule: false },
+  /* The weekend fixture list is a genuine table-like list (many
+     rows), not a single-event card — so unlike cardControls above,
+     it defaults rowBg/rule BOTH on, same direction as tables. Kept
+     as its own object rather than folded into cardControls, since
+     that object is shared by every other card and changing ITS
+     defaults would've silently changed the single Next Fixture
+     card's look too. See currentControls() below for the dispatch. */
+  weekendCardControls: { flags: false, logos: true, rowBg: true, rule: true, podium: false },
   previewSize: "full",
   printSize: "full",
   rowLimit: null,
@@ -124,12 +132,15 @@ function activeCard() {
   return hub.cards.find(c => c.key === hub.activeKey);
 }
 /* Which state object the Style & Theme panel's shared controls
-   currently read from/write to — table's or card's — based on
-   whichever tab is active. Every toggle/colour handler and
-   buildEmbedUrl() goes through these rather than hub.controls/
-   hub.style directly. */
+   currently read from/write to — based on whichever tab is active,
+   and for cards specifically, which CARD (not every card wants the
+   same defaults — see weekendCardControls above). Every toggle/
+   colour handler and buildEmbedUrl() goes through these rather than
+   hub.controls/hub.style/hub.cardControls directly. */
 function currentControls() {
-  return hub.activeType === "card" ? hub.cardControls : hub.controls;
+  if (hub.activeType !== "card") return hub.controls;
+  const card = activeCard();
+  return (card && card.key === "weekend-fixtures") ? hub.weekendCardControls : hub.cardControls;
 }
 function currentStyle() {
   return hub.activeType === "card" ? hub.cardStyle : hub.style;
@@ -270,8 +281,18 @@ function buildEmbedUrl() {
     if (style.titleColor) params.set("titleColor", style.titleColor);
     if (style.posColor) params.set("secondaryColor", style.posColor);
     if (!controls.logos) params.set("logos", "off");
-    if (controls.rowBg) params.set("rowbg", "on"); // cards default OFF — opposite direction from tables
-    if (controls.rule) params.set("rule", "on");   // cards default OFF — opposite direction from tables
+    if (card.variant === "fixture-list") {
+      // Defaults ON for this card — only send a param when turning
+      // OFF from that default (see applyCardStyleFromQueryParams()
+      // in cards.js for the matching embed-side logic).
+      if (!controls.rowBg) params.set("rowbg", "off");
+      if (!controls.rule) params.set("rule", "off");
+    } else {
+      // Every other card defaults OFF — opposite direction, only
+      // send a param when turning ON.
+      if (controls.rowBg) params.set("rowbg", "on");
+      if (controls.rule) params.set("rule", "on");
+    }
     if (hub.previewSize === "compact" || hub.previewSize === "standard") {
       params.set("size", hub.previewSize);
     }
@@ -563,23 +584,27 @@ function renderExportSurface() {
 
 /* Card equivalent of applyExportThemeAttributes() above — sets the
    SAME attributes/vars that applyCardStyleFromQueryParams() in
-   cards.js sets from URL params, just sourced from hub.cardStyle/
-   hub.cardControls (JS state) instead of the query string, mirroring
-   exactly how applyExportThemeAttributes() relates to
-   applyThemeFromQueryParams(). data-dt-size is shared with the table
-   engine deliberately — both should reflect the same selected Size. */
+   cards.js sets from URL params, just sourced from JS state
+   (currentStyle()/currentControls(), so this picks up whichever
+   card's own state object is active — see weekendCardControls
+   above) instead of the query string, mirroring exactly how
+   applyExportThemeAttributes() relates to applyThemeFromQueryParams().
+   data-dt-size is shared with the table engine deliberately — both
+   should reflect the same selected Size. */
 function applyCardExportThemeAttributes() {
   const el = document.documentElement;
   el.setAttribute('data-dt-size', hub.printSize);
+  const style = currentStyle();
+  const controls = currentControls();
 
-  if (hub.cardStyle.titleColor) el.style.setProperty('--card-title-color', `#${hub.cardStyle.titleColor}`);
+  if (style.titleColor) el.style.setProperty('--card-title-color', `#${style.titleColor}`);
   else el.style.removeProperty('--card-title-color');
-  if (hub.cardStyle.posColor) el.style.setProperty('--card-secondary-color', `#${hub.cardStyle.posColor}`);
+  if (style.posColor) el.style.setProperty('--card-secondary-color', `#${style.posColor}`);
   else el.style.removeProperty('--card-secondary-color');
 
-  if (!hub.cardControls.logos) el.setAttribute('data-card-logos', 'off'); else el.removeAttribute('data-card-logos');
-  if (hub.cardControls.rowBg) el.setAttribute('data-card-rowbg', 'on'); else el.removeAttribute('data-card-rowbg');
-  if (hub.cardControls.rule) el.setAttribute('data-card-rule', 'on'); else el.removeAttribute('data-card-rule');
+  if (!controls.logos) el.setAttribute('data-card-logos', 'off'); else el.removeAttribute('data-card-logos');
+  if (controls.rowBg) el.setAttribute('data-card-rowbg', 'on'); else el.removeAttribute('data-card-rowbg');
+  if (controls.rule) el.setAttribute('data-card-rule', 'on'); else el.removeAttribute('data-card-rule');
 }
 
 /* Card equivalent of renderExportSurface() — reuses cards.js's own
@@ -794,10 +819,20 @@ function syncControlsUI() {
  * types are added later with meaningfully different content (e.g. a
  * live/result scorecard), this may want to become per-card rather
  * than a single fixed string — worth revisiting then. */
+/* Was a single hardcoded "Upcoming Matches" string for ANY card tab
+ * — meaning the single Next Fixture card's panel incorrectly said
+ * "Upcoming Matches" too, a latent bug from before a second card
+ * existed to expose it. Now reads each card's own liveTitle field
+ * instead, falling back to "Live preview" if a card doesn't set one. */
 function refreshLivePreviewTitle() {
   const el = document.getElementById("live-preview-title");
   if (!el) return;
-  el.textContent = hub.activeType === "card" ? "Upcoming Matches" : "Live preview";
+  if (hub.activeType === "card") {
+    const card = activeCard();
+    el.textContent = (card && card.liveTitle) || "Live preview";
+  } else {
+    el.textContent = "Live preview";
+  }
 }
 
 /* Some cards only make sense at one size — the weekend fixture list's
