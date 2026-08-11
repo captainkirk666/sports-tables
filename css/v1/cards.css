@@ -385,13 +385,9 @@ html:not([data-dt-size]) .card-fixture-team-name,
   flex-direction: column;
   /* Gap between every row — unconditional, not tied to the Row
      background toggle (each row is "a row in a table" first,
-     background fill is a separate, independent concern). Back to
-     the originally-requested 3px — the earlier bump to 6px was
-     chasing the wrong cause; the real bug was the outer card
-     background also turning grey (see the .card-widget rule above),
-     leaving zero contrast regardless of gap size. Now that's fixed,
-     3px reads clearly. */
-  gap: 3px;
+     background fill is a separate, independent concern). 2px,
+     matching tables.css's border-spacing: 0 2px exactly. */
+  gap: 2px;
   /* Bleeds past .card-widget's own 1.5rem horizontal padding, so the
      Grey Rule divider (and the Row background fill, when both are
      on) can run genuinely edge-to-edge against the card's true
