@@ -93,6 +93,17 @@ let hub = {
   activeType: "table", // "table" | "card"
   style: { titleColor: null, posColor: null, pointsColor: null },
   controls: { flags: false, logos: false, rowBg: true, podium: false, rule: true },
+  /* Cards share the SAME UI (same checkboxes, same colour buttons —
+     see renderStyleThemePanel()) but need their own state, since
+     their sensible defaults are different from tables': logos
+     default ON (crests are the whole point of a fixture card, unlike
+     tables' small optional row icons), rowBg/rule default OFF
+     (preserves the card's original plain-white look now that these
+     are opt-in additions rather than part of the initial design).
+     flags/podium are tracked here too even though they currently do
+     nothing on cards — see cards.css, "in but unusable for now". */
+  cardStyle: { titleColor: null, posColor: null, pointsColor: null },
+  cardControls: { flags: false, logos: true, rowBg: false, podium: false, rule: false },
   previewSize: "full",
   printSize: "full",
   rowLimit: null,
@@ -105,6 +116,17 @@ function activeTable() {
 }
 function activeCard() {
   return hub.cards.find(c => c.key === hub.activeKey);
+}
+/* Which state object the Style & Theme panel's shared controls
+   currently read from/write to — table's or card's — based on
+   whichever tab is active. Every toggle/colour handler and
+   buildEmbedUrl() goes through these rather than hub.controls/
+   hub.style directly. */
+function currentControls() {
+  return hub.activeType === "card" ? hub.cardControls : hub.controls;
+}
+function currentStyle() {
+  return hub.activeType === "card" ? hub.cardStyle : hub.style;
 }
 
 /* ---------- Panel generation — the template itself ----------
@@ -133,7 +155,7 @@ function renderStyleThemePanel() {
     </div>
 
     <div class="colour-section">
-      <h3>Position &amp; Points colour</h3>
+      <h3>Secondary colour</h3>
       <div id="pospoints-colour-buttons" class="colour-buttons"></div>
     </div>
 
@@ -233,25 +255,34 @@ function selectTab(key, type) {
 /* ---------- Live preview + embed code ---------- */
 
 function buildEmbedUrl() {
+  const controls = currentControls();
+  const style = currentStyle();
+
   if (hub.activeType === "card") {
     const card = activeCard();
     const params = new URLSearchParams();
+    if (style.titleColor) params.set("titleColor", style.titleColor);
+    if (style.posColor) params.set("secondaryColor", style.posColor);
+    if (!controls.logos) params.set("logos", "off");
+    if (controls.rowBg) params.set("rowbg", "on"); // cards default OFF — opposite direction from tables
+    if (controls.rule) params.set("rule", "on");   // cards default OFF — opposite direction from tables
     if (hub.previewSize === "compact" || hub.previewSize === "standard") {
       params.set("size", hub.previewSize);
     }
     const qs = params.toString();
     return qs ? `${card.embedHref}?${qs}` : card.embedHref;
   }
+
   const table = activeTable();
   const params = new URLSearchParams();
-  if (hub.style.titleColor) params.set("titleColor", hub.style.titleColor);
-  if (hub.style.posColor) params.set("posColor", hub.style.posColor);
-  if (hub.style.pointsColor) params.set("pointsColor", hub.style.pointsColor);
-  if (!hub.controls.flags) params.set("flags", "off");
-  if (!hub.controls.logos) params.set("logos", "off");
-  if (!hub.controls.rowBg) params.set("rowbg", "off");
-  if (hub.controls.podium) params.set("podium", "on");
-  if (!hub.controls.rule) params.set("rule", "off");
+  if (style.titleColor) params.set("titleColor", style.titleColor);
+  if (style.posColor) params.set("posColor", style.posColor);
+  if (style.pointsColor) params.set("pointsColor", style.pointsColor);
+  if (!controls.flags) params.set("flags", "off");
+  if (!controls.logos) params.set("logos", "off");
+  if (!controls.rowBg) params.set("rowbg", "off");
+  if (controls.podium) params.set("podium", "on");
+  if (!controls.rule) params.set("rule", "off");
   if (hub.rowLimit) params.set("rows", hub.rowLimit);
   if (hub.previewSize === "compact" || hub.previewSize === "standard") {
     params.set("size", hub.previewSize);
@@ -278,7 +309,7 @@ function updateStylePreview() {
 function applyTitleColour(key) {
   const preset = STYLE_PRESETS_LOOKUP(key);
   if (!preset) return;
-  hub.style.titleColor = preset.accent;
+  currentStyle().titleColor = preset.accent;
   document.querySelectorAll(".title-colour-option").forEach(el =>
     el.classList.toggle("selected", el.dataset.key === key));
   updateStylePreview();
@@ -288,8 +319,9 @@ function applyTitleColour(key) {
 function applyPosPointsColour(key) {
   const preset = STYLE_PRESETS_LOOKUP(key);
   if (!preset) return;
-  hub.style.posColor = preset.accent;
-  hub.style.pointsColor = preset.accent;
+  const style = currentStyle();
+  style.posColor = preset.accent;
+  style.pointsColor = preset.accent;
   document.querySelectorAll(".pospoints-colour-option").forEach(el =>
     el.classList.toggle("selected", el.dataset.key === key));
   updateStylePreview();
@@ -303,45 +335,47 @@ function STYLE_PRESETS_LOOKUP(key) {
 function renderTitleColourButtons() {
   const mount = document.getElementById("title-colour-buttons");
   if (!mount) return;
+  const style = currentStyle();
   mount.innerHTML = STYLE_PRESETS.map(p => `
-    <button class="colour-option title-colour-option${hub.style.titleColor === p.accent ? ' selected' : ''}" data-key="${p.key}" title="${p.label}" style="background:${p.swatch};" onclick="applyTitleColour('${p.key}')"></button>
+    <button class="colour-option title-colour-option${style.titleColor === p.accent ? ' selected' : ''}" data-key="${p.key}" title="${p.label}" style="background:${p.swatch};" onclick="applyTitleColour('${p.key}')"></button>
   `).join('');
 }
 
 function renderPosPointsColourButtons() {
   const mount = document.getElementById("pospoints-colour-buttons");
   if (!mount) return;
+  const style = currentStyle();
   mount.innerHTML = STYLE_PRESETS.map(p => `
-    <button class="colour-option pospoints-colour-option${hub.style.posColor === p.accent ? ' selected' : ''}" data-key="${p.key}" title="${p.label}" style="background:${p.swatch};" onclick="applyPosPointsColour('${p.key}')"></button>
+    <button class="colour-option pospoints-colour-option${style.posColor === p.accent ? ' selected' : ''}" data-key="${p.key}" title="${p.label}" style="background:${p.swatch};" onclick="applyPosPointsColour('${p.key}')"></button>
   `).join('');
 }
 
 function toggleFlags() {
-  hub.controls.flags = document.getElementById("control-flags").checked;
+  currentControls().flags = document.getElementById("control-flags").checked;
   updateStylePreview();
   renderExportSurface();
 }
 
 function toggleLogos() {
-  hub.controls.logos = document.getElementById("control-logos").checked;
+  currentControls().logos = document.getElementById("control-logos").checked;
   updateStylePreview();
   renderExportSurface();
 }
 
 function toggleRowBg() {
-  hub.controls.rowBg = document.getElementById("control-rowbg").checked;
+  currentControls().rowBg = document.getElementById("control-rowbg").checked;
   updateStylePreview();
   renderExportSurface();
 }
 
 function togglePodium() {
-  hub.controls.podium = document.getElementById("control-podium").checked;
+  currentControls().podium = document.getElementById("control-podium").checked;
   updateStylePreview();
   renderExportSurface();
 }
 
 function toggleRule() {
-  hub.controls.rule = document.getElementById("control-rule").checked;
+  currentControls().rule = document.getElementById("control-rule").checked;
   updateStylePreview();
   renderExportSurface();
 }
@@ -389,20 +423,29 @@ function selectPreviewSize(key) {
   const flagsInput = document.getElementById("control-flags");
   const logosInput = document.getElementById("control-logos");
   const isCompact = key === "compact";
+  const isTable = hub.activeType === "table";
 
-  if (flagsInput) {
-    flagsInput.disabled = isCompact;
-    if (isCompact) flagsInput.checked = false;
-    else flagsInput.checked = hub.controls.flags;
-  }
-  if (logosInput) {
-    logosInput.disabled = isCompact;
-    if (isCompact) logosInput.checked = false;
-    else logosInput.checked = hub.controls.logos;
-  }
-  if (isCompact) {
-    hub.controls.flags = false;
-    hub.controls.logos = false;
+  if (isTable) {
+    if (flagsInput) {
+      flagsInput.disabled = isCompact;
+      if (isCompact) flagsInput.checked = false;
+      else flagsInput.checked = hub.controls.flags;
+    }
+    if (logosInput) {
+      logosInput.disabled = isCompact;
+      if (isCompact) logosInput.checked = false;
+      else logosInput.checked = hub.controls.logos;
+    }
+    if (isCompact) {
+      hub.controls.flags = false;
+      hub.controls.logos = false;
+    }
+  } else {
+    // Cards: Compact doesn't force logos off — the opposite, in fact
+    // (crests get bigger at Compact, see cards.css). Just make sure
+    // nothing is left disabled from a previous table-tab visit.
+    if (flagsInput) flagsInput.disabled = false;
+    if (logosInput) logosInput.disabled = false;
   }
 
   updateStylePreview();
@@ -564,6 +607,14 @@ function downloadPng() {
  * code / Copy still work for cards — buildEmbedUrl() already
  * branches for that. */
 
+/* Colour + Controls now apply to cards too (see hub.cardStyle/
+ * hub.cardControls above), so they're no longer hidden for card
+ * tabs — only Rows stays table-only (a single fixture has nothing
+ * to limit). Two of the five Controls (Top 3 highlight, Flags)
+ * currently have no visual effect on a card — left visible and
+ * toggleable rather than hidden, since disabling them individually
+ * would need per-control visibility logic for no real benefit; they
+ * simply don't do anything on a card yet. */
 function refreshStyleThemePanelForType() {
   const mount = document.getElementById("style-theme-panel");
   if (!mount) return;
@@ -573,22 +624,37 @@ function refreshStyleThemePanelForType() {
   const rowsSectionWrap = rowsSection && rowsSection.closest(".size-section");
   if (rowsSectionWrap) rowsSectionWrap.style.display = isCard ? "none" : "";
 
-  mount.querySelectorAll(".colour-section, .controls-section").forEach(el => {
-    el.style.display = isCard ? "none" : "";
-  });
+  syncControlsUI();
+}
 
-  let note = mount.querySelector(".card-style-note");
-  if (isCard) {
-    if (!note) {
-      note = document.createElement("p");
-      note.className = "card-style-note";
-      note.style.color = "var(--dt-text-secondary)";
-      note.textContent = "This card only supports the Size options above — no colour or row controls yet.";
-      mount.appendChild(note);
-    }
-  } else if (note) {
-    note.remove();
-  }
+/* Syncs the shared checkboxes/colour-button .selected states to
+ * whichever state object (hub.controls/hub.style vs hub.cardControls/
+ * hub.cardStyle) is relevant for the currently active tab — needed
+ * because the panel's DOM is generated once, not once per tab, so
+ * switching tabs doesn't naturally update it on its own. */
+function syncControlsUI() {
+  const controls = currentControls();
+  const style = currentStyle();
+
+  const flagsInput = document.getElementById("control-flags");
+  if (flagsInput) flagsInput.checked = controls.flags;
+  const logosInput = document.getElementById("control-logos");
+  if (logosInput) logosInput.checked = controls.logos;
+  const rowbgInput = document.getElementById("control-rowbg");
+  if (rowbgInput) rowbgInput.checked = controls.rowBg;
+  const podiumInput = document.getElementById("control-podium");
+  if (podiumInput) podiumInput.checked = controls.podium;
+  const ruleInput = document.getElementById("control-rule");
+  if (ruleInput) ruleInput.checked = controls.rule;
+
+  document.querySelectorAll(".title-colour-option").forEach(el => {
+    const preset = STYLE_PRESETS_LOOKUP(el.dataset.key);
+    el.classList.toggle("selected", !!preset && preset.accent === style.titleColor);
+  });
+  document.querySelectorAll(".pospoints-colour-option").forEach(el => {
+    const preset = STYLE_PRESETS_LOOKUP(el.dataset.key);
+    el.classList.toggle("selected", !!preset && preset.accent === style.posColor);
+  });
 }
 
 function refreshExportButtonsForType() {
