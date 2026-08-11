@@ -187,25 +187,26 @@ function renderResultCard(root, data, config) {
 
 /**
  * Fixture-list variant expects extract() to return:
- *   { matchday?, rows: [{ homeName, awayName, homeCrest?, awayCrest?,
- *     finished, live, homeScore?, awayScore?, homeScorers?,
- *     awayScorers?, kickoff, venue? }] }
+ *   { rows: [{ homeName, awayName, homeCrest?, awayCrest?, finished,
+ *     live, homeScore?, awayScore?, kickoff, venue? }] }
  * Each ROW independently decides its own display — finished rows
- * show the score + scorers, everything else shows kickoff + venue.
- * That's the whole point: viewed mid-weekend, Friday/Saturday's
- * results and Sunday's still-upcoming kickoff sit in the same list,
- * no separate "mode" for the card as a whole. Full width only — the
- * mirrored-column row layout doesn't have anywhere to go at
- * Standard/Compact widths, see sport-hub.js for where that's
- * enforced.
+ * show the score, still-upcoming rows show kickoff + venue. That's
+ * the whole point: viewed mid-weekend, Friday/Saturday's results and
+ * Sunday's still-upcoming kickoff sit in the same list, no separate
+ * "mode" for the card as a whole. No goal-scorer detail — the data
+ * source (ESPN) doesn't reliably expose it without a much heavier
+ * per-match fetch, dropped rather than built on unconfirmed data.
+ * Full width only — the mirrored-column row layout doesn't have
+ * anywhere to go at Standard/Compact widths, see sport-hub.js for
+ * where that's enforced.
  */
 function fixtureListRowHtml(row) {
   const isDecided = row.finished || row.live;
   const centerHtml = isDecided
     ? `<span class="card-list-score">${row.homeScore}\u2013${row.awayScore}</span>${row.live ? '<span class="card-list-live">LIVE</span>' : ''}`
     : `<span class="card-list-vs">vs</span>`;
-  const homeSub = row.finished ? (row.homeScorers || '') : row.kickoff;
-  const awaySub = row.finished ? (row.awayScorers || '') : (row.venue || '');
+  const homeSub = row.finished ? 'FT' : (row.live ? '' : row.kickoff);
+  const awaySub = row.venue || '';
   return `
     <div class="card-list-row${row.live ? ' card-list-row-live' : ''}">
       ${row.homeCrest ? `<img class="card-list-crest" src="${row.homeCrest}" alt="">` : '<span class="card-list-crest"></span>'}
@@ -224,10 +225,9 @@ function fixtureListRowHtml(row) {
 }
 
 function renderFixtureListCard(root, data, config) {
-  const eyebrowText = (config.eyebrow || '') + (data.matchday ? ` RD ${data.matchday}` : '');
   root.innerHTML = `
     <div class="card-widget card-fixture-list-widget">
-      <div class="card-eyebrow">${eyebrowText}</div>
+      <div class="card-eyebrow">${config.eyebrow || ''}</div>
       <div class="card-list-rows">
         ${data.rows.map(fixtureListRowHtml).join('')}
       </div>
