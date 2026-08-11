@@ -83,20 +83,22 @@ function applyCardSizeFromQueryParams() {
  * clearer here than "posColor" (which only ever meant something
  * table-specific).
  *
- * Two defaults are intentionally the OPPOSITE direction from tables:
- * rowbg and rule both default OFF for cards (preserving the card's
- * original plain-white look), so 'on' opts them IN — versus tables,
- * where both default ON and 'off' opts them OUT. logos keeps the
- * same direction as tables (default ON, 'off' opts out) since crests
- * being visible by default was never in question.
+ * rowbg/rule default direction depends on variant: fixture-list is a
+ * genuine table-like list (many rows), so it defaults BOTH on —
+ * absence of a param means on, explicit =off turns them off — same
+ * direction tables.js itself uses. Every other variant (single-event
+ * cards) keeps the opposite direction: both default off, preserving
+ * their original plain-white look, 'on' opts them in. logos keeps
+ * the same direction everywhere (default ON, 'off' opts out) since
+ * crests being visible by default was never in question.
  */
-function applyCardStyleFromQueryParams() {
+function applyCardStyleFromQueryParams(variant) {
   const params = new URLSearchParams(window.location.search);
   const titleColor = params.get('titleColor');         // hex without '#' — team name colour, default var(--card-text)
   const secondaryColor = params.get('secondaryColor');  // hex without '#' — the eyebrow word's colour, default var(--card-accent)
   const logos = params.get('logos');   // 'off' hides the crest images; default shown
-  const rowbg = params.get('rowbg');   // 'on' tints the card background grey; default off
-  const rule = params.get('rule');     // 'on' adds a divider under the team names; default off
+  const rowbg = params.get('rowbg');
+  const rule = params.get('rule');
 
   if (titleColor && /^[0-9a-fA-F]{6}$/.test(titleColor)) {
     document.documentElement.style.setProperty('--card-title-color', `#${titleColor}`);
@@ -107,11 +109,16 @@ function applyCardStyleFromQueryParams() {
   if (logos === 'off') {
     document.documentElement.setAttribute('data-card-logos', 'off');
   }
-  if (rowbg === 'on') {
-    document.documentElement.setAttribute('data-card-rowbg', 'on');
-  }
-  if (rule === 'on') {
-    document.documentElement.setAttribute('data-card-rule', 'on');
+  if (variant === 'fixture-list') {
+    if (rowbg !== 'off') document.documentElement.setAttribute('data-card-rowbg', 'on');
+    if (rule !== 'off') document.documentElement.setAttribute('data-card-rule', 'on');
+  } else {
+    if (rowbg === 'on') {
+      document.documentElement.setAttribute('data-card-rowbg', 'on');
+    }
+    if (rule === 'on') {
+      document.documentElement.setAttribute('data-card-rule', 'on');
+    }
   }
 }
 
@@ -256,7 +263,7 @@ function loadCardData(config) {
 
 function initCard(config) {
   applyCardSizeFromQueryParams();
-  applyCardStyleFromQueryParams();
+  applyCardStyleFromQueryParams(config.variant);
   const root = document.querySelector(config.containerSelector);
   root.innerHTML = `<div class="card-widget"><p style="padding:1rem;">Loading…</p></div>`;
 
