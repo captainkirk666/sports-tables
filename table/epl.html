@@ -70,6 +70,18 @@ initSportHub({
       adapter: EPL_ADAPTERS.nextFixtureCard,
       variant: "fixture",
       eyebrow: "EPL"
+    },
+    {
+      key: "weekend-fixtures",
+      label: "Upcoming Matches",
+      title: "EPL Upcoming Matches",
+      tableLabel: "Upcoming Matches",
+      sportLogo: "../assets/logos/epl/epl-logo.png",
+      embedHref: "../embed/epl/weekend-fixtures.html",
+      adapter: EPL_ADAPTERS.weekendFixtures(),
+      variant: "fixture-list",
+      eyebrow: "EPL",
+      sizeRestricted: "full"
     }
   ]
 });
