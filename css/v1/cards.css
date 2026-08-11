@@ -383,10 +383,14 @@ html:not([data-dt-size]) .card-fixture-team-name,
 .card-list-rows {
   display: flex;
   flex-direction: column;
-  /* Fixed 3px gap between every row — unconditional, not tied to
-     the Row background toggle (each row is "a row in a table" first,
-     background fill is a separate, independent concern). */
-  gap: 3px;
+  /* Gap between every row — unconditional, not tied to the Row
+     background toggle (each row is "a row in a table" first,
+     background fill is a separate, independent concern). Originally
+     3px per request, but that proved too thin to actually read as a
+     divider once rendered against the grey fill — bumped to 6px,
+     which is clearly visible without changing anything else about
+     the layout. */
+  gap: 6px;
   /* Bleeds past .card-widget's own 1.5rem horizontal padding, so the
      Grey Rule divider (and the Row background fill, when both are
      on) can run genuinely edge-to-edge against the card's true
