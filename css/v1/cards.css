@@ -1,162 +1,261 @@
-/**
- * Shared card engine — v1
- *
- * Renders a single event/result as a card, rather than a table of
- * many ranked rows — for "look-ahead" content (next race, upcoming
- * fixtures) and final-score results. Every embed page using this
- * includes it, then calls initCard(config).
- *
- * config = {
- *   containerSelector: "#dt-app",
- *   variant: "preview" | "fixture" | "result",
- *   eyebrow: "Next Race",           // small label above the content
- *   sourceUrl: "https://...",
- *   adapter: {
- *     // Unlike tables.js, extract() returns ONE object (or null if
- *     // there's nothing to show — e.g. season over), not an array.
- *     extract(data) -> object | null,
- *   },
- *   refreshSeconds: 60,             // 0/undefined = no auto refresh
- * }
- *
- * Size (compact/standard/full) is NOT part of config — same
- * convention as tables.js: it's read directly from the embed page's
- * own URL (?size=...) by applyCardSizeFromQueryParams(), so
- * sport-hub.js's existing Size buttons drive card embeds exactly the
- * same way they drive table embeds (see buildEmbedUrl() there).
- *
- * Preview variant expects extract() to return:
- *   { headline, logoLeft?, logoRight?, flag?, location, date, time }
- *   headline is a plain string — either an event name ("British
- *   Grand Prix") or a fixture ("Arsenal v Chelsea"), built by the
- *   adapter. logoLeft/logoRight are only relevant for genuine
- *   two-team fixtures; leave them out (or null) for single-event
- *   content like a Grand Prix.
- *
- * Result variant expects extract() to return:
- *   { leftName, rightName, leftScore, rightScore, leftLogo?, rightLogo?, detail? }
- */
+/* ===========================================
+   Shared embeddable CARD theme — v1
+   For "look-ahead" content (next event, upcoming
+   fixture) and final-score results — a different
+   shape of content from the ranked standings
+   tables in tables.css, kept as its own file
+   rather than bolted onto that engine.
+   =========================================== */
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;600;700&display=swap');
 
-/**
- * Fixture variant expects extract() to return:
- *   { eyebrow?, homeName, awayName, homeCrest?, awayCrest?, date, venue? }
- * Distinct from the Preview variant's single-headline shape — see
- * cards.css's comment on .card-fixture for why this is a separate
- * variant rather than a branch inside renderPreviewCard.
- */
-
-/**
- * Mirrors applyThemeFromQueryParams() in tables.js — same attribute
- * (data-dt-size), same param name (?size=), same three values
- * (compact/standard/full, full being the unset default). Kept as its
- * own small function here rather than importing tables.js's, since
- * card embed pages only load card-loader.js, not the table engine —
- * duplicating three lines is cheaper than adding a cross-engine
- * dependency for it.
- */
-function applyCardSizeFromQueryParams() {
-  const size = new URLSearchParams(window.location.search).get('size');
-  if (size) {
-    document.documentElement.setAttribute('data-dt-size', size);
-  }
+:root {
+  --card-bg: #fff;
+  --card-text: #111;
+  --card-text-secondary: #666;
+  --card-border: #e2e2e2;
+  --card-accent: #e10600;
+  --card-radius: 8px; /* matches --dt-radius in tables.css */
+  --card-font: 'Roboto Condensed', sans-serif;
 }
 
-function renderPreviewCard(root, data, config) {
-  root.innerHTML = `
-    <div class="card-widget card-preview">
-      <div class="card-eyebrow">${config.eyebrow || ''}</div>
-      <div class="card-headline">
-        ${data.logoLeft ? `<img class="card-logo-left" src="${data.logoLeft}" alt="">` : ''}
-        <span>${data.headline}</span>
-        ${data.logoRight ? `<img class="card-logo-right" src="${data.logoRight}" alt="">` : ''}
-      </div>
-      <div class="card-location">
-        ${data.flag ? `<img class="card-flag" src="${data.flag}" alt="">` : ''}
-        <span>${data.location}</span>
-      </div>
-      <div class="card-datetime">${data.date} · ${data.time}</div>
-      <div class="card-footer">Source: KIKA MEDIA</div>
-    </div>
-  `;
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+.card-widget {
+  font-family: var(--card-font);
+  background: var(--card-bg);
+  color: var(--card-text);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+  padding: 1.25rem 1.5rem;
+  text-align: center;
 }
 
-function renderFixtureCard(root, data, config) {
-  root.innerHTML = `
-    <div class="card-widget card-fixture-widget">
-      <div class="card-fixture-crests">
-        ${data.homeCrest ? `<img class="card-crest card-crest-left" src="${data.homeCrest}" alt="">` : ''}
-        ${data.awayCrest ? `<img class="card-crest card-crest-right" src="${data.awayCrest}" alt="">` : ''}
-      </div>
-      <div class="card-eyebrow">${config.eyebrow || ''}</div>
-      <div class="card-fixture-teams">
-        <span class="card-fixture-team-name">${data.homeName}</span>
-        <span class="card-vs">vs</span>
-        <span class="card-fixture-team-name">${data.awayName}</span>
-      </div>
-      <div class="card-fixture-meta">
-        <span class="card-datetime">${data.date}</span>
-        ${data.venue ? `<span class="card-venue">${data.venue}</span>` : ''}
-      </div>
-      <div class="card-footer">Source: KIKA MEDIA</div>
-    </div>
-  `;
+.card-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--card-accent);
+  margin-bottom: 0.5rem;
 }
 
-function renderResultCard(root, data, config) {
-  root.innerHTML = `
-    <div class="card-widget card-result">
-      <div class="card-eyebrow">${config.eyebrow || 'Full Time'}</div>
-      <div class="card-scoreline">
-        <div class="card-team card-team-left">
-          ${data.leftLogo ? `<img class="card-logo" src="${data.leftLogo}" alt="">` : ''}
-          <span class="card-team-name">${data.leftName}</span>
-        </div>
-        <div class="card-score">
-          <span>${data.leftScore}</span><span class="card-score-sep">–</span><span>${data.rightScore}</span>
-        </div>
-        <div class="card-team card-team-right">
-          ${data.rightLogo ? `<img class="card-logo" src="${data.rightLogo}" alt="">` : ''}
-          <span class="card-team-name">${data.rightName}</span>
-        </div>
-      </div>
-      ${data.detail ? `<div class="card-detail">${data.detail}</div>` : ''}
-      <div class="card-footer">Source: KIKA MEDIA</div>
-    </div>
-  `;
+/* ---------- Preview variant (Next Race, upcoming fixtures) ---------- */
+.card-headline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 0.6rem;
+}
+.card-logo-left,
+.card-logo-right {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+.card-location {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-size: 0.95rem;
+  color: var(--card-text-secondary);
+  margin-bottom: 0.25rem;
+}
+.card-flag {
+  width: 20px;
+  height: 14px;
+  object-fit: cover;
+  border-radius: 2px;
+}
+.card-datetime {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--card-text);
 }
 
-function initCard(config) {
-  applyCardSizeFromQueryParams();
-  const root = document.querySelector(config.containerSelector);
-  root.innerHTML = `<div class="card-widget"><p style="padding:1rem;">Loading…</p></div>`;
+/* ---------- Fixture variant (two-team matchup preview, e.g. EPL) ----------
+   Distinct from the Preview variant above: Preview is single-event
+   content (F1's next race — one headline, small optional side icons).
+   Fixture is specifically a two-team matchup. Kept as its own
+   variant/render function rather than branching inside
+   renderPreviewCard, so F1's already-working next-race card is
+   untouched when it's retrofitted onto this engine later.
 
-  function load() {
-    fetch(config.sourceUrl)
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then(raw => {
-        const data = config.adapter.extract(raw);
-        if (!data) {
-          root.innerHTML = `<div class="card-widget"><p style="padding:1rem;">No data available.</p></div>`;
-          return;
-        }
-        if (config.variant === 'result') {
-          renderResultCard(root, data, config);
-        } else if (config.variant === 'fixture') {
-          renderFixtureCard(root, data, config);
-        } else {
-          renderPreviewCard(root, data, config);
-        }
-      })
-      .catch(err => {
-        root.innerHTML = `<div class="card-widget"><p style="padding:1rem;">Failed to load: ${err.message}</p></div>`;
-      });
-  }
+   SIZE SYSTEM: reuses the exact same [data-dt-size="compact"|
+   "standard"|"full"] attribute and ?size= query param that tables.js
+   already establishes (see applyThemeFromQueryParams() there,
+   mirrored by applyCardSizeFromQueryParams() in cards.js) — same
+   convention, same three sizes, same sport-hub.js Size buttons drive
+   both engines' embeds. Default (no attribute set) = "full".
 
-  load();
-  if (config.refreshSeconds) {
-    setInterval(load, config.refreshSeconds * 1000);
-  }
+   ONE markup, THREE layouts: rather than three separate render
+   functions, this is CSS Grid with named areas, redefined per size —
+   renderFixtureCard() always emits the same elements (crests wrapper,
+   eyebrow, teams, meta, footer); only which grid-template-areas
+   arrangement is active changes. The crests wrapper additionally
+   toggles between display:contents (crest-left/crest-right become
+   independent grid items — full/standard, where they flank other
+   content) and display:flex (crests become one paired grid item —
+   compact, where they sit together above everything else). */
+.card-fixture-widget {
+  display: grid;
+  column-gap: 0.75rem;
+  row-gap: 0.4rem;
+  align-items: center;
+}
+
+.card-fixture-crests {
+  display: contents; /* default: children are independent grid items — see compact override below */
+}
+.card-crest {
+  width: clamp(2.5rem, 14vw, 4.5rem);
+  height: clamp(2.5rem, 14vw, 4.5rem);
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--card-header-bg, #f7f7f8);
+}
+.card-crest-left  { grid-area: crest-left; justify-self: end; }
+.card-crest-right { grid-area: crest-right; justify-self: start; }
+
+.card-fixture-widget .card-eyebrow { grid-area: eyebrow; margin-bottom: 0; }
+
+.card-fixture-teams {
+  grid-area: teams;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+}
+.card-fixture-team-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+}
+.card-vs {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--card-text-secondary);
+  margin: 0.1rem 0;
+}
+
+.card-fixture-meta {
+  grid-area: meta;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+}
+.card-venue {
+  font-size: 0.85rem;
+  color: var(--card-text-secondary);
+}
+
+.card-fixture-widget .card-footer { grid-area: footer; margin-top: 0.25rem; }
+
+/* STANDARD (also the unset/default case) — matches the original
+   mockup: eyebrow on its own row, big crests flanking a stacked
+   team-name block, meta full-width below. */
+.card-fixture-widget,
+[data-dt-size="standard"] .card-fixture-widget {
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas:
+    "eyebrow    eyebrow eyebrow"
+    "crest-left teams   crest-right"
+    "meta       meta    meta"
+    "footer     footer  footer";
+}
+
+/* FULL — wide single-row banner: no eyebrow, small crests flanking a
+   two-line block (team names on one line, date+venue on the next). */
+[data-dt-size="full"] .card-fixture-widget {
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas:
+    "crest-left teams  crest-right"
+    "crest-left meta   crest-right"
+    "footer     footer footer";
+}
+[data-dt-size="full"] .card-crest { width: clamp(1.75rem, 9vw, 3rem); height: clamp(1.75rem, 9vw, 3rem); }
+[data-dt-size="full"] .card-fixture-teams { flex-direction: row; gap: 0.4rem; }
+[data-dt-size="full"] .card-fixture-team-name { font-size: 1.1rem; }
+[data-dt-size="full"] .card-fixture-meta { flex-direction: row; gap: 0.6rem; }
+[data-dt-size="full"] .card-eyebrow { display: none; }
+
+/* COMPACT — narrow column: both crests paired together above the
+   eyebrow, rather than flanking the team block (there isn't width
+   for that at this size). The crests wrapper switches from
+   display:contents to a real flex box here, becoming one grid item
+   ("crests") instead of two independent ones. */
+[data-dt-size="compact"] .card-fixture-widget {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "crests"
+    "eyebrow"
+    "teams"
+    "meta"
+    "footer";
+}
+[data-dt-size="compact"] .card-fixture-crests {
+  display: flex;
+  grid-area: crests;
+  justify-content: center;
+  gap: 0.6rem;
+}
+[data-dt-size="compact"] .card-crest { width: clamp(2rem, 16vw, 3.25rem); height: clamp(2rem, 16vw, 3.25rem); }
+[data-dt-size="compact"] .card-fixture-team-name { font-size: 1.1rem; }
+
+/* ---------- Result variant (final score) ---------- */
+.card-scoreline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+.card-team {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.card-team-right {
+  flex-direction: row-reverse;
+}
+.card-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+.card-score {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.card-score-sep {
+  color: var(--card-text-secondary);
+  font-weight: 400;
+}
+.card-detail {
+  font-size: 0.85rem;
+  color: var(--card-text-secondary);
+}
+
+.card-footer {
+  margin-top: 0.75rem;
+  font-size: 0.7rem;
+  color: var(--card-text-secondary);
+  text-align: right;
 }
