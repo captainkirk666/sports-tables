@@ -39,10 +39,12 @@
 
 /**
  * Fixture variant expects extract() to return:
- *   { eyebrow?, homeName, awayName, homeCrest?, awayCrest?, date, venue? }
- * Distinct from the Preview variant's single-headline shape — see
- * cards.css's comment on .card-fixture for why this is a separate
- * variant rather than a branch inside renderPreviewCard.
+ *   { homeName, awayName, homeCrest?, awayCrest?, date, dateShort?, venue?, venueShort? }
+ * dateShort/venueShort are only used at Compact size (renderFixtureCard()
+ * falls back to date/venue if they're absent). Distinct from the
+ * Preview variant's single-headline shape — see cards.css's comment
+ * on .card-fixture-widget for why this is a separate variant rather
+ * than a branch inside renderPreviewCard.
  */
 
 /**
@@ -58,6 +60,49 @@ function applyCardSizeFromQueryParams() {
   const size = new URLSearchParams(window.location.search).get('size');
   if (size) {
     document.documentElement.setAttribute('data-dt-size', size);
+  }
+}
+
+/**
+ * Fixture card's colour + controls params — driven by sport-hub.js's
+ * Style & Theme panel, same UI as the table engine but with card-
+ * appropriate defaults (see hub.cardStyle/hub.cardControls there).
+ * Deliberately its own param set, not reusing tables.js's posColor/
+ * pointsColor/rowbg/rule names verbatim — cards never had any live
+ * embeds before this, so there's no backward-compat reason to match
+ * the table engine's exact wire format, and "secondaryColor" reads
+ * clearer here than "posColor" (which only ever meant something
+ * table-specific).
+ *
+ * Two defaults are intentionally the OPPOSITE direction from tables:
+ * rowbg and rule both default OFF for cards (preserving the card's
+ * original plain-white look), so 'on' opts them IN — versus tables,
+ * where both default ON and 'off' opts them OUT. logos keeps the
+ * same direction as tables (default ON, 'off' opts out) since crests
+ * being visible by default was never in question.
+ */
+function applyCardStyleFromQueryParams() {
+  const params = new URLSearchParams(window.location.search);
+  const titleColor = params.get('titleColor');         // hex without '#' — team name colour, default var(--card-text)
+  const secondaryColor = params.get('secondaryColor');  // hex without '#' — the eyebrow word's colour, default var(--card-accent)
+  const logos = params.get('logos');   // 'off' hides the crest images; default shown
+  const rowbg = params.get('rowbg');   // 'on' tints the card background grey; default off
+  const rule = params.get('rule');     // 'on' adds a divider under the team names; default off
+
+  if (titleColor && /^[0-9a-fA-F]{6}$/.test(titleColor)) {
+    document.documentElement.style.setProperty('--card-title-color', `#${titleColor}`);
+  }
+  if (secondaryColor && /^[0-9a-fA-F]{6}$/.test(secondaryColor)) {
+    document.documentElement.style.setProperty('--card-secondary-color', `#${secondaryColor}`);
+  }
+  if (logos === 'off') {
+    document.documentElement.setAttribute('data-card-logos', 'off');
+  }
+  if (rowbg === 'on') {
+    document.documentElement.setAttribute('data-card-rowbg', 'on');
+  }
+  if (rule === 'on') {
+    document.documentElement.setAttribute('data-card-rule', 'on');
   }
 }
 
@@ -81,23 +126,29 @@ function renderPreviewCard(root, data, config) {
 }
 
 function renderFixtureCard(root, data, config) {
+  const size = document.documentElement.getAttribute('data-dt-size') || 'full';
+  const isCompact = size === 'compact';
+  const dateText = (isCompact && data.dateShort) ? data.dateShort : data.date;
+  const venueText = (isCompact && data.venueShort) ? data.venueShort : data.venue;
+
   root.innerHTML = `
     <div class="card-widget card-fixture-widget">
       <div class="card-fixture-crests">
         ${data.homeCrest ? `<img class="card-crest card-crest-left" src="${data.homeCrest}" alt="">` : ''}
         ${data.awayCrest ? `<img class="card-crest card-crest-right" src="${data.awayCrest}" alt="">` : ''}
       </div>
-      <div class="card-eyebrow">${config.eyebrow || ''}</div>
+      <div class="card-fixture-topline">
+        <div class="card-eyebrow">${config.eyebrow || ''}</div>
+        <div class="card-fixture-meta">
+          <span class="card-datetime">${dateText}</span>
+          ${venueText ? `<span class="card-venue">${venueText}</span>` : ''}
+        </div>
+      </div>
       <div class="card-fixture-teams">
         <span class="card-fixture-team-name">${data.homeName}</span>
         <span class="card-vs">vs</span>
         <span class="card-fixture-team-name">${data.awayName}</span>
       </div>
-      <div class="card-fixture-meta">
-        <span class="card-datetime">${data.date}</span>
-        ${data.venue ? `<span class="card-venue">${data.venue}</span>` : ''}
-      </div>
-      <div class="card-footer">Source: KIKA MEDIA</div>
     </div>
   `;
 }
@@ -127,6 +178,7 @@ function renderResultCard(root, data, config) {
 
 function initCard(config) {
   applyCardSizeFromQueryParams();
+  applyCardStyleFromQueryParams();
   const root = document.querySelector(config.containerSelector);
   root.innerHTML = `<div class="card-widget"><p style="padding:1rem;">Loading…</p></div>`;
 
