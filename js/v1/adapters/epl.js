@@ -94,73 +94,96 @@ function eplFormatFixtureDateShort(iso) {
 }
 
 /**
- * ---------- Weekend fixture list — football-data.org, not ESPN ----------
+ * ---------- Weekend fixture list — back on ESPN ----------
  *
- * Deliberately a SEPARATE data source from everything above. ESPN's
- * hidden API has no round/matchday concept at all for soccer
- * (confirmed earlier) — so a "give me this whole round" query isn't
- * possible there without guessing a date window, which risks
- * missing rearranged fixtures or misattributing a stray postponed
- * game to the wrong round. football-data.org has a genuine
- * `matchday` integer, directly filterable, so this whole class of
- * bug is structurally avoided rather than mitigated.
+ * Was briefly built on football-data.org for its genuine `matchday`
+ * grouping — reverted after discovering its free tier restricts
+ * direct-browser CORS to localhost only, which a static site with no
+ * backend can't work around without a paid plan. Back on ESPN,
+ * which has proven reliably CORS-open all session, at the cost of
+ * the correctness tradeoff already discussed at length: no round/
+ * matchday field, so "this weekend's games" means a date-window
+ * heuristic rather than an authoritative boundary. Also means no
+ * "EPL RD XX" round label — same reason nextFixtureCard's eyebrow
+ * above is just "EPL", no number.
  *
- * Tradeoffs that come with that switch, on the record here rather
- * than buried in a comment nobody reads:
- *   - Requires a registered API token (X-Auth-Token header). Since
- *     this is a fully static site with no backend, that token lives
- *     directly in this file, in plain view to anyone who looks at
- *     page source. Accepted deliberately, not an oversight.
- *   - The free tier's 10 requests/minute is shared across the
- *     ENTIRE account — i.e. across every visitor's browser hitting
- *     this card, not 10/min per visitor. This card makes 2 calls per
- *     load (see fetch() below) — 2 calls, not 1, because a
- *     single-call, status=SCHEDULED-only version would have excluded
- *     already-finished games from the current round, breaking the
- *     "scores fill in automatically as the weekend progresses"
- *     requirement. Correctness costs a call.
+ * Approach: fetch the bare scoreboard (no ?dates=) to find the next
+ * unplayed fixture, same trick eplFindNextFixture() above already
+ * uses — its date anchors a Friday–Monday window. Each of those 4
+ * dates gets its own ?dates=YYYYMMDD fetch (the single-date query is
+ * the one part of ESPN's date handling that's been reliable all
+ * session), results merged and deduped by event id. 5 fetches total
+ * per page load — more than football-data.org's 2, but ESPN has no
+ * personal account quota to protect, so that's a non-issue here.
+ *
+ * Known residual risk, unchanged from the original discussion: a
+ * rearranged fixture sitting outside Fri–Mon (a Tuesday cup-clash
+ * reschedule, say) can still be missed, or — if IT happens to be the
+ * chronologically-next unplayed fixture — can skew the anchor and
+ * pull in the wrong week's window. Accepted, not solved.
+ *
+ * weekOffset (0 = this weekend, 1 = next, -1 = last, etc.) is wired
+ * through now even though no UI drives it yet, same "future nav
+ * costs one param, not a rewrite" reasoning as before — just shifted
+ * from a matchday number to a week offset, since ESPN has no round
+ * number to offset instead.
  */
-const FD_API_BASE = "https://api.football-data.org/v4";
-const FD_AUTH_TOKEN = "ad83c42b25014d53ae9f15f325dd1907";
-
-function fdFetch(path) {
-  return fetch(FD_API_BASE + path, { headers: { "X-Auth-Token": FD_AUTH_TOKEN } })
-    .then(res => {
-      // football-data.org's own onboarding docs specifically ask
-      // API consumers to watch these two headers to self-throttle
-      // rather than just hitting 429 blindly — logged, not acted on
-      // yet (no backoff/retry loop here), but visible in devtools
-      // for anyone debugging a "why did this stop updating" report.
-      const remaining = res.headers.get("X-Requests-Available-Minute");
-      const reset = res.headers.get("X-RequestCounter-Reset");
-      if (remaining !== null) {
-        console.log(`football-data.org: ${remaining} requests left this minute (resets in ${reset}s)`);
-      }
-      if (res.status === 429) {
-        const retryAfter = res.headers.get("Retry-After");
-        throw new Error(`Rate limited — retry after ${retryAfter || "a few"}s`);
-      }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return res.json();
-    });
+function eplFormatDateParam(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}${m}${day}`;
 }
-
-/**
- * event.goals[] entries: { minute, team: { id, name }, scorer: { name }, ... }
- * Grouped per team, joined "Kane '26, Rooney '43" — matches the
- * mockup's scorer-line format exactly. ownGoal/penalty aren't
- * called out separately; revisit if that distinction turns out to
- * matter visually.
- */
-function fdScorerLine(match, teamId) {
-  const goals = (match.goals || []).filter(g => g.team && g.team.id === teamId);
-  if (!goals.length) return null;
-  return goals.map(g => `${(g.scorer && g.scorer.name) || "?"} '${g.minute}`).join(", ");
+function eplWeekendWindowDates(anchorDate) {
+  const day = anchorDate.getDay(); // 0=Sun..6=Sat
+  const daysSinceFriday = (day + 2) % 7;
+  const friday = new Date(anchorDate);
+  friday.setDate(anchorDate.getDate() - daysSinceFriday);
+  const dates = [];
+  for (let i = 0; i < 4; i++) {
+    const d = new Date(friday);
+    d.setDate(friday.getDate() + i);
+    dates.push(eplFormatDateParam(d));
+  }
+  return dates;
 }
-
-function fdFormatKickoff(iso) {
+function eplFormatKickoffTime(iso) {
   if (!iso) return "TBC";
   return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+}
+function eplFetchWeekendEvents(weekOffset) {
+  const base = "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard";
+  return fetch(base)
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    })
+    .then(anchorData => {
+      const anchorEvent = eplFindNextFixture(anchorData);
+      const anchor = anchorEvent ? new Date(anchorEvent.date) : new Date();
+      if (weekOffset) anchor.setDate(anchor.getDate() + weekOffset * 7);
+      const dates = eplWeekendWindowDates(anchor);
+      return Promise.all(dates.map(d =>
+        fetch(`${base}?dates=${d}`).then(res => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.json();
+        })
+      ));
+    })
+    .then(responses => {
+      const seen = new Set();
+      const events = [];
+      responses.forEach(data => {
+        (data.events || []).forEach(e => {
+          if (!seen.has(e.id)) {
+            seen.add(e.id);
+            events.push(e);
+          }
+        });
+      });
+      events.sort((a, b) => new Date(a.date) - new Date(b.date));
+      return events;
+    });
 }
 
 const EPL_ADAPTERS = {
@@ -222,52 +245,35 @@ const EPL_ADAPTERS = {
   },
 
   /* Full-width-only weekend fixture list — see the big comment block
-     above for why this is a different data source (football-data.org)
-     from every other adapter in this file. Uses the fetch() escape
-     hatch rather than a plain sourceUrl — see cards.js/sport-hub.js
-     for how that's dispatched — because this needs two sequential
-     authenticated calls, not one plain GET.
-
-     Accepts an optional matchday number so a future "this week / next
-     week" control can just pass a different value in rather than
-     needing any rework here — see EPL_ADAPTERS.weekendFixtures(N)
-     below; called with no argument, it resolves the CURRENT matchday
-     itself via the Competition resource. */
-  weekendFixtures(matchday) {
+     above for the ESPN day-window approach and its known limits.
+     Uses the fetch() escape hatch (see cards.js/sport-hub.js) since
+     this needs 5 sequential calls, not one plain GET. weekOffset:
+     0 = this weekend (default), 1 = next, -1 = last, etc. — not
+     wired to any UI control yet, see the comment above for why it's
+     here anyway. */
+  weekendFixtures(weekOffset) {
     return {
-      fetch: () => {
-        const resolveMatchday = matchday
-          ? Promise.resolve(matchday)
-          : fdFetch("/competitions/PL").then(comp => {
-              const n = comp.currentSeason && comp.currentSeason.currentMatchday;
-              if (!n) throw new Error("No current matchday available");
-              return n;
-            });
-        return resolveMatchday.then(n =>
-          fdFetch(`/competitions/PL/matches?matchday=${n}`).then(data => ({ ...data, matchday: n }))
-        );
-      },
-      extract: data => {
-        const matches = data.matches || [];
-        if (!matches.length) return null;
+      fetch: () => eplFetchWeekendEvents(weekOffset),
+      extract: events => {
+        if (!events.length) return null;
         return {
-          matchday: data.matchday,
-          rows: matches.map(m => {
-            const finished = m.status === "FINISHED";
-            const live = m.status === "IN_PLAY" || m.status === "PAUSED";
+          rows: events.map(e => {
+            const comp = e.competitions[0];
+            const home = eplCompetitor(comp, "home");
+            const away = eplCompetitor(comp, "away");
+            const state = comp.status.type.state; // "pre" | "in" | "post"
+            const finished = state === "post";
+            const live = state === "in";
             return {
-              id: m.id,
-              homeName: m.homeTeam.shortName || m.homeTeam.name,
-              awayName: m.awayTeam.shortName || m.awayTeam.name,
-              homeCrest: m.homeTeam.crest || null,
-              awayCrest: m.awayTeam.crest || null,
+              homeName: home.team.shortDisplayName,
+              awayName: away.team.shortDisplayName,
+              homeCrest: home.team.logo || null,
+              awayCrest: away.team.logo || null,
               finished, live,
-              homeScore: finished || live ? m.score.fullTime.home : null,
-              awayScore: finished || live ? m.score.fullTime.away : null,
-              homeScorers: finished ? fdScorerLine(m, m.homeTeam.id) : null,
-              awayScorers: finished ? fdScorerLine(m, m.awayTeam.id) : null,
-              kickoff: fdFormatKickoff(m.utcDate),
-              venue: m.venue || null,
+              homeScore: finished || live ? home.score : null,
+              awayScore: finished || live ? away.score : null,
+              kickoff: eplFormatKickoffTime(e.date),
+              venue: (comp.venue && comp.venue.fullName) || null,
             };
           }),
         };
