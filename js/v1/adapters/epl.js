@@ -78,6 +78,20 @@ function eplFormatFixtureDate(iso) {
   const day = d.getDate();
   return `${weekday} ${day}${eplOrdinal(day)} ${month}, ${d.getFullYear()}`;
 }
+/**
+ * Short form for the Compact card size only — "Sat, 22nd Aug", no
+ * year. Full/Standard keep the long form above (renderFixtureCard()
+ * in cards.js picks between the two based on the current
+ * [data-dt-size]).
+ */
+function eplFormatFixtureDateShort(iso) {
+  if (!iso) return "TBC";
+  const d = new Date(iso);
+  const weekday = d.toLocaleDateString('en-GB', { weekday: 'short' });
+  const month = d.toLocaleDateString('en-GB', { month: 'short' });
+  const day = d.getDate();
+  return `${weekday}, ${day}${eplOrdinal(day)} ${month}`;
+}
 
 const EPL_ADAPTERS = {
   table: {
@@ -108,7 +122,11 @@ const EPL_ADAPTERS = {
      doesn't expose one for soccer (confirmed against the live
      endpoint and corroborated by other API consumers hitting the
      same gap), so the card's eyebrow is just the static "EPL" label,
-     set in the embed page rather than computed here. */
+     set in the embed page rather than computed here.
+
+     dateShort/venueShort are ONLY used at Compact size (see
+     renderFixtureCard() in cards.js) — Full/Standard use date/venue,
+     the fuller forms. */
   nextFixtureCard: {
     sourceUrl: "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard",
     extract: data => {
@@ -126,7 +144,9 @@ const EPL_ADAPTERS = {
         homeCrest: home.team.logo || null,
         awayCrest: away.team.logo || null,
         date: eplFormatFixtureDate(event.date),
+        dateShort: eplFormatFixtureDateShort(event.date),
         venue: city ? `${venue.fullName}, ${city}` : (venue.fullName || null),
+        venueShort: venue.fullName || null,
       };
     },
   },
