@@ -1,39 +1,37 @@
 /**
- * Sport adapter loader — v1
+ * Shared card engine loader — v1
  *
- * Every page that needs a sport's adapter (a hub page, or any of
- * its embed pages) includes ONE line instead of writing the
- * adapters/<sport>.js path and version number directly:
+ * Cards (single-event "coming up" / "scorecard" widgets) are a
+ * separate rendering engine from the ranked-standings tables engine
+ * (loader.js) — different content shape, different lifecycle, so
+ * they get their own loader and their own version number rather
+ * than being folded into ENGINE_VERSION. Typography/colour tokens
+ * are still deliberately aligned to tables.css (see cards.css) —
+ * only the version numbers are independent.
  *
- *   <script data-sport="epl" src="https://captainkirk666.github.io/sports-tables/js/adapter-loader.js"></script>
+ * Every card embed page includes ONLY this one script tag, with NO
+ * ?v= of its own:
  *
- * Each sport's adapter version lives in ONE place — ADAPTER_VERSIONS
- * below. Bump it once there, and every page referencing that sport
- * (hub page + however many embed pages) picks it up automatically —
- * same reasoning as loader.js/hub-loader.js for the shared engine,
- * just scoped per-sport instead of site-wide, since each sport's
- * adapter is genuinely independent of every other sport's.
+ *   <script src="https://captainkirk666.github.io/sports-tables/js/card-loader.js"></script>
  *
- * data-sport must match both a key below AND the actual filename in
- * js/v1/adapters/ (e.g. data-sport="epl" -> adapters/epl.js).
+ * Bump CARD_VERSION below, once, and every card embed page — current
+ * and future, any sport — picks up the change.
+ *
+ * Loads: cards.css, cards.js.
+ * NOT loaded here (deliberately per-sport, not shared):
+ *   - adapters/<sport>.js — still loaded separately via
+ *     adapter-loader.js, same as table embed pages. A card embed
+ *     page needs BOTH card-loader.js (engine) AND adapter-loader.js
+ *     (data), same two-tag pattern as table embeds.
  *
  * Same caching tradeoff as the other loaders: no ?v= on this file
  * itself, so GitHub Pages' CDN can serve a stale copy of it for up
  * to ~10 minutes after an edit.
  */
 (function () {
-  var ADAPTER_VERSIONS = {
-    f1: "7",
-    epl: "7"
-  };
+  var CARD_VERSION = "10"; // <-- bump ONLY this number when cards.css/cards.js changes
   var BASE = "https://captainkirk666.github.io/sports-tables";
-  var sport = document.currentScript.getAttribute('data-sport');
-  var version = ADAPTER_VERSIONS[sport];
 
-  if (!sport || !version) {
-    console.error('adapter-loader.js: unknown or missing data-sport="' + sport + '"');
-    return;
-  }
-
-  document.write('<script src="' + BASE + '/js/v1/adapters/' + sport + '.js?v=' + version + '"><' + '/script>');
+  document.write('<link rel="stylesheet" href="' + BASE + '/css/v1/cards.css?v=' + CARD_VERSION + '">');
+  document.write('<script src="' + BASE + '/js/v1/cards.js?v=' + CARD_VERSION + '"><' + '/script>');
 })();
