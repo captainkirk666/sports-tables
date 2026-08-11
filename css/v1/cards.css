@@ -405,12 +405,16 @@ html:not([data-dt-size]) .card-fixture-team-name,
 [data-card-rowbg="on"] .card-list-row {
   background: #f0f0f0; /* matches tables.css's --dt-row-bg exactly */
 }
-/* Grey rule sits directly on the same element as the row background
-   above (not a separately-positioned line), so a border-bottom is
-   automatically flush against that background with no gap — "hard
-   up against the grey" falls out of the box model rather than
-   needing separate positioning. */
-[data-card-rule="on"] .card-list-row {
+/* Grey rule only draws when Row background is OFF. When rowbg is on,
+   the 3px white gap between grey blocks is already the visual
+   divider — a border line on that same edge doesn't add separation,
+   it just clutters it with a thin grey stripe competing against the
+   clean white gap (this was the actual bug behind "still no white
+   gap": the gap was there, but the rule's border was sitting right
+   on top of it, reading as a grey line rather than the clean white
+   band it should be). Off rowbg, a plain row still needs its own
+   divider, so rule works exactly as before there. */
+[data-card-rule="on"]:not([data-card-rowbg="on"]) .card-list-row {
   border-bottom: 1px solid #d0d0d0; /* matches tables.css's rule colour exactly */
 }
 .card-list-crest {
