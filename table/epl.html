@@ -5,6 +5,7 @@
 <title>EPL — Table</title>
 <script src="https://captainkirk666.github.io/sports-tables/js/loader.js"></script>
 <script src="https://captainkirk666.github.io/sports-tables/js/hub-loader.js"></script>
+<script src="https://captainkirk666.github.io/sports-tables/js/card-loader.js"></script>
 <style>
   /* Genuinely EPL-specific: just the hero art. Everything else
      comes from the shared hub.css (see hub-loader.js). */
@@ -64,7 +65,11 @@ initSportHub({
       title: "EPL Next Fixture",
       tableLabel: "Next Fixture",
       sportLogo: "../assets/logos/epl/epl-logo.png",
-      embedHref: "../embed/epl/next-fixture-card.html"
+      embedHref: "../embed/epl/next-fixture-card.html",
+      sourceUrl: EPL_ADAPTERS.nextFixtureCard.sourceUrl,
+      adapter: EPL_ADAPTERS.nextFixtureCard,
+      variant: "fixture",
+      eyebrow: "EPL"
     }
   ]
 });
