@@ -29,7 +29,7 @@
  * to ~10 minutes after an edit.
  */
 (function () {
-  var CARD_VERSION = "12"; // <-- bump ONLY this number when cards.css/cards.js changes
+  var CARD_VERSION = "13"; // <-- bump ONLY this number when cards.css/cards.js changes
   var BASE = "https://captainkirk666.github.io/sports-tables";
 
   document.write('<link rel="stylesheet" href="' + BASE + '/css/v1/cards.css?v=' + CARD_VERSION + '">');
