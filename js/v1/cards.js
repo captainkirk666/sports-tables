@@ -8,13 +8,20 @@
  *
  * config = {
  *   containerSelector: "#dt-app",
- *   variant: "preview" | "fixture" | "result",
+ *   variant: "preview" | "fixture" | "fixture-list" | "result",
  *   eyebrow: "Next Race",           // small label above the content
- *   sourceUrl: "https://...",
+ *   sourceUrl: "https://...",       // OR adapter.fetch() — see below
  *   adapter: {
  *     // Unlike tables.js, extract() returns ONE object (or null if
  *     // there's nothing to show — e.g. season over), not an array.
  *     extract(data) -> object | null,
+ *     // OPTIONAL escape hatch for adapters that can't be expressed
+ *     // as one plain GET (e.g. EPL_ADAPTERS.weekendFixtures()'s
+ *     // two-step authenticated football-data.org sequence). If
+ *     // present, this owns the entire fetch — sourceUrl is ignored
+ *     // — and must return a Promise resolving to the raw parsed
+ *     // JSON that extract() expects. See loadCardData() below.
+ *     fetch: () => Promise<object>,
  *   },
  *   refreshSeconds: 60,             // 0/undefined = no auto refresh
  * }
@@ -24,6 +31,8 @@
  * own URL (?size=...) by applyCardSizeFromQueryParams(), so
  * sport-hub.js's existing Size buttons drive card embeds exactly the
  * same way they drive table embeds (see buildEmbedUrl() there).
+ * Fixture-list is Full-width only — see sport-hub.js for where
+ * Standard/Compact get hidden for that specific card tab.
  *
  * Preview variant expects extract() to return:
  *   { headline, logoLeft?, logoRight?, flag?, location, date, time }
@@ -176,6 +185,75 @@ function renderResultCard(root, data, config) {
   `;
 }
 
+/**
+ * Fixture-list variant expects extract() to return:
+ *   { matchday?, rows: [{ homeName, awayName, homeCrest?, awayCrest?,
+ *     finished, live, homeScore?, awayScore?, homeScorers?,
+ *     awayScorers?, kickoff, venue? }] }
+ * Each ROW independently decides its own display — finished rows
+ * show the score + scorers, everything else shows kickoff + venue.
+ * That's the whole point: viewed mid-weekend, Friday/Saturday's
+ * results and Sunday's still-upcoming kickoff sit in the same list,
+ * no separate "mode" for the card as a whole. Full width only — the
+ * mirrored-column row layout doesn't have anywhere to go at
+ * Standard/Compact widths, see sport-hub.js for where that's
+ * enforced.
+ */
+function fixtureListRowHtml(row) {
+  const isDecided = row.finished || row.live;
+  const centerHtml = isDecided
+    ? `<span class="card-list-score">${row.homeScore}\u2013${row.awayScore}</span>${row.live ? '<span class="card-list-live">LIVE</span>' : ''}`
+    : `<span class="card-list-vs">vs</span>`;
+  const homeSub = row.finished ? (row.homeScorers || '') : row.kickoff;
+  const awaySub = row.finished ? (row.awayScorers || '') : (row.venue || '');
+  return `
+    <div class="card-list-row${row.live ? ' card-list-row-live' : ''}">
+      ${row.homeCrest ? `<img class="card-list-crest" src="${row.homeCrest}" alt="">` : '<span class="card-list-crest"></span>'}
+      <div class="card-list-home">
+        <span class="card-list-team-name">${row.homeName}</span>
+        ${homeSub ? `<span class="card-list-sub">${homeSub}</span>` : ''}
+      </div>
+      <div class="card-list-center">${centerHtml}</div>
+      <div class="card-list-away">
+        <span class="card-list-team-name">${row.awayName}</span>
+        ${awaySub ? `<span class="card-list-sub">${awaySub}</span>` : ''}
+      </div>
+      ${row.awayCrest ? `<img class="card-list-crest" src="${row.awayCrest}" alt="">` : '<span class="card-list-crest"></span>'}
+    </div>
+  `;
+}
+
+function renderFixtureListCard(root, data, config) {
+  const eyebrowText = (config.eyebrow || '') + (data.matchday ? ` RD ${data.matchday}` : '');
+  root.innerHTML = `
+    <div class="card-widget card-fixture-list-widget">
+      <div class="card-eyebrow">${eyebrowText}</div>
+      <div class="card-list-rows">
+        ${data.rows.map(fixtureListRowHtml).join('')}
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Escape hatch used by adapters that can't be expressed as a single
+ * plain GET — currently just EPL_ADAPTERS.weekendFixtures(), whose
+ * two-step authenticated football-data.org sequence doesn't fit the
+ * sourceUrl+plain-fetch shape every other adapter in this codebase
+ * uses. If adapter.fetch exists, it owns the entire fetch — must
+ * return a Promise resolving to the raw parsed JSON, same shape
+ * extract() would otherwise receive from a plain fetch(sourceUrl).
+ */
+function loadCardData(config) {
+  if (typeof config.adapter.fetch === 'function') {
+    return config.adapter.fetch();
+  }
+  return fetch(config.sourceUrl).then(res => {
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  });
+}
+
 function initCard(config) {
   applyCardSizeFromQueryParams();
   applyCardStyleFromQueryParams();
@@ -183,11 +261,7 @@ function initCard(config) {
   root.innerHTML = `<div class="card-widget"><p style="padding:1rem;">Loading…</p></div>`;
 
   function load() {
-    fetch(config.sourceUrl)
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
+    loadCardData(config)
       .then(raw => {
         const data = config.adapter.extract(raw);
         if (!data) {
@@ -198,6 +272,8 @@ function initCard(config) {
           renderResultCard(root, data, config);
         } else if (config.variant === 'fixture') {
           renderFixtureCard(root, data, config);
+        } else if (config.variant === 'fixture-list') {
+          renderFixtureListCard(root, data, config);
         } else {
           renderPreviewCard(root, data, config);
         }
