@@ -247,21 +247,21 @@ html:not([data-dt-size]) .card-fixture-widget .card-datetime,
 html:not([data-dt-size]) .card-fixture-widget .card-venue,
 [data-dt-size="full"] .card-fixture-widget .card-datetime,
 [data-dt-size="full"] .card-fixture-widget .card-venue { font-size: 0.75rem; }
-/* Logo height = card height: crest-left/crest-right each already span
-   BOTH content rows ("top" and "teams") via the grid-template-areas
-   above. height:100% (not auto) deliberately here — auto caused a
-   real bug: an auto-sized grid row's height is partly determined by
-   the max-content size of items inside it, and an <img> with
-   height:auto contributes its own INTRINSIC pixel size to that
-   calculation (ESPN's crests are ~500x500px), which inflated the row
-   to match the image, which then stretched to fill that now-massive
-   row — a circular feedback loop. Percentage heights are excluded
-   from that auto-sizing pass, so the row gets sized by the text
-   content only, and height:100% then resolves against that final,
-   correct size. Width stays auto, so the browser derives it from the
-   image's own aspect ratio rather than distorting it. */
+/* Logo height ≈ card height, via a fixed size rather than a
+   self-referencing percentage: TWO attempts at "stretch to fill the
+   grid area automatically" (align-self:stretch with height:auto,
+   then height:100%) both produced a circular blow-up in practice —
+   whatever CSS Grid's actual percentage-resolution behaviour is
+   here, it isn't excluding the image from the row's own auto-sizing
+   the way the spec's "definite vs indefinite size" rules suggested
+   it should. Rather than keep chasing that, this is a plain fixed
+   clamp — the same deterministic technique every other crest size in
+   this file already uses successfully — calibrated to roughly match
+   the compressed Full card's own ~2-line content height. Width stays
+   auto, so the browser derives it from the image's own aspect ratio
+   rather than distorting it. */
 html:not([data-dt-size]) .card-crest,
-[data-dt-size="full"] .card-crest { width: auto; height: 100%; }
+[data-dt-size="full"] .card-crest { width: auto; height: clamp(2.25rem, 11vw, 3rem); }
 html:not([data-dt-size]) .card-fixture-teams,
 [data-dt-size="full"] .card-fixture-teams { flex-direction: row; gap: 0.4rem; }
 html:not([data-dt-size]) .card-fixture-team-name,
