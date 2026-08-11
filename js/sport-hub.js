@@ -36,6 +36,11 @@
  *         sizeColumns: { compact: ["pos","driver","points"], standard: [...] } },
  *       ...
  *     ]
+ *     // cards: [...] is optional, same tab bar as tables — see
+ *     // activeCard()/refreshActiveCard() below. A card can set
+ *     // sizeRestricted: "full" to lock its tab to one Size and hide
+ *     // the other two buttons, for content that only makes sense at
+ *     // one width (e.g. a multi-row weekend fixture list).
  *   });
  *
  * This file relies on renderTableShell()/renderRows() from
@@ -600,6 +605,8 @@ function renderCardExportSurface() {
     renderResultCard(surface, hub.cardData, config);
   } else if (card.variant === 'fixture') {
     renderFixtureCard(surface, hub.cardData, config);
+  } else if (card.variant === 'fixture-list') {
+    renderFixtureListCard(surface, hub.cardData, config);
   } else {
     renderPreviewCard(surface, hub.cardData, config);
   }
@@ -793,6 +800,24 @@ function refreshLivePreviewTitle() {
   el.textContent = hub.activeType === "card" ? "Upcoming Matches" : "Live preview";
 }
 
+/* Some cards only make sense at one size — the weekend fixture list's
+ * mirrored-column row layout has nowhere sensible to go at Standard/
+ * Compact widths, so a card can set sizeRestricted: "full" (or any
+ * single size key) in its hub config and the other two Size buttons
+ * hide for that tab, forcing hub.previewSize back to the allowed
+ * value if it wasn't already there. Tables and unrestricted cards
+ * (the single Next Fixture card) see all three buttons as normal. */
+function refreshSizeControlsForActiveTab() {
+  const card = hub.activeType === "card" ? activeCard() : null;
+  const restricted = card && card.sizeRestricted;
+  document.querySelectorAll("#preview-size-controls .preview-size-option").forEach(el => {
+    el.style.display = (!restricted || el.dataset.key === restricted) ? "" : "none";
+  });
+  if (restricted && hub.previewSize !== restricted) {
+    selectPreviewSize(restricted);
+  }
+}
+
 function refreshActiveCard() {
   const card = activeCard();
   const heroLogo = card.sportLogo ? `<img class="hero-logo" src="${card.sportLogo}" alt="">` : '';
@@ -800,20 +825,21 @@ function refreshActiveCard() {
   document.title = `${card.title} — Live sports data cards`;
 
   refreshStyleThemePanelForType();
+  refreshSizeControlsForActiveTab();
   refreshLivePreviewTitle();
   updateStylePreview();
 
   // The hub page now fetches the card's data itself too, not just the
   // live-preview iframe — needed so Download PDF/PNG has something to
-  // render (see renderCardExportSurface()).
+  // render (see renderCardExportSurface()). loadCardData() (defined
+  // in cards.js, loaded here via card-loader.js) is the SAME loader
+  // the live embed iframe uses — handles adapter.fetch() escape-hatch
+  // adapters (e.g. weekendFixtures()) exactly like a plain sourceUrl
+  // one, so this doesn't need its own duplicate branching.
   hub.cardData = null;
   document.getElementById("print-surface").innerHTML = `<p style="padding:1rem;">Loading…</p>`;
 
-  fetch(card.sourceUrl)
-    .then(res => {
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return res.json();
-    })
+  loadCardData(card)
     .then(raw => {
       hub.cardData = card.adapter.extract(raw);
       if (!hub.cardData) {
@@ -829,6 +855,7 @@ function refreshActiveCard() {
 
 function refreshActiveTable() {
   refreshStyleThemePanelForType();
+  refreshSizeControlsForActiveTab();
   refreshLivePreviewTitle();
 
   const table = activeTable();
