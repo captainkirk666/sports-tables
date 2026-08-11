@@ -367,23 +367,17 @@ html:not([data-dt-size]) .card-fixture-team-name,
 .card-fixture-list-widget {
   text-align: left;
 }
-/* Adopts tables.css's .dt-title treatment exactly (left-aligned,
-   bold uppercase, 4px accent-coloured left border) rather than the
-   small centered .card-eyebrow style every other card variant uses —
-   scoped to this card specifically, not a change to the shared base
-   rule, so Next Fixture/Preview/Result are untouched. Uses
-   --card-secondary-color rather than tables.css's --dt-title-color/
-   --dt-accent, since cards have their own colour-variable namespace,
-   but it's the same underlying idea: falls back to the accent red
-   unless Secondary colour has been explicitly picked. */
+/* Left-aligned, bold uppercase, sized like a table header — matches
+   League Table's title treatment. NOT a literal copy of tables.css's
+   .dt-title, though: that has a 4px accent-coloured left border,
+   which read as an unwanted vertical line here — removed per
+   request, keeping everything else about the header-style sizing. */
 .card-fixture-list-widget .card-eyebrow {
   display: flex;
   align-items: center;
   text-align: left;
   font-size: 1.19rem;
   letter-spacing: 0.02em;
-  border-left: 4px solid var(--card-secondary-color);
-  padding-left: 8px;
   margin-bottom: 0.6rem;
 }
 .card-list-rows {
@@ -411,26 +405,25 @@ html:not([data-dt-size]) .card-fixture-team-name,
   grid-template-columns: auto 1fr 4rem 1fr auto;
   align-items: center;
   column-gap: 0.6rem;
-  padding: 0.5rem 1.5rem;
+  padding: 2px 1.5rem; /* was 0.5rem (8px) — 12px shallower per request */
 }
 [data-card-rowbg="on"] .card-list-row {
   background: #f0f0f0; /* matches tables.css's --dt-row-bg exactly */
 }
-/* Grey rule only draws when Row background is OFF. When rowbg is on,
-   the 3px white gap between grey blocks is already the visual
-   divider — a border line on that same edge doesn't add separation,
-   it just clutters it with a thin grey stripe competing against the
-   clean white gap (this was the actual bug behind "still no white
-   gap": the gap was there, but the rule's border was sitting right
-   on top of it, reading as a grey line rather than the clean white
-   band it should be). Off rowbg, a plain row still needs its own
-   divider, so rule works exactly as before there. */
-[data-card-rule="on"]:not([data-card-rowbg="on"]) .card-list-row {
+/* Rule now draws regardless of Row background — the earlier
+   suppression (rule only when rowbg was off) was working around what
+   turned out to be a different bug (the outer card background also
+   turning grey, hiding the gap entirely, unrelated to this border).
+   Now that's fixed at the source, rule and rowbg can both be on
+   simultaneously without conflict — sitting directly on the same
+   element as the row background, so it's still automatically flush
+   against it. */
+[data-card-rule="on"] .card-list-row {
   border-bottom: 1px solid #d0d0d0; /* matches tables.css's rule colour exactly */
 }
 .card-list-crest {
-  width: clamp(1.4rem, 4vw, 2.1rem);
-  height: clamp(1.4rem, 4vw, 2.1rem);
+  width: clamp(1.6rem, 4.6vw, 2.4rem); /* was clamp(1.4rem, 4vw, 2.1rem) — 15% bigger per request */
+  height: clamp(1.6rem, 4.6vw, 2.4rem);
   object-fit: contain;
 }
 .card-list-home,
