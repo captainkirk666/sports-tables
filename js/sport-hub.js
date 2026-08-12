@@ -470,11 +470,11 @@ function selectPreviewSize(key) {
       hub.controls.logos = false;
     }
   } else {
-    // Cards: Compact doesn't force logos off — the opposite, in fact
-    // (crests get bigger at Compact, see cards.css). Just make sure
-    // nothing is left disabled from a previous table-tab visit.
-    if (flagsInput) flagsInput.disabled = false;
-    if (logosInput) logosInput.disabled = false;
+    // Cards: disabled/checked state for Flags/Logos/Top 3 highlight
+    // is centralized in disabledControlsForActiveTab() (size-aware —
+    // see there), so a size change just needs to re-run that same
+    // sync, not duplicate its logic here.
+    syncControlsUI();
   }
 
   updateStylePreview();
@@ -552,10 +552,6 @@ function renderExportSurface() {
   const tbody = renderTableShell(surface, config, activeColumns);
   const limitedRows = hub.rowLimit ? hub.rows.slice(0, hub.rowLimit) : hub.rows;
   renderRows(tbody, activeColumns, limitedRows);
-  const updatedEl = surface.querySelector('.dt-updated');
-  if (updatedEl && hub.lastUpdated) {
-    updatedEl.textContent = 'Updated ' + hub.lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' — ';
-  }
 
   let pageStyle = document.getElementById('page-size-style');
   if (!pageStyle) {
@@ -791,18 +787,54 @@ function refreshStyleThemePanelForType() {
  * hub.cardStyle) is relevant for the currently active tab — needed
  * because the panel's DOM is generated once, not once per tab, so
  * switching tabs doesn't naturally update it on its own. */
+/* Which Controls checkboxes to grey out (disabled, not hidden) for
+ * the currently active tab — genuinely non-functional controls, not
+ * a size restriction. A clickable checkbox that visibly toggles but
+ * silently does nothing is worse than no checkbox at all, hence
+ * disabled rather than left inert. Declared per-card via
+ * unsupportedControls (e.g. ["flags","podium"]) rather than
+ * hardcoded here, since a future card variant might genuinely
+ * support Flags (a Preview-variant card showing a country flag next
+ * to a location, say) — this only disables what a given card
+ * explicitly says it doesn't support. Tables and any card without
+ * the field return no disabled controls. */
+function disabledControlsForActiveTab() {
+  if (hub.activeType !== "card") return [];
+  const card = activeCard();
+  if (!card) return [];
+  const base = card.unsupportedControls || [];
+  // Logos is functional everywhere else, but gets disabled-and-
+  // locked-on specifically for the weekend-fixtures card at Compact —
+  // crests are load-bearing there (not optional decoration), unlike
+  // every other card/size where the toggle genuinely does something.
+  const sizeSpecific = (card.key === "weekend-fixtures" && hub.previewSize === "compact") ? ["logos"] : [];
+  return [...base, ...sizeSpecific];
+}
+
 function syncControlsUI() {
   const controls = currentControls();
   const style = currentStyle();
+  const disabled = disabledControlsForActiveTab();
 
   const flagsInput = document.getElementById("control-flags");
-  if (flagsInput) flagsInput.checked = controls.flags;
+  if (flagsInput) {
+    flagsInput.checked = controls.flags;
+    flagsInput.disabled = disabled.includes("flags");
+  }
   const logosInput = document.getElementById("control-logos");
-  if (logosInput) logosInput.checked = controls.logos;
+  if (logosInput) {
+    const logosDisabled = disabled.includes("logos");
+    logosInput.disabled = logosDisabled;
+    logosInput.checked = logosDisabled ? true : controls.logos;
+    if (logosDisabled) controls.logos = true;
+  }
   const rowbgInput = document.getElementById("control-rowbg");
   if (rowbgInput) rowbgInput.checked = controls.rowBg;
   const podiumInput = document.getElementById("control-podium");
-  if (podiumInput) podiumInput.checked = controls.podium;
+  if (podiumInput) {
+    podiumInput.checked = controls.podium;
+    podiumInput.disabled = disabled.includes("podium");
+  }
   const ruleInput = document.getElementById("control-rule");
   if (ruleInput) ruleInput.checked = controls.rule;
 
