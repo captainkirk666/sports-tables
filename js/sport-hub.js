@@ -627,7 +627,7 @@ function renderCardExportSurface() {
   applyCardExportThemeAttributes();
 
   const surface = document.getElementById("print-surface");
-  const config = { eyebrow: card.eyebrow || '' };
+  const config = { eyebrow: card.eyebrow || '', sportLogo: card.sportLogo || null };
   if (card.variant === 'result') {
     renderResultCard(surface, hub.cardData, config);
   } else if (card.variant === 'fixture') {
