@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>EPL Weekend Fixtures</title>
+<title>EPL Matches</title>
 <script src="https://captainkirk666.github.io/sports-tables/js/card-loader.js"></script>
 </head>
 <body>
@@ -12,7 +12,8 @@
 initCard({
   containerSelector: "#dt-app",
   variant: "fixture-list",
-  eyebrow: "EPL",
+  eyebrow: "EPL Matches",
+  sportLogo: "../../assets/logos/epl/epl-logo.png",
   adapter: EPL_ADAPTERS.weekendFixtures(),
   refreshSeconds: 300
 });
