@@ -32,20 +32,15 @@ function eplCrest(entry) {
 }
 
 /**
- * Whole-league "next kickoff" card — deliberately NOT scoped to any
- * one team. ESPN's scoreboard endpoint, called with no ?dates= param
- * at all, auto-advances to the next matchday that actually has
- * scheduled games (verified directly against the live endpoint —
- * during pre-season it returned the season's opening weekend rather
- * than an empty "today"). That self-advancing behaviour is exactly
- * what a single-fetch "next kickoff, any two teams" card needs, so
- * this reuses the bare scoreboard URL with no date filtering.
- *
- * A per-team version of this card (e.g. "Arsenal's next match")
- * would need the /teams/{id}/schedule endpoint instead — deliberately
- * not used here, since multiple reports elsewhere show that endpoint
- * going dead/changing shape without notice. Worth revisiting if a
- * team-scoped card is wanted later, but re-verify it's alive first.
+ * Finds the chronologically-next unplayed fixture from a bare (no
+ * ?dates=) scoreboard response — ESPN's endpoint self-advances to
+ * the next matchday with any scheduled games when called with no
+ * date filter at all (verified directly against the live endpoint).
+ * Originally powered a standalone "next kickoff" card; that card's
+ * been retired (superseded by the weekend fixture list) but this
+ * function is still needed internally, as the anchor point
+ * eplFetchWeekendEvents() uses to work out which Friday–Monday
+ * window to fetch.
  */
 function eplFindNextFixture(data) {
   const events = data.events || [];
@@ -56,41 +51,6 @@ function eplFindNextFixture(data) {
 }
 function eplCompetitor(comp, homeAway) {
   return (comp.competitors || []).find(c => c.homeAway === homeAway) || null;
-}
-/**
- * Fixture card date format: "Saturday 6 August, 2026" — day-of-week
- * plus ordinal day plus full month, no time (the fixture card design
- * doesn't show kickoff time, only the date and venue). Mixed case
- * here deliberately, same convention as dt-title elsewhere on the
- * site — cards.css applies text-transform via CSS, not baked into
- * the string, so this stays reusable if a future context wants
- * normal case.
- */
-function eplOrdinal(n) {
-  const s = ["th", "st", "nd", "rd"], v = n % 100;
-  return s[(v - 20) % 10] || s[v] || s[0];
-}
-function eplFormatFixtureDate(iso) {
-  if (!iso) return "Date TBC";
-  const d = new Date(iso);
-  const weekday = d.toLocaleDateString('en-GB', { weekday: 'long' });
-  const month = d.toLocaleDateString('en-GB', { month: 'long' });
-  const day = d.getDate();
-  return `${weekday} ${day}${eplOrdinal(day)} ${month}, ${d.getFullYear()}`;
-}
-/**
- * Short form for the Compact card size only — "Sat, 22nd Aug", no
- * year. Full/Standard keep the long form above (renderFixtureCard()
- * in cards.js picks between the two based on the current
- * [data-dt-size]).
- */
-function eplFormatFixtureDateShort(iso) {
-  if (!iso) return "TBC";
-  const d = new Date(iso);
-  const weekday = d.toLocaleDateString('en-GB', { weekday: 'short' });
-  const month = d.toLocaleDateString('en-GB', { month: 'short' });
-  const day = d.getDate();
-  return `${weekday}, ${day}${eplOrdinal(day)} ${month}`;
 }
 
 /**
@@ -104,8 +64,7 @@ function eplFormatFixtureDateShort(iso) {
  * the correctness tradeoff already discussed at length: no round/
  * matchday field, so "this weekend's games" means a date-window
  * heuristic rather than an authoritative boundary. Also means no
- * "EPL RD XX" round label — same reason nextFixtureCard's eyebrow
- * above is just "EPL", no number.
+ * "EPL RD XX" round label.
  *
  * Approach: fetch the bare scoreboard (no ?dates=) to find the next
  * unplayed fixture, same trick eplFindNextFixture() above already
@@ -148,16 +107,23 @@ function eplWeekendWindowDates(anchorDate) {
   return dates;
 }
 /**
- * Weekday + time, e.g. "Sat 15:00" — was time-only before, which is
- * ambiguous once a list spans several different days (Fri through
- * Mon). Compact enough to still fit the row's sub-line slot.
+ * Weekday + day + month + time, e.g. "Sat 23 Aug, 15:00" — the
+ * previous version was weekday + time only ("Sat 15:00"), which had
+ * no actual calendar date at all, just which day-of-week — genuinely
+ * ambiguous once a list spans several different weeks, not just
+ * different days. Time itself needs no separate handling for viewer
+ * timezone: toLocaleTimeString() without an explicit timeZone
+ * already renders in whatever timezone the visitor's own browser is
+ * set to — that was already correct, just not obviously so.
  */
 function eplFormatKickoffDateTime(iso) {
   if (!iso) return "TBC";
   const d = new Date(iso);
   const weekday = d.toLocaleDateString('en-GB', { weekday: 'short' });
+  const day = d.getDate();
+  const month = d.toLocaleDateString('en-GB', { month: 'short' });
   const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-  return `${weekday} ${time}`;
+  return `${weekday} ${day} ${month}, ${time}`;
 }
 function eplFetchWeekendEvents(weekOffset) {
   const base = "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard";
@@ -215,42 +181,11 @@ const EPL_ADAPTERS = {
     ],
   },
 
-  /* Card-shaped version — a single object, used by
-     embed/epl/next-fixture-card.html via cards.js/initCard()'s
-     "fixture" variant. Whole-league scope: whichever two teams kick
-     off next, not any one team's fixture — see eplFindNextFixture()
-     above for why. No round/matchweek number — ESPN's hidden API
-     doesn't expose one for soccer (confirmed against the live
-     endpoint and corroborated by other API consumers hitting the
-     same gap), so the card's eyebrow is just the static "EPL" label,
-     set in the embed page rather than computed here.
-
-     dateShort/venueShort are ONLY used at Compact size (see
-     renderFixtureCard() in cards.js) — Full/Standard use date/venue,
-     the fuller forms. */
-  nextFixtureCard: {
-    sourceUrl: "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard",
-    extract: data => {
-      const event = eplFindNextFixture(data);
-      if (!event) return null;
-      const comp = event.competitions[0];
-      const home = eplCompetitor(comp, "home");
-      const away = eplCompetitor(comp, "away");
-      if (!home || !away) return null;
-      const venue = comp.venue || {};
-      const city = venue.address && venue.address.city;
-      return {
-        homeName: home.team.shortDisplayName,
-        awayName: away.team.shortDisplayName,
-        homeCrest: home.team.logo || null,
-        awayCrest: away.team.logo || null,
-        date: eplFormatFixtureDate(event.date),
-        dateShort: eplFormatFixtureDateShort(event.date),
-        venue: city ? `${venue.fullName}, ${city}` : (venue.fullName || null),
-        venueShort: venue.fullName || null,
-      };
-    },
-  },
+  /* Card-shaped "next kickoff" adapter used to live here
+     (nextFixtureCard) — removed, superseded by weekendFixtures
+     below, which shows the same information (and more) as part of
+     the full weekend list. embed/epl/next-fixture-card.html and its
+     "Next Fixture" tab in table/epl.html were removed alongside it. */
 
   /* Full-width-only weekend fixture list — see the big comment block
      above for the ESPN day-window approach and its known limits.
@@ -275,6 +210,8 @@ const EPL_ADAPTERS = {
             return {
               homeName: home.team.displayName,
               awayName: away.team.displayName,
+              homeNameShort: home.team.shortDisplayName,
+              awayNameShort: away.team.shortDisplayName,
               homeCrest: home.team.logo || null,
               awayCrest: away.team.logo || null,
               finished, live,
