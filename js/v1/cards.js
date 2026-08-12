@@ -11,6 +11,7 @@
  *   variant: "preview" | "fixture" | "fixture-list" | "result",
  *   eyebrow: "Next Race",           // small label above the content
  *   sourceUrl: "https://...",       // OR adapter.fetch() — see below
+ *   sportLogo: "https://...",       // optional — shown alongside the eyebrow text, League Table's own .dt-title treatment (fixture-list variant only currently)
  *   adapter: {
  *     // Unlike tables.js, extract() returns ONE object (or null if
  *     // there's nothing to show — e.g. season over), not an array.
@@ -31,8 +32,6 @@
  * own URL (?size=...) by applyCardSizeFromQueryParams(), so
  * sport-hub.js's existing Size buttons drive card embeds exactly the
  * same way they drive table embeds (see buildEmbedUrl() there).
- * Fixture-list is Full-width only — see sport-hub.js for where
- * Standard/Compact get hidden for that specific card tab.
  *
  * Preview variant expects extract() to return:
  *   { headline, logoLeft?, logoRight?, flag?, location, date, time }
@@ -194,8 +193,9 @@ function renderResultCard(root, data, config) {
 
 /**
  * Fixture-list variant expects extract() to return:
- *   { rows: [{ homeName, awayName, homeCrest?, awayCrest?, finished,
- *     live, homeScore?, awayScore?, kickoff, venue? }] }
+ *   { rows: [{ homeName, awayName, homeNameShort?, awayNameShort?,
+ *     homeCrest?, awayCrest?, finished, live, homeScore?, awayScore?,
+ *     kickoff, venue? }] }
  * Each ROW independently decides its own display — finished rows
  * show the score, still-upcoming rows show kickoff + venue. That's
  * the whole point: viewed mid-weekend, Friday/Saturday's results and
@@ -203,11 +203,19 @@ function renderResultCard(root, data, config) {
  * "mode" for the card as a whole. No goal-scorer detail — the data
  * source (ESPN) doesn't reliably expose it without a much heavier
  * per-match fetch, dropped rather than built on unconfirmed data.
- * Full width only — the mirrored-column row layout doesn't have
- * anywhere to go at Standard/Compact widths, see sport-hub.js for
- * where that's enforced.
+ * homeNameShort/awayNameShort are only used at Compact size (falls
+ * back to the full name if absent) — same pattern as the single
+ * Fixture card's dateShort/venueShort. Compact also drops the
+ * kickoff/venue sub-line entirely (handled in cards.css, not here —
+ * a pure display:none, the data is still computed either way).
+ * config.sportLogo, if set, shows a logo alongside the eyebrow text
+ * — matches League Table's own .dt-title treatment (see cards.css).
  */
 function fixtureListRowHtml(row) {
+  const size = document.documentElement.getAttribute('data-dt-size') || 'full';
+  const isCompact = size === 'compact';
+  const homeName = (isCompact && row.homeNameShort) ? row.homeNameShort : row.homeName;
+  const awayName = (isCompact && row.awayNameShort) ? row.awayNameShort : row.awayName;
   const isDecided = row.finished || row.live;
   const centerHtml = isDecided
     ? `<span class="card-list-score">${row.homeScore}\u2013${row.awayScore}</span>${row.live ? '<span class="card-list-live">LIVE</span>' : ''}`
@@ -218,12 +226,12 @@ function fixtureListRowHtml(row) {
     <div class="card-list-row${row.live ? ' card-list-row-live' : ''}">
       ${row.homeCrest ? `<img class="card-list-crest" src="${row.homeCrest}" alt="">` : '<span class="card-list-crest"></span>'}
       <div class="card-list-home">
-        <span class="card-list-team-name">${row.homeName}</span>
+        <span class="card-list-team-name">${homeName}</span>
         ${homeSub ? `<span class="card-list-sub">${homeSub}</span>` : ''}
       </div>
       <div class="card-list-center">${centerHtml}</div>
       <div class="card-list-away">
-        <span class="card-list-team-name">${row.awayName}</span>
+        <span class="card-list-team-name">${awayName}</span>
         ${awaySub ? `<span class="card-list-sub">${awaySub}</span>` : ''}
       </div>
       ${row.awayCrest ? `<img class="card-list-crest" src="${row.awayCrest}" alt="">` : '<span class="card-list-crest"></span>'}
@@ -232,9 +240,10 @@ function fixtureListRowHtml(row) {
 }
 
 function renderFixtureListCard(root, data, config) {
+  const logoHtml = config.sportLogo ? `<img class="card-eyebrow-logo" src="${config.sportLogo}" alt="">` : '';
   root.innerHTML = `
     <div class="card-widget card-fixture-list-widget">
-      <div class="card-eyebrow">${config.eyebrow || ''}</div>
+      <div class="card-eyebrow">${logoHtml}<span class="card-eyebrow-text">${config.eyebrow || ''}</span></div>
       <div class="card-list-rows">
         ${data.rows.map(fixtureListRowHtml).join('')}
       </div>
