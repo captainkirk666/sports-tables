@@ -60,19 +60,6 @@ initSportHub({
   ],
   cards: [
     {
-      key: "next-fixture",
-      label: "Next Fixture",
-      title: "EPL Next Fixture",
-      tableLabel: "Next Fixture",
-      sportLogo: "../assets/logos/epl/epl-logo.png",
-      embedHref: "../embed/epl/next-fixture-card.html",
-      sourceUrl: EPL_ADAPTERS.nextFixtureCard.sourceUrl,
-      adapter: EPL_ADAPTERS.nextFixtureCard,
-      variant: "fixture",
-      eyebrow: "EPL",
-      liveTitle: "Next Fixture"
-    },
-    {
       key: "weekend-fixtures",
       label: "EPL Matches",
       title: "EPL Matches",
@@ -81,8 +68,7 @@ initSportHub({
       embedHref: "../embed/epl/weekend-fixtures.html",
       adapter: EPL_ADAPTERS.weekendFixtures(),
       variant: "fixture-list",
-      eyebrow: "EPL",
-      sizeRestricted: ["full", "standard"],
+      eyebrow: "EPL Matches",
       liveTitle: "EPL Matches"
     }
   ]
