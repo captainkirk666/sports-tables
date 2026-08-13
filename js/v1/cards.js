@@ -247,6 +247,7 @@ function renderFixtureListCard(root, data, config) {
       <div class="card-list-rows">
         ${data.rows.map(fixtureListRowHtml).join('')}
       </div>
+      <div class="card-footer">Source: KIKA MEDIA</div>
     </div>
   `;
 }
