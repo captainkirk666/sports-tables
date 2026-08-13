@@ -391,6 +391,16 @@ html:not([data-dt-size]) .card-fixture-team-name,
   min-width: 0;
   line-height: 0.85;
 }
+/* Matches tables.css's .dt-footer exactly (0.63rem) rather than this
+   card system's own slightly larger default .card-footer (0.7rem,
+   used by Preview/Result) — per request to match F1's tables
+   specifically. No .dt-updated equivalent — just the static text,
+   no "Updated HH:MM —" prefix. Same size across all three card
+   sizes, not scaled down further at Standard/Compact. */
+.card-fixture-list-widget .card-footer {
+  font-size: 0.63rem;
+  margin-top: 0.15rem;
+}
 .card-list-rows {
   display: flex;
   flex-direction: column;
