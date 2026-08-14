@@ -444,6 +444,16 @@ html:not([data-dt-size]) .card-fixture-team-name,
   height: clamp(1.6rem, 4.6vw, 2.4rem);
   object-fit: contain;
 }
+/* Explicit column pins — WITHOUT these, hiding a crest via
+   [data-card-logos="off"] removes it from the grid's implicit
+   auto-placement sequence entirely, which shifts every sibling after
+   it one column left (home lands in the crest track, center lands in
+   a 1fr track instead of the fixed one, away gets crushed into the
+   narrow center track — exactly the misalignment reported). Pinning
+   each element to its real column means a hidden crest just leaves
+   an empty track rather than reshuffling everything after it. */
+.card-list-row > .card-list-crest:first-child { grid-column: 1; }
+.card-list-row > .card-list-crest:last-child { grid-column: 5; }
 .card-list-home,
 .card-list-away {
   display: flex;
@@ -453,10 +463,12 @@ html:not([data-dt-size]) .card-fixture-team-name,
 .card-list-home {
   align-items: flex-end;
   text-align: right;
+  grid-column: 2;
 }
 .card-list-away {
   align-items: flex-start;
   text-align: left;
+  grid-column: 4;
 }
 .card-list-team-name {
   font-size: 1rem;
@@ -481,6 +493,7 @@ html:not([data-dt-size]) .card-fixture-team-name,
   flex-direction: column;
   align-items: center;
   gap: 0.1rem;
+  grid-column: 3;
 }
 .card-list-vs {
   font-size: 1.7rem; /* doubled per request, was 0.85rem */
