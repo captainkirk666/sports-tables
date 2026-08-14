@@ -804,9 +804,10 @@ function disabledControlsForActiveTab() {
   if (!card) return [];
   const base = card.unsupportedControls || [];
   // Logos is functional everywhere else, but gets disabled-and-
-  // locked-on specifically for the weekend-fixtures card at Compact —
-  // crests are load-bearing there (not optional decoration), unlike
-  // every other card/size where the toggle genuinely does something.
+  // locked-OFF specifically for the weekend-fixtures card at Compact
+  // — not enough width there for both crests and readable team
+  // names at once, so crests lose. (Previously locked ON — flipped
+  // per updated request.)
   const sizeSpecific = (card.key === "weekend-fixtures" && hub.previewSize === "compact") ? ["logos"] : [];
   return [...base, ...sizeSpecific];
 }
@@ -825,8 +826,8 @@ function syncControlsUI() {
   if (logosInput) {
     const logosDisabled = disabled.includes("logos");
     logosInput.disabled = logosDisabled;
-    logosInput.checked = logosDisabled ? true : controls.logos;
-    if (logosDisabled) controls.logos = true;
+    logosInput.checked = logosDisabled ? false : controls.logos;
+    if (logosDisabled) controls.logos = false;
   }
   const rowbgInput = document.getElementById("control-rowbg");
   if (rowbgInput) rowbgInput.checked = controls.rowBg;
