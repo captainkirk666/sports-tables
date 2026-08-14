@@ -108,6 +108,14 @@ function applyCardStyleFromQueryParams(variant) {
   if (logos === 'off') {
     document.documentElement.setAttribute('data-card-logos', 'off');
   }
+  if (variant === 'fixture-list' && document.documentElement.getAttribute('data-dt-size') === 'compact') {
+    // Not enough width at Compact for both crests and readable team
+    // names — this is a hard rule, not a soft default, so it
+    // overrides any ?logos= param rather than just setting the
+    // default. Matches the Team logos toggle being disabled (not
+    // just unchecked) in the hub at this size.
+    document.documentElement.setAttribute('data-card-logos', 'off');
+  }
   if (variant === 'fixture-list') {
     if (rowbg !== 'off') document.documentElement.setAttribute('data-card-rowbg', 'on');
     if (rule !== 'off') document.documentElement.setAttribute('data-card-rule', 'on');
