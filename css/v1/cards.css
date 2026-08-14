@@ -136,6 +136,7 @@ html, body { margin: 0; padding: 0; }
 .card-crest-left  { grid-area: crest-left; justify-self: end; }
 .card-crest-right { grid-area: crest-right; justify-self: start; }
 [data-card-logos="off"] .card-crest { display: none; }
+[data-card-logos="off"] .card-list-crest { display: none; } /* was missing — the actual cause of "Team logos toggle doesn't do anything" on the weekend-fixtures card at Full/Standard */
 
 .card-fixture-topline {
   display: contents; /* default: eyebrow + meta are independent grid items — see full override below, which merges them onto one line */
