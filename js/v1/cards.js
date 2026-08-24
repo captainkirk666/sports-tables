@@ -87,11 +87,11 @@ function applyCardStyleFromQueryParams(variant) {
   const params = new URLSearchParams(window.location.search);
   const titleColor = params.get('titleColor');         // hex without '#' — team name colour, default var(--card-text)
   const secondaryColor = params.get('secondaryColor');  // hex without '#' — the eyebrow word's colour, default var(--card-accent)
-  const logos = params.get('logos');   // 'off' hides the crest images; default shown
-  const flags = params.get('flags');   // 'on' shows the country flag; default hidden — same direction as tables.js's own Flags control, opposite of logos above
-  const rowbg = params.get('rowbg');
-  const rule = params.get('rule');
-  const podium = params.get('podium');   // 'on' turns the headline field gold (Top 3 highlight); default off, same direction as rule/rowbg below
+  const logos = params.get('logos');   // 'off' hides the crest images; default shown (fixture-list Compact forces this regardless, see below)
+  const flags = params.get('flags');   // shows the country flag/logo; default direction is variant-dependent — see the per-variant block below (off by default except on 'preview', which defaults on)
+  const rowbg = params.get('rowbg');   // default direction is variant-dependent, see below
+  const rule = params.get('rule');     // default direction is variant-dependent, see below
+  const podium = params.get('podium'); // turns the headline/row background gold (Top 3 highlight); default direction is variant-dependent, see below
 
   if (titleColor && /^[0-9a-fA-F]{6}$/.test(titleColor)) {
     document.documentElement.style.setProperty('--card-title-color', `#${titleColor}`);
@@ -102,9 +102,6 @@ function applyCardStyleFromQueryParams(variant) {
   if (logos === 'off') {
     document.documentElement.setAttribute('data-card-logos', 'off');
   }
-  if (flags === 'on') {
-    document.documentElement.setAttribute('data-card-flags', 'on');
-  }
   if (variant === 'fixture-list' && document.documentElement.getAttribute('data-dt-size') === 'compact') {
     // Not enough width at Compact for both crests and readable team
     // names — this is a hard rule, not a soft default, so it
@@ -114,9 +111,22 @@ function applyCardStyleFromQueryParams(variant) {
     document.documentElement.setAttribute('data-card-logos', 'off');
   }
   if (variant === 'fixture-list') {
+    if (flags === 'on') document.documentElement.setAttribute('data-card-flags', 'on');
     if (rowbg !== 'off') document.documentElement.setAttribute('data-card-rowbg', 'on');
     if (rule !== 'off') document.documentElement.setAttribute('data-card-rule', 'on');
+  } else if (variant === 'preview') {
+    // F1 Next Race — all four functional controls default ON, not
+    // just rowbg/rule like fixture-list above. Applies here too
+    // (not just in sport-hub.js's hub.cardControls defaults) so the
+    // standalone embed page — loaded with no query params at all —
+    // also shows this way by default, not just the hub-driven
+    // preview.
+    if (flags !== 'off') document.documentElement.setAttribute('data-card-flags', 'on');
+    if (rowbg !== 'off') document.documentElement.setAttribute('data-card-rowbg', 'on');
+    if (rule !== 'off') document.documentElement.setAttribute('data-card-rule', 'on');
+    if (podium !== 'off') document.documentElement.setAttribute('data-card-podium', 'on');
   } else {
+    if (flags === 'on') document.documentElement.setAttribute('data-card-flags', 'on');
     if (rowbg === 'on') {
       document.documentElement.setAttribute('data-card-rowbg', 'on');
     }
