@@ -102,15 +102,16 @@ let hub = {
   controls: { flags: false, logos: false, rowBg: true, podium: false, rule: true },
   /* Cards share the SAME UI (same checkboxes, same colour buttons —
      see renderStyleThemePanel()) but need their own state, since
-     their sensible defaults are different from tables': logos
-     default ON (crests are the whole point of a fixture card, unlike
-     tables' small optional row icons), rowBg/rule default OFF
-     (preserves the card's original plain-white look now that these
-     are opt-in additions rather than part of the initial design).
-     flags/podium are tracked here too even though they currently do
-     nothing on cards — see cards.css, "in but unusable for now". */
+     their sensible defaults are different from tables'. This bucket
+     is currently the F1 Next Race card's — logos default OFF (it's
+     an unsupported control there, see that card's config in
+     table/f1.html), flags default OFF (shows the host country's
+     flag only once explicitly toggled on, same direction as tables'
+     own Flags control), rowBg/rule default OFF (preserves the
+     card's plain look; both are opt-in). podium is tracked here too
+     even though it currently does nothing on cards. */
   cardStyle: { titleColor: null, posColor: null, pointsColor: null },
-  cardControls: { flags: false, logos: true, rowBg: false, podium: false, rule: false },
+  cardControls: { flags: false, logos: false, rowBg: false, podium: false, rule: false },
   /* The weekend fixture list is a genuine table-like list (many
      rows), not a single-event card — so unlike cardControls above,
      it defaults rowBg/rule BOTH on, same direction as tables. Kept
@@ -283,6 +284,7 @@ function buildEmbedUrl() {
     if (style.titleColor) params.set("titleColor", style.titleColor);
     if (style.posColor) params.set("secondaryColor", style.posColor);
     if (!controls.logos) params.set("logos", "off");
+    if (controls.flags) params.set("flags", "on"); // default off, opposite direction from logos above
     if (card.variant === "fixture-list") {
       // Defaults ON for this card — only send a param when turning
       // OFF from that default (see applyCardStyleFromQueryParams()
@@ -601,6 +603,7 @@ function applyCardExportThemeAttributes() {
   else el.style.removeProperty('--card-secondary-color');
 
   if (!controls.logos) el.setAttribute('data-card-logos', 'off'); else el.removeAttribute('data-card-logos');
+  if (controls.flags) el.setAttribute('data-card-flags', 'on'); else el.removeAttribute('data-card-flags');
   if (controls.rowBg) el.setAttribute('data-card-rowbg', 'on'); else el.removeAttribute('data-card-rowbg');
   if (controls.rule) el.setAttribute('data-card-rule', 'on'); else el.removeAttribute('data-card-rule');
 }
