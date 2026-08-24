@@ -296,6 +296,7 @@ function buildEmbedUrl() {
       // send a param when turning ON.
       if (controls.rowBg) params.set("rowbg", "on");
       if (controls.rule) params.set("rule", "on");
+      if (controls.podium) params.set("podium", "on");
     }
     if (hub.previewSize === "compact" || hub.previewSize === "standard") {
       params.set("size", hub.previewSize);
@@ -606,6 +607,7 @@ function applyCardExportThemeAttributes() {
   if (controls.flags) el.setAttribute('data-card-flags', 'on'); else el.removeAttribute('data-card-flags');
   if (controls.rowBg) el.setAttribute('data-card-rowbg', 'on'); else el.removeAttribute('data-card-rowbg');
   if (controls.rule) el.setAttribute('data-card-rule', 'on'); else el.removeAttribute('data-card-rule');
+  if (controls.podium) el.setAttribute('data-card-podium', 'on'); else el.removeAttribute('data-card-podium');
 }
 
 /* Card equivalent of renderExportSurface() — reuses cards.js's own
@@ -879,17 +881,35 @@ function refreshLivePreviewTitle() {
  * (an array — a single size still works too, e.g. "full") in its hub
  * config and any size NOT in that list hides its button for that
  * tab, forcing hub.previewSize back to the first allowed value if it
- * wasn't already one of them. Tables and unrestricted cards (the
- * single Next Fixture card) see all three buttons as normal. */
+ * wasn't already one of them. Tables and unrestricted cards see all
+ * three buttons as normal.
+ *
+ * sizeDisabled is the same idea but a different treatment — greyed
+ * out and unclickable rather than hidden entirely, for a size that's
+ * still conceptually valid but not worth offering (e.g. the F1 Next
+ * Race card: Full width just wastes space on this little data, so
+ * the button stays visible as a reminder it exists, disabled rather
+ * than removed). Can be combined with sizeRestricted on the same
+ * card if a size needs both treatments somewhere, though in practice
+ * a size is normally one or the other. */
 function refreshSizeControlsForActiveTab() {
   const card = hub.activeType === "card" ? activeCard() : null;
   const restricted = card && card.sizeRestricted;
   const allowed = restricted ? (Array.isArray(restricted) ? restricted : [restricted]) : null;
+  const disabledRaw = card && card.sizeDisabled;
+  const disabledSizes = disabledRaw ? (Array.isArray(disabledRaw) ? disabledRaw : [disabledRaw]) : [];
+
   document.querySelectorAll("#preview-size-controls .preview-size-option").forEach(el => {
-    el.style.display = (!allowed || allowed.includes(el.dataset.key)) ? "" : "none";
+    const key = el.dataset.key;
+    el.style.display = (!allowed || allowed.includes(key)) ? "" : "none";
+    el.disabled = disabledSizes.includes(key);
   });
+
   if (allowed && !allowed.includes(hub.previewSize)) {
     selectPreviewSize(allowed[0]);
+  } else if (disabledSizes.includes(hub.previewSize)) {
+    const fallback = ["full", "standard", "compact"].find(k => !disabledSizes.includes(k) && (!allowed || allowed.includes(k)));
+    if (fallback) selectPreviewSize(fallback);
   }
 }
 
