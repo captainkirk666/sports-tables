@@ -45,43 +45,73 @@ html, body { margin: 0; padding: 0; }
   margin-bottom: 0.5rem;
 }
 
-/* ---------- Preview variant (Next Race, upcoming fixtures) ---------- */
-.card-headline {
+/* ---------- Preview variant (Next Race, upcoming fixtures) ----------
+   Redesigned to match a reference mockup: left-aligned throughout
+   (not centered, unlike the base .card-widget default), a full-bleed
+   black "Round N" bar and a full-bleed grey headline block sitting
+   directly on top of each other with no gap, then a plain date/time/
+   location line below. Both bars use the same bleed-cancel technique
+   already established for the fixture-list card's row background —
+   negative margin cancels .card-widget's own 1.5rem horizontal
+   padding, each bar restores it as its own padding, so the CONTENT
+   still lines up with everything else on the card while the
+   background colour itself reaches the true edge. */
+.card-preview {
+  text-align: left;
+}
+.card-preview .card-eyebrow {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  font-size: 1.4rem;
+  align-items: flex-end;
+  gap: 6px;
+  margin-bottom: 0.75rem;
+}
+.card-preview-round {
+  margin: 0 -1.5rem;
+  padding: 0.4rem 1.5rem;
+  background: #111;
+  color: #fff;
+  font-size: 0.85rem;
   font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.card-preview-headline {
+  margin: 0 -1.5rem;
+  padding: 0.85rem 1.5rem;
+  background: #f0f0f0; /* matches tables.css's --dt-row-bg exactly */
   color: var(--card-title-color);
-  margin-bottom: 0.6rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 1.15;
 }
-.card-logo-left,
-.card-logo-right {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
-}
-.card-location {
+.card-preview-meta {
+  margin-top: 0.6rem;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
+  gap: 0.3rem 0.75rem;
   font-size: 0.95rem;
+}
+.card-datetime {
+  font-weight: 600;
+  color: var(--card-text);
+}
+.card-preview-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   color: var(--card-text-secondary);
-  margin-bottom: 0.25rem;
 }
 .card-flag {
+  display: none; /* default hidden — same convention as tables.css's own Flags control (off by default), opposite direction from Team logos above */
   width: 20px;
   height: 14px;
   object-fit: cover;
   border-radius: 2px;
 }
-.card-datetime {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--card-text);
+[data-card-flags="on"] .card-flag {
+  display: inline-block;
 }
 
 /* ---------- Fixture variant (two-team matchup preview, e.g. EPL) ----------
