@@ -24,7 +24,7 @@
 (function () {
   var ADAPTER_VERSIONS = {
     f1: "9",
-    epl: "10"
+    epl: "11"
   };
   var BASE = "https://captainkirk666.github.io/sports-tables";
   var sport = document.currentScript.getAttribute('data-sport');
