@@ -23,7 +23,7 @@
  */
 (function () {
   var ADAPTER_VERSIONS = {
-    f1: "7",
+    f1: "8",
     epl: "10"
   };
   var BASE = "https://captainkirk666.github.io/sports-tables";
