@@ -91,6 +91,7 @@ function applyCardStyleFromQueryParams(variant) {
   const flags = params.get('flags');   // 'on' shows the country flag; default hidden — same direction as tables.js's own Flags control, opposite of logos above
   const rowbg = params.get('rowbg');
   const rule = params.get('rule');
+  const podium = params.get('podium');   // 'on' turns the headline field gold (Top 3 highlight); default off, same direction as rule/rowbg below
 
   if (titleColor && /^[0-9a-fA-F]{6}$/.test(titleColor)) {
     document.documentElement.style.setProperty('--card-title-color', `#${titleColor}`);
@@ -121,6 +122,9 @@ function applyCardStyleFromQueryParams(variant) {
     }
     if (rule === 'on') {
       document.documentElement.setAttribute('data-card-rule', 'on');
+    }
+    if (podium === 'on') {
+      document.documentElement.setAttribute('data-card-podium', 'on');
     }
   }
 }
