@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>F1 Sprint Results</title>
+<script src="https://captainkirk666.github.io/sports-tables/js/loader.js"></script>
+</head>
+<body>
+<div id="dt-app"></div>
+<script data-sport="f1" src="https://captainkirk666.github.io/sports-tables/js/adapter-loader.js"></script>
+<script>
+initTable({
+  containerSelector: "#dt-app",
+  title: "Sprint Results",
+  sportLogo: "../../assets/logos/f1/f1-logo.png",
+  sourceUrl: F1_ADAPTERS.sprintResults.sourceUrl,
+  adapter: F1_ADAPTERS.sprintResults,
+  refreshSeconds: 20,
+  attribution: { label: "Data: Jolpica F1", href: "https://github.com/jolpica/jolpica-f1" }
+});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.9/iframeResizer.contentWindow.min.js"></script>
+</body>
+</html>
