@@ -3,18 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <title>F1 Next Race</title>
-<link rel="stylesheet" href="../../css/v1/cards.css?v=1">
+<script src="https://captainkirk666.github.io/sports-tables/js/card-loader.js"></script>
 </head>
 <body>
 <div id="dt-app"></div>
-<script src="../../js/v1/flags.js?v=2"></script>
-<script src="../../js/v1/adapters/f1.js?v=6"></script>
-<script src="../../js/v1/cards.js?v=1"></script>
+<script data-sport="f1" src="https://captainkirk666.github.io/sports-tables/js/adapter-loader.js"></script>
 <script>
 initCard({
   containerSelector: "#dt-app",
   variant: "preview",
   eyebrow: "Next Race",
+  sportLogo: "../../assets/logos/f1/f1-logo.png",
   sourceUrl: F1_ADAPTERS.nextRaceCard.sourceUrl,
   adapter: F1_ADAPTERS.nextRaceCard,
   refreshSeconds: 60
