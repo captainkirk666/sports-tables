@@ -105,13 +105,12 @@ let hub = {
      their sensible defaults are different from tables'. This bucket
      is currently the F1 Next Race card's — logos default OFF (it's
      an unsupported control there, see that card's config in
-     table/f1.html), flags default OFF (shows the host country's
-     flag only once explicitly toggled on, same direction as tables'
-     own Flags control), rowBg/rule default OFF (preserves the
-     card's plain look; both are opt-in). podium is tracked here too
-     even though it currently does nothing on cards. */
+     table/f1.html; toggling it does nothing regardless of this
+     value). flags/rowBg/podium/rule all default ON per request —
+     all four of the actually-functional controls on this card start
+     enabled, rather than each needing to be turned on individually. */
   cardStyle: { titleColor: null, posColor: null, pointsColor: null },
-  cardControls: { flags: false, logos: false, rowBg: false, podium: false, rule: false },
+  cardControls: { flags: true, logos: false, rowBg: true, podium: true, rule: true },
   /* The weekend fixture list is a genuine table-like list (many
      rows), not a single-event card — so unlike cardControls above,
      it defaults rowBg/rule BOTH on, same direction as tables. Kept
