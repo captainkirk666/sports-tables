@@ -11,7 +11,7 @@
  *   variant: "preview" | "fixture" | "fixture-list" | "result",
  *   eyebrow: "Next Race",           // small label above the content
  *   sourceUrl: "https://...",       // OR adapter.fetch() — see below
- *   sportLogo: "https://...",       // optional — shown alongside the eyebrow text, League Table's own .dt-title treatment (fixture-list variant only currently)
+ *   sportLogo: "https://...",       // optional — shown alongside the eyebrow text, League Table's own .dt-title treatment (Preview and fixture-list variants)
  *   adapter: {
  *     // Unlike tables.js, extract() returns ONE object (or null if
  *     // there's nothing to show — e.g. season over), not an array.
@@ -32,14 +32,6 @@
  * own URL (?size=...) by applyCardSizeFromQueryParams(), so
  * sport-hub.js's existing Size buttons drive card embeds exactly the
  * same way they drive table embeds (see buildEmbedUrl() there).
- *
- * Preview variant expects extract() to return:
- *   { headline, logoLeft?, logoRight?, flag?, location, date, time }
- *   headline is a plain string — either an event name ("British
- *   Grand Prix") or a fixture ("Arsenal v Chelsea"), built by the
- *   adapter. logoLeft/logoRight are only relevant for genuine
- *   two-team fixtures; leave them out (or null) for single-event
- *   content like a Grand Prix.
  *
  * Result variant expects extract() to return:
  *   { leftName, rightName, leftScore, rightScore, leftLogo?, rightLogo?, detail? }
@@ -96,6 +88,7 @@ function applyCardStyleFromQueryParams(variant) {
   const titleColor = params.get('titleColor');         // hex without '#' — team name colour, default var(--card-text)
   const secondaryColor = params.get('secondaryColor');  // hex without '#' — the eyebrow word's colour, default var(--card-accent)
   const logos = params.get('logos');   // 'off' hides the crest images; default shown
+  const flags = params.get('flags');   // 'on' shows the country flag; default hidden — same direction as tables.js's own Flags control, opposite of logos above
   const rowbg = params.get('rowbg');
   const rule = params.get('rule');
 
@@ -107,6 +100,9 @@ function applyCardStyleFromQueryParams(variant) {
   }
   if (logos === 'off') {
     document.documentElement.setAttribute('data-card-logos', 'off');
+  }
+  if (flags === 'on') {
+    document.documentElement.setAttribute('data-card-flags', 'on');
   }
   if (variant === 'fixture-list' && document.documentElement.getAttribute('data-dt-size') === 'compact') {
     // Not enough width at Compact for both crests and readable team
@@ -129,20 +125,29 @@ function applyCardStyleFromQueryParams(variant) {
   }
 }
 
+/**
+ * Preview variant expects extract() to return:
+ *   { headline, round?, flag?, location?, date, time }
+ * round is optional — only F1 has it right now, so the round bar
+ * only renders when data.round is present, same defensive pattern
+ * as flag/location. Dropped logoLeft/logoRight from the old design —
+ * F1 is the only Preview consumer and never used them (no second
+ * team on a Grand Prix), and the new layout (below) has no slot for
+ * them anyway.
+ */
 function renderPreviewCard(root, data, config) {
+  const logoHtml = config.sportLogo ? `<img class="card-eyebrow-logo" src="${config.sportLogo}" alt="">` : '';
+  const roundHtml = data.round ? `<div class="card-preview-round">Round ${data.round}</div>` : '';
+  const flagHtml = data.flag ? `<img class="card-flag" src="${data.flag}" alt="">` : '';
   root.innerHTML = `
     <div class="card-widget card-preview">
-      <div class="card-eyebrow">${config.eyebrow || ''}</div>
-      <div class="card-headline">
-        ${data.logoLeft ? `<img class="card-logo-left" src="${data.logoLeft}" alt="">` : ''}
-        <span>${data.headline}</span>
-        ${data.logoRight ? `<img class="card-logo-right" src="${data.logoRight}" alt="">` : ''}
+      <div class="card-eyebrow">${logoHtml}<span class="card-eyebrow-text">${config.eyebrow || ''}</span></div>
+      ${roundHtml}
+      <div class="card-preview-headline"><span>${data.headline}</span></div>
+      <div class="card-preview-meta">
+        <span class="card-datetime">${data.date} ${data.time}</span>
+        ${data.location ? `<span class="card-preview-location">${flagHtml}${data.location}</span>` : ''}
       </div>
-      <div class="card-location">
-        ${data.flag ? `<img class="card-flag" src="${data.flag}" alt="">` : ''}
-        <span>${data.location}</span>
-      </div>
-      <div class="card-datetime">${data.date} · ${data.time}</div>
       <div class="card-footer">Source: KIKA MEDIA</div>
     </div>
   `;
