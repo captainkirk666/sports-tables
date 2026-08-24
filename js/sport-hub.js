@@ -701,7 +701,13 @@ function downloadPng() {
     surface.style.left = '-9999px';
     surface.style.top = '0';
 
-    html2canvas(surface, { backgroundColor: '#ffffff', scale: 2 }).then(canvas => {
+    // useCORS:true — without it, html2canvas never attempts to load
+    // cross-origin images (flags from flagcdn.com, EPL's ESPN-hosted
+    // crests) at all; they just render blank with no error, which is
+    // exactly what was happening before this. F1's own crests are
+    // same-origin (self-hosted on this same github.io site) so were
+    // never affected — this only ever hit hotlinked images.
+    html2canvas(surface, { backgroundColor: '#ffffff', scale: 2, useCORS: true }).then(canvas => {
       surface.style.display = 'none';
       surface.style.position = '';
       surface.style.left = '';
@@ -738,7 +744,10 @@ function downloadPng() {
   const scrollEl = surface.querySelector('.dt-table-scroll');
   if (scrollEl) scrollEl.style.overflow = 'visible';
 
-  html2canvas(surface, { backgroundColor: '#ffffff', scale: 2 }).then(canvas => {
+  // useCORS:true — see the identical comment on the card export path
+  // above for why this was needed (flags/hotlinked crests rendering
+  // blank in PNG output with no error).
+  html2canvas(surface, { backgroundColor: '#ffffff', scale: 2, useCORS: true }).then(canvas => {
     surface.style.display = 'none';
     surface.style.position = '';
     surface.style.left = '';
