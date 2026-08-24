@@ -58,6 +58,12 @@ html, body { margin: 0; padding: 0; }
    background colour itself reaches the true edge. */
 .card-preview {
   text-align: left;
+  /* Bottom padding pared back specifically — was inheriting the same
+     1.25rem top AND bottom from .card-widget's uniform padding,
+     which left a lot of empty space below the date/venue line with
+     comparatively little above it. Top padding stays as-is (still
+     needed above the eyebrow); only bottom is reduced here. */
+  padding-bottom: 0.75rem;
 }
 .card-preview .card-eyebrow {
   display: flex;
@@ -72,9 +78,15 @@ html, body { margin: 0; padding: 0; }
      so that's the number matched here, not the smaller base value.
      .card-eyebrow-logo is already height:1.1em (em, not a fixed
      px/rem), so it auto-scales with this without needing its own
-     override. */
+     override. letter-spacing explicitly matched too (0.02em) — was
+     still inheriting the base .card-eyebrow rule's 0.08em, sized
+     originally for a small 0.75rem label; never updated when this
+     scaled up to header size, so tracking read noticeably looser
+     than .dt-title's actual 0.02em despite font-size/weight already
+     matching correctly. */
   font-size: 1.67rem;
   font-weight: 700;
+  letter-spacing: 0.02em;
 }
 [data-dt-size="compact"] .card-preview .card-eyebrow {
   /* Matches tables.css's own Compact-specific .dt-title override
@@ -163,7 +175,7 @@ html, body { margin: 0; padding: 0; }
   flex-shrink: 0;
 }
 .card-preview-meta {
-  margin-top: 0.25rem; /* was 0.6rem — tightened per request */
+  margin-top: 0.4rem; /* was 0.25rem — nudged up slightly as part of rebalancing this field's vertical space (see .card-preview's padding-bottom above, reduced in the same pass) */
   display: flex;
   flex-wrap: wrap;
   align-items: center;
