@@ -149,7 +149,7 @@ function renderPreviewCard(root, data, config) {
       ${roundHtml}
       <div class="card-preview-headline">${flagHtml}<span>${data.headline}</span></div>
       <div class="card-preview-meta">
-        <span class="card-datetime">${data.date} ${data.time}</span>
+        <span class="card-datetime">${data.date}</span>
         ${data.location ? `<span class="card-preview-location">${data.location}</span>` : ''}
       </div>
     </div>
