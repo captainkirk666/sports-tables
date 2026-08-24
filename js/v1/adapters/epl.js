@@ -107,23 +107,20 @@ function eplWeekendWindowDates(anchorDate) {
   return dates;
 }
 /**
- * Weekday + day + month + time, e.g. "Sat 23 Aug, 15:00" — the
- * previous version was weekday + time only ("Sat 15:00"), which had
- * no actual calendar date at all, just which day-of-week — genuinely
- * ambiguous once a list spans several different weeks, not just
- * different days. Time itself needs no separate handling for viewer
- * timezone: toLocaleTimeString() without an explicit timeZone
- * already renders in whatever timezone the visitor's own browser is
- * set to — that was already correct, just not obviously so.
+ * Weekday + day + month, e.g. "Sat 23 Aug" — no time. Time was
+ * dropped entirely per request (across all cards, not just this
+ * one) — it's genuinely ambiguous to a viewer unfamiliar with UTC,
+ * even though it was already rendering correctly in each visitor's
+ * own local timezone via toLocaleTimeString() without an explicit
+ * timeZone argument.
  */
-function eplFormatKickoffDateTime(iso) {
+function eplFormatKickoffDate(iso) {
   if (!iso) return "TBC";
   const d = new Date(iso);
   const weekday = d.toLocaleDateString('en-GB', { weekday: 'short' });
   const day = d.getDate();
   const month = d.toLocaleDateString('en-GB', { month: 'short' });
-  const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-  return `${weekday} ${day} ${month}, ${time}`;
+  return `${weekday} ${day} ${month}`;
 }
 function eplFetchWeekendEvents(weekOffset) {
   const base = "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard";
@@ -217,7 +214,7 @@ const EPL_ADAPTERS = {
               finished, live,
               homeScore: finished || live ? home.score : null,
               awayScore: finished || live ? away.score : null,
-              kickoff: eplFormatKickoffDateTime(e.date),
+              kickoff: eplFormatKickoffDate(e.date),
               venue: (comp.venue && comp.venue.fullName) || null,
             };
           }),
