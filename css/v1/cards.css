@@ -104,7 +104,7 @@ html, body { margin: 0; padding: 0; }
 }
 .card-preview-headline {
   margin: 0 -1.5rem;
-  padding: 0.85rem 1.5rem;
+  padding: 0.425rem 1.5rem; /* was 0.85rem — halved per request, too much space above/below the headline text */
   background: #f0f0f0; /* matches tables.css's --dt-row-bg exactly */
   color: var(--card-title-color);
   font-size: 1.5rem;
@@ -114,10 +114,29 @@ html, body { margin: 0; padding: 0; }
   /* Flag (when on) sits before the headline text now, not the meta
      line below — see renderPreviewCard() in cards.js. Flex row so it
      aligns as a genuine inline icon rather than stacking oddly with
-     wrapped headline text at narrow widths. */
+     wrapped headline text at narrow widths. Compact overrides this
+     entirely below — a flex row can't keep the flag pinned to just
+     the first line once the text wraps to two lines, which is common
+     at Compact's width. */
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+/* Compact: flag floats rather than sitting in a flex row, so the
+   headline text wraps naturally AROUND it — "[FLAG] Italian" on line
+   1, "Grand Prix" flowing to line 2 if it doesn't all fit, or
+   "[FLAG] Italian Grand Prix" on one line if it does. A flex row
+   can't do this — align-items:center would vertically centre the
+   flag against the FULL height of two wrapped lines, making it look
+   like it's floating between them rather than sitting with the
+   first. */
+[data-dt-size="compact"] .card-preview-headline {
+  display: block;
+}
+[data-dt-size="compact"] .card-preview-headline .card-flag {
+  float: left;
+  margin-right: 0.4rem;
+  margin-top: 0.15rem; /* nudges the flag down slightly to align with the text's cap-height rather than the very top of the line */
 }
 /* Grey rule — sits directly between the headline field and the date/
    venue details below it, exact same stroke as tables.css's own rule
