@@ -143,13 +143,13 @@ function renderPreviewCard(root, data, config) {
     <div class="card-widget card-preview">
       <div class="card-eyebrow">${logoHtml}<span class="card-eyebrow-text">${config.eyebrow || ''}</span></div>
       ${roundHtml}
-      <div class="card-preview-headline"><span>${data.headline}</span></div>
+      <div class="card-preview-headline">${flagHtml}<span>${data.headline}</span></div>
       <div class="card-preview-meta">
         <span class="card-datetime">${data.date} ${data.time}</span>
-        ${data.location ? `<span class="card-preview-location">${flagHtml}${data.location}</span>` : ''}
+        ${data.location ? `<span class="card-preview-location">${data.location}</span>` : ''}
       </div>
-      <div class="card-footer">Source: KIKA MEDIA</div>
     </div>
+    <div class="card-footer">Source: KIKA MEDIA</div>
   `;
 }
 
@@ -199,8 +199,8 @@ function renderResultCard(root, data, config) {
         </div>
       </div>
       ${data.detail ? `<div class="card-detail">${data.detail}</div>` : ''}
-      <div class="card-footer">Source: KIKA MEDIA</div>
     </div>
+    <div class="card-footer">Source: KIKA MEDIA</div>
   `;
 }
 
@@ -260,8 +260,8 @@ function renderFixtureListCard(root, data, config) {
       <div class="card-list-rows">
         ${data.rows.map(fixtureListRowHtml).join('')}
       </div>
-      <div class="card-footer">Source: KIKA MEDIA</div>
     </div>
+    <div class="card-footer">Source: KIKA MEDIA</div>
   `;
 }
 
