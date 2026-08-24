@@ -94,6 +94,21 @@ initSportHub({
       }
     },
     {
+      key: "sprintresults",
+      label: "Sprint Results",
+      title: "F1 Sprint Results",
+      tableLabel: "Sprint Results",
+      sportLogo: "../assets/logos/f1/f1-logo.png",
+      embedHref: "../embed/f1/sprint-results.html",
+      sourceUrl: F1_ADAPTERS.sprintResults.sourceUrl,
+      adapter: F1_ADAPTERS.sprintResults,
+      attribution: { label: "Jolpica F1" },
+      sizeColumns: {
+        compact: ["pos", "driver", "points"],
+        standard: ["pos", "driver", "team", "points"]
+      }
+    },
+    {
       key: "nextrace",
       label: "Next Race",
       title: "F1 Next Race",
