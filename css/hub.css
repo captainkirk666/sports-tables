@@ -211,6 +211,10 @@ body {
   border-color: #e10600;
   font-weight: 600;
 }
+.preview-size-option:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 
 #embed-code {
   display: block;
