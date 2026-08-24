@@ -64,6 +64,26 @@ html, body { margin: 0; padding: 0; }
   align-items: flex-end;
   gap: 6px;
   margin-bottom: 0.75rem;
+  /* Matches Driver Standings' actual applied header size exactly —
+     tables.css's .dt-title is 1.19rem at its base, but every live
+     table runs with data-dt-font="robotocondensed", which bumps it
+     to 1.67rem (see tables.css's font-specific override block) —
+     that's the size actually visible on the Driver Standings table,
+     so that's the number matched here, not the smaller base value.
+     .card-eyebrow-logo is already height:1.1em (em, not a fixed
+     px/rem), so it auto-scales with this without needing its own
+     override. */
+  font-size: 1.67rem;
+  font-weight: 700;
+}
+[data-dt-size="compact"] .card-preview .card-eyebrow {
+  /* Matches tables.css's own Compact-specific .dt-title override
+     (0.95rem) exactly, including the same side-by-side-to-stacked
+     layout switch at this width. */
+  font-size: 0.95rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
 }
 .card-preview-round {
   margin: 0 -1.5rem;
@@ -84,6 +104,22 @@ html, body { margin: 0; padding: 0; }
   font-weight: 700;
   text-transform: uppercase;
   line-height: 1.15;
+  /* Flag (when on) sits before the headline text now, not the meta
+     line below — see renderPreviewCard() in cards.js. Flex row so it
+     aligns as a genuine inline icon rather than stacking oddly with
+     wrapped headline text at narrow widths. */
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.card-preview-headline .card-flag {
+  /* Bigger than the base 20x14 — that size was tuned for sitting
+     inline with small 0.95rem meta text; this flag now sits next to
+     1.5rem headline text and needs to read proportionally, not look
+     like an afterthought. */
+  width: 28px;
+  height: 20px;
+  flex-shrink: 0;
 }
 .card-preview-meta {
   margin-top: 0.6rem;
@@ -372,7 +408,14 @@ html:not([data-dt-size]) .card-fixture-team-name,
 }
 
 .card-footer {
-  margin-top: 0.75rem;
+  /* Now a SIBLING of .card-widget, not a child nested inside its
+     border/padding — per request, "Source: KIKA MEDIA" sits just
+     outside the card's bottom-right rather than inside it. Works
+     without any extra horizontal alignment: both .card-widget and
+     this are full-width block elements by default, so their right
+     edges already line up, and text-align:right here naturally lands
+     the text at the card's own right edge, just below its border. */
+  margin-top: 0.35rem;
   font-size: 0.7rem;
   color: var(--card-text-secondary);
   text-align: right;
@@ -427,8 +470,12 @@ html:not([data-dt-size]) .card-fixture-team-name,
    used by Preview/Result) — per request to match F1's tables
    specifically. No .dt-updated equivalent — just the static text,
    no "Updated HH:MM —" prefix. Same size across all three card
-   sizes, not scaled down further at Standard/Compact. */
-.card-fixture-list-widget .card-footer {
+   sizes, not scaled down further at Standard/Compact.
+   Adjacent-sibling combinator (+), not descendant — .card-footer
+   moved to sit OUTSIDE .card-widget as a sibling rather than nested
+   inside it (see cards.js), so the old descendant selector here
+   silently stopped matching anything once that changed. */
+.card-fixture-list-widget + .card-footer {
   font-size: 0.63rem;
   margin-top: 0.15rem;
 }
