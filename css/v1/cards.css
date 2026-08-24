@@ -88,9 +88,16 @@ html, body { margin: 0; padding: 0; }
 .card-preview-round {
   margin: 0 -1.5rem;
   padding: 0.4rem 1.5rem;
-  background: #111;
+  /* "Reverse out of black" standard — matches tables.css's own
+     .data-table th rule exactly (background:#000, color:#fff,
+     font-size:0.98rem, font-weight:700), which is the site's one
+     existing instance of this treatment. Treating those exact values
+     as the canonical standard now, rather than this bar having its
+     own independent numbers — anything else "reversed out of black"
+     added later should match these same four values. */
+  background: #000;
   color: #fff;
-  font-size: 0.85rem;
+  font-size: 0.98rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -112,6 +119,21 @@ html, body { margin: 0; padding: 0; }
   align-items: center;
   gap: 0.5rem;
 }
+/* Grey rule — sits directly between the headline field and the date/
+   venue details below it, exact same stroke as tables.css's own rule
+   (1px solid #d0d0d0), not a card-specific approximation. A
+   border-bottom on the headline field itself achieves "between the
+   two" without needing a separate line element. */
+[data-card-rule="on"] .card-preview-headline {
+  border-bottom: 1px solid #d0d0d0;
+}
+/* Top 3 highlight — turns the headline field gold, matching the
+   exact tint tables.css uses for a 1st-place podium row (#f0dfa8),
+   not a separately-chosen colour. Only gold — there's just one field
+   here, no second/third place to give silver/bronze to. */
+[data-card-podium="on"] .card-preview-headline {
+  background: #f0dfa8;
+}
 .card-preview-headline .card-flag {
   /* Bigger than the base 20x14 — that size was tuned for sitting
      inline with small 0.95rem meta text; this flag now sits next to
@@ -122,7 +144,7 @@ html, body { margin: 0; padding: 0; }
   flex-shrink: 0;
 }
 .card-preview-meta {
-  margin-top: 0.6rem;
+  margin-top: 0.25rem; /* was 0.6rem — tightened per request */
   display: flex;
   flex-wrap: wrap;
   align-items: center;
