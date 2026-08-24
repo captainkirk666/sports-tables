@@ -265,21 +265,11 @@ const F1_ADAPTERS = {
 
   /* Table-shaped version — a single-row table, used by
      embed/f1/next-race.html via tables.js/initTable(). */
-  nextRace: {
-    sourceUrl: "https://api.jolpi.ca/ergast/f1/current.json",
-    extract: data => {
-      const r = f1FindNextRace(data);
-      return r ? [r] : [];
-    },
-    columns: [
-      { key: "round",    label: "Round", compactLabel: "#", get: r => r.round, emphasis: true },
-      { key: "race",     label: "Race",  get: r => r.raceName },
-      { key: "circuit",  label: "Circuit", get: r => r.Circuit.circuitName },
-      { key: "location", label: "Location", get: r => `${r.Circuit.Location.locality}, ${r.Circuit.Location.country}`, flag: r => f1CircuitFlagUrl(r.Circuit.Location.country) },
-      { key: "date",     label: "Date",  get: r => formatRaceDate(r.date) },
-      { key: "time",     label: "Time",  get: r => formatRaceTime(r.time) },
-    ],
-  },
+  /* nextRace (table-shaped version) retired — Next Race is now a
+     card only (see nextRaceCard below), not a table tab. Removed
+     rather than left as unreferenced dead code. embed/f1/next-race.html
+     (the old table embed) is now orphaned too — needs deleting
+     manually via GitHub's UI, can't be done from here. */
 
   /* Card-shaped version — a single object, used by
      embed/f1/next-race-card.html via cards.js/initCard(). Same
@@ -293,6 +283,7 @@ const F1_ADAPTERS = {
       const r = f1FindNextRace(data);
       if (!r) return null;
       return {
+        round: r.round,
         headline: r.raceName,
         flag: f1CircuitFlagUrl(r.Circuit.Location.country),
         location: `${r.Circuit.Location.locality}, ${r.Circuit.Location.country}`,
