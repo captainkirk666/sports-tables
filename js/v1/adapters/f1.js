@@ -231,6 +231,38 @@ const F1_ADAPTERS = {
     ],
   },
 
+  /* Sprint Results — same shape/columns as raceResults above
+     (Jolpica's SprintResults array mirrors Results exactly: position,
+     Driver, Constructor, grid, laps, status, Time, FastestLap), but
+     CAN'T reuse raceResults' current/last/results.json trick — "last"
+     means the most recently completed ROUND overall, and most rounds
+     don't have a sprint at all. Fetching current/sprint.json instead
+     (every sprint this season, in round order — only rounds that
+     have ALREADY happened have SprintResults populated, same as any
+     other results-type endpoint) and taking the last entry gives the
+     most recently completed sprint specifically, not just the most
+     recent round. Sprints only exist from 2021 onward and typically
+     ~6 per season, so this can legitimately return no data for
+     stretches of the calendar — extract() returning [] handles that
+     the same way every other empty-state table on this site does. */
+  sprintResults: {
+    sourceUrl: "https://api.jolpi.ca/ergast/f1/current/sprint.json",
+    extract: data => {
+      const races = data.MRData.RaceTable.Races;
+      if (!races || !races.length) return [];
+      return races[races.length - 1].SprintResults || [];
+    },
+    columns: [
+      { key: "pos",      label: "Pos", compactLabel: "#", get: r => r.position, emphasis: true },
+      { key: "driver",   label: "Driver",   get: r => `${r.Driver.givenName} ${r.Driver.familyName}`, compactGet: r => r.Driver.familyName, shortenAt: ["compact", "standard"], flag: r => flagUrl(r.Driver.nationality) },
+      { key: "team",     label: "Team",     get: r => f1ShortTeamName(r.Constructor), compactGet: () => "", shortenAt: ["compact"], logo: r => f1TeamLogo(r.Constructor) },
+      { key: "laps",     label: "Laps",     get: r => r.laps, numeric: true },
+      { key: "raceTime", label: "Time / Status", get: r => r.Time ? r.Time.time : r.status },
+      { key: "fastest",  label: "Fastest Lap", get: r => r.FastestLap ? r.FastestLap.Time.time : "—" },
+      { key: "points",   label: "PTS",   get: r => r.points, numeric: true },
+    ],
+  },
+
   /* Table-shaped version — a single-row table, used by
      embed/f1/next-race.html via tables.js/initTable(). */
   nextRace: {
