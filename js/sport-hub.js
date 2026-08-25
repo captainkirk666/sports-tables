@@ -283,16 +283,30 @@ function buildEmbedUrl() {
     if (style.titleColor) params.set("titleColor", style.titleColor);
     if (style.posColor) params.set("secondaryColor", style.posColor);
     if (!controls.logos) params.set("logos", "off");
-    if (controls.flags) params.set("flags", "on"); // default off, opposite direction from logos above
+
     if (card.variant === "fixture-list") {
-      // Defaults ON for this card — only send a param when turning
-      // OFF from that default (see applyCardStyleFromQueryParams()
-      // in cards.js for the matching embed-side logic).
+      // Defaults ON for this card (rowbg/rule only — flags/podium
+      // aren't wired to anything here, see cards.css) — only send a
+      // param when turning OFF from that default.
+      if (controls.flags) params.set("flags", "on");
       if (!controls.rowBg) params.set("rowbg", "off");
       if (!controls.rule) params.set("rule", "off");
+    } else if (card.variant === "preview") {
+      // F1 Next Race — all four functional controls default ON, so
+      // (same direction as fixture-list above, just more of them)
+      // only send a param when turning OFF from that default. This
+      // explicit "off" is what makes unchecking a toggle actually
+      // work — omitting the param entirely just falls back to the
+      // embed page's own default-on behaviour regardless of what was
+      // unchecked in the hub, silently ignoring the click.
+      if (!controls.flags) params.set("flags", "off");
+      if (!controls.rowBg) params.set("rowbg", "off");
+      if (!controls.rule) params.set("rule", "off");
+      if (!controls.podium) params.set("podium", "off");
     } else {
-      // Every other card defaults OFF — opposite direction, only
-      // send a param when turning ON.
+      // Any other/future card defaults OFF — opposite direction,
+      // only send a param when turning ON.
+      if (controls.flags) params.set("flags", "on");
       if (controls.rowBg) params.set("rowbg", "on");
       if (controls.rule) params.set("rule", "on");
       if (controls.podium) params.set("podium", "on");
