@@ -24,16 +24,15 @@
 (function () {
   var ADAPTER_VERSIONS = {
     f1: "9",
-    epl: "11"
+    epl: "11",
+    nfl: "1"
   };
   var BASE = "https://captainkirk666.github.io/sports-tables";
   var sport = document.currentScript.getAttribute('data-sport');
   var version = ADAPTER_VERSIONS[sport];
-
   if (!sport || !version) {
     console.error('adapter-loader.js: unknown or missing data-sport="' + sport + '"');
     return;
   }
-
   document.write('<script src="' + BASE + '/js/v1/adapters/' + sport + '.js?v=' + version + '"><' + '/script>');
 })();
