@@ -11,17 +11,20 @@
  * developer API — so it can change shape without notice. Be a good
  * citizen: don't poll aggressively, cache what you can.
  *
- * NOTE: calling this endpoint with no query params returns only the
- * CURRENT calendar week's games. Add ?dates=YYYYMMDD or ?week=N to
- * the sourceUrl below if a future table needs a different week.
+ * NOTE: calling the scoreboard endpoint with no query params returns
+ * only the CURRENT calendar week's games. Add ?dates=YYYYMMDD or
+ * ?week=N to the sourceUrl below if a future table/card needs a
+ * different week.
  *
- * Standings deliberately NOT included yet — ESPN's standings data
- * lives on a different, less reliable "core" API
- * (sports.core.api.espn.com), split by conference, and early
- * inspection shows it may return $ref pointer objects instead of
- * inline team data (would need a second fetch per team to resolve).
- * Needs live verification before building — see handoff doc §4/§7
- * rule on verifying against live data before committing to a shape.
+ * Standings uses a separate endpoint —
+ * site.api.espn.com/apis/v2/sports/football/nfl/standings?level=3 —
+ * confirmed live to return real inline team data (not $ref pointers,
+ * an earlier concern before checking), same Conference -> Division
+ * -> teams nesting as the NBA adapter already handles.
+ *
+ * scores is a fixture-list CARD (see cards.js), not a table — same
+ * variant EPL's "EPL Matches" uses, since team-vs-team with a score
+ * reads more naturally than a table for this kind of data.
  */
 
 
@@ -90,6 +93,26 @@ function nflStatDisplay(entry, name) {
 }
 
 
+/**
+ * Weekday + day + month, e.g. "Sat 13 Sep" — no time, matching the
+ * project-wide decision already applied to EPL's fixture list (time
+ * is ambiguous to viewers unfamiliar with the displayed timezone,
+ * even though it renders correctly per-visitor via toLocaleString).
+ * NFL's own status.type.shortDetail (used for the table-shaped
+ * status column above) already includes a US-timezone time, but
+ * this card follows the site-wide no-time convention instead for
+ * consistency with EPL's card.
+ */
+function nflFormatGameDate(iso) {
+  if (!iso) return "TBC";
+  const d = new Date(iso);
+  const weekday = d.toLocaleDateString('en-US', { weekday: 'short' });
+  const day = d.getDate();
+  const month = d.toLocaleDateString('en-US', { month: 'short' });
+  return `${weekday} ${day} ${month}`;
+}
+
+
 const NFL_ADAPTERS = {
   /**
    * Flattens Conference -> Division -> teams into one 32-team list,
@@ -125,36 +148,49 @@ const NFL_ADAPTERS = {
     ],
   },
 
+  /**
+   * Fixture-list card — same variant/row shape as EPL's
+   * weekendFixtures, but genuinely simpler to build: NFL's
+   * scoreboard endpoint already scopes to "the current week" on its
+   * own with zero query params (confirmed live earlier — a bare
+   * call returned exactly that week's games), so none of EPL's
+   * 5-fetch date-window workaround is needed here. One plain
+   * sourceUrl + extract, same pattern as the standings adapter
+   * above — no fetch() escape hatch required.
+   *
+   * Superseded the earlier table-shaped "scores" adapter (columns:
+   * away/home/score/status) — that version is gone, not kept
+   * alongside this one. embed/nfl/scores.html and table/nfl.html's
+   * config both need updating to match (see chat) if not already.
+   */
   scores: {
     sourceUrl: "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard",
-    extract: data => data.events || [],
-    columns: [
-      {
-        key: "away",
-        label: "Away",
-        get: e => nflCompetitor(e, "away") ? nflCompetitor(e, "away").team.shortDisplayName : "—",
-        compactGet: e => nflCompetitor(e, "away") ? nflCompetitor(e, "away").team.abbreviation : "—",
-        logo: e => nflCompetitor(e, "away") ? nflCompetitor(e, "away").team.logo : null,
-      },
-      {
-        key: "home",
-        label: "Home",
-        get: e => nflCompetitor(e, "home") ? nflCompetitor(e, "home").team.shortDisplayName : "—",
-        compactGet: e => nflCompetitor(e, "home") ? nflCompetitor(e, "home").team.abbreviation : "—",
-        logo: e => nflCompetitor(e, "home") ? nflCompetitor(e, "home").team.logo : null,
-      },
-      {
-        key: "score",
-        label: "Score",
-        get: nflScoreDisplay,
-        emphasis: true,
-      },
-      {
-        key: "status",
-        label: "Status",
-        get: nflStatusDisplay,
-      },
-    ],
+    extract: data => {
+      const events = data.events || [];
+      if (!events.length) return null;
+      return {
+        rows: events.map(e => {
+          const comp = e.competitions[0];
+          const home = nflCompetitor(e, "home");
+          const away = nflCompetitor(e, "away");
+          const state = e.status.type.state; // "pre" | "in" | "post"
+          const finished = state === "post";
+          const live = state === "in";
+          return {
+            homeName: home ? home.team.displayName : "—",
+            awayName: away ? away.team.displayName : "—",
+            homeNameShort: home ? home.team.shortDisplayName : "—",
+            awayNameShort: away ? away.team.shortDisplayName : "—",
+            homeCrest: home ? home.team.logo : null,
+            awayCrest: away ? away.team.logo : null,
+            finished, live,
+            homeScore: finished || live ? (home ? home.score : null) : null,
+            awayScore: finished || live ? (away ? away.score : null) : null,
+            kickoff: nflFormatGameDate(e.date),
+            venue: (comp.venue && comp.venue.fullName) || null,
+          };
+        }),
+      };
+    },
   },
 };
-
