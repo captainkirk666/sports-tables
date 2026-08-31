@@ -49,24 +49,23 @@ initSportHub({
         compact: ["rank", "team", "wins", "losses"],
         standard: ["rank", "team", "wins", "losses", "ties", "pct"]
       }
-    },
-    {
-      key: "scores",
-      label: "Scores",
-      title: "NFL Scores",
-      tableLabel: "Scores",
-      sportLogo: "../assets/logos/nfl/nfl-logo.png",
-      embedHref: "../embed/nfl/scores.html",
-      sourceUrl: NFL_ADAPTERS.scores.sourceUrl,
-      adapter: NFL_ADAPTERS.scores,
-      attribution: { label: "Data: ESPN" },
-      sizeColumns: {
-        compact: ["away", "home", "score"],
-        standard: ["away", "home", "score", "status"]
-      }
     }
   ],
-  cards: []
+  cards: [
+    {
+      key: "scores",
+      label: "NFL Scores",
+      title: "NFL Scores",
+      tableLabel: "NFL Scores",
+      sportLogo: "../assets/logos/nfl/nfl-logo.png",
+      embedHref: "../embed/nfl/scores.html",
+      adapter: NFL_ADAPTERS.scores,
+      variant: "fixture-list",
+      eyebrow: "NFL Scores",
+      liveTitle: "NFL Scores",
+      unsupportedControls: ["flags", "podium"]
+    }
+  ]
 });
 </script>
 
