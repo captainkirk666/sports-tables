@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NFL Scores</title>
+<script src="https://captainkirk666.github.io/sports-tables/js/loader.js"></script>
+</head>
+<body>
+<div id="dt-app"></div>
+<script data-sport="nfl" src="https://captainkirk666.github.io/sports-tables/js/adapter-loader.js"></script>
+<script>
+initTable({
+  containerSelector: "#dt-app",
+  title: "Scores",
+  sportLogo: "../../assets/logos/nfl/nfl-logo.png",
+  sourceUrl: NFL_ADAPTERS.scores.sourceUrl,
+  adapter: NFL_ADAPTERS.scores,
+  refreshSeconds: 30,
+  attribution: { label: "Data: ESPN" }
+});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.9/iframeResizer.contentWindow.min.js"></script>
+</body>
+</html>
