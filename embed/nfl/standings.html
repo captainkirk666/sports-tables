@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NFL Standings</title>
+<script src="https://captainkirk666.github.io/sports-tables/js/loader.js"></script>
+</head>
+<body>
+<div id="dt-app"></div>
+<script data-sport="nfl" src="https://captainkirk666.github.io/sports-tables/js/adapter-loader.js"></script>
+<script>
+initTable({
+  containerSelector: "#dt-app",
+  title: "Standings",
+  sportLogo: "../../assets/logos/nfl/nfl-logo.png",
+  sourceUrl: NFL_ADAPTERS.standings.sourceUrl,
+  adapter: NFL_ADAPTERS.standings,
+  refreshSeconds: 300,
+  attribution: { label: "Data: ESPN" }
+});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.9/iframeResizer.contentWindow.min.js"></script>
+</body>
+</html>
