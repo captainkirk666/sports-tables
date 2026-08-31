@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NFL</title>
+<script src="https://captainkirk666.github.io/sports-tables/js/loader.js"></script>
+<script src="https://captainkirk666.github.io/sports-tables/js/hub-loader.js"></script>
+<script src="https://captainkirk666.github.io/sports-tables/js/card-loader.js"></script>
+</head>
+<body>
+
+<div id="site-nav" data-active="nfl"></div>
+
+<section class="hero">
+  <div class="hero-content">
+    <h1 id="page-title">NFL Standings</h1>
+    <p>Live data. Any style. Your brand.</p>
+  </div>
+
+  <div id="table-tabs" class="table-tabs"></div>
+</section>
+
+<div class="layout">
+  <div class="panel" id="style-theme-panel"></div>
+  <div class="panel" id="live-preview-panel"></div>
+</div>
+
+<div id="print-surface"></div>
+
+<script src="https://captainkirk666.github.io/sports-tables/js/site-nav.js"></script>
+<script data-sport="nfl" src="https://captainkirk666.github.io/sports-tables/js/adapter-loader.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.9/iframeResizer.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+initSportHub({
+  sport: "NFL",
+  tables: [
+    {
+      key: "standings",
+      label: "Standings",
+      title: "NFL Standings",
+      tableLabel: "Standings",
+      sportLogo: "../assets/logos/nfl/nfl-logo.png",
+      embedHref: "../embed/nfl/standings.html",
+      sourceUrl: NFL_ADAPTERS.standings.sourceUrl,
+      adapter: NFL_ADAPTERS.standings,
+      attribution: { label: "Data: ESPN" },
+      sizeColumns: {
+        compact: ["rank", "team", "wins", "losses"],
+        standard: ["rank", "team", "wins", "losses", "ties", "pct"]
+      }
+    },
+    {
+      key: "scores",
+      label: "Scores",
+      title: "NFL Scores",
+      tableLabel: "Scores",
+      sportLogo: "../assets/logos/nfl/nfl-logo.png",
+      embedHref: "../embed/nfl/scores.html",
+      sourceUrl: NFL_ADAPTERS.scores.sourceUrl,
+      adapter: NFL_ADAPTERS.scores,
+      attribution: { label: "Data: ESPN" },
+      sizeColumns: {
+        compact: ["away", "home", "score"],
+        standard: ["away", "home", "score", "status"]
+      }
+    }
+  ],
+  cards: []
+});
+</script>
+
+</body>
+</html>
